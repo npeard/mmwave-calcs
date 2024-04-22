@@ -30,4 +30,11 @@ You can edit the Python code in the repo and your Jupyter notebook
 simultaneously. Restart your Jupyter kernel to reload any Python code you 
 edit in your Python IDE.
 
+## Contributing
+Whenever you want to edit or add to the repo, checkout a new Git branch.
+
+Make your edits.
+
+Create a pull request for your branch.
+
 ## Test Cases 

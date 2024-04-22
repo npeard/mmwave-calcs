@@ -62,11 +62,21 @@ class ExciteRydberg:
 
 	@staticmethod
 	@njit('complex128[:](complex128[:], float64[:,:])')
-	def get_dot_rho(rho, H):
+	def compute_dot_rho(rho, H):
 		rho = np.reshape(rho.copy(), (3, 3))
 		Ht = H.astype(np.complex128)
 
 		return np.ravel(-1j * (Ht @ rho - rho @ Ht))
+
+	def get_dot_rho(self, t, rho, duration, delay, hold, probe_peak_power,
+					Omega23):
+		probe_power = (pulses.get_BlackmanPulse(t, duration, delay, hold) *
+					   probe_peak_power)
+		Omega12 = self.func_Omega12_from_Power(probe_power).item()
+		Ht = self.get_hamiltonian(Omega12, Omega23, self.Delta,
+								   self.delta)
+
+		return self.compute_dot_rho(rho, Ht)
 
 	@staticmethod
 	@njit('Tuple((float64[:], float64[:], float64[:]))(float64[:,:,:], '
@@ -82,7 +92,7 @@ class ExciteRydberg:
 		for i, U in enumerate(U_array):
 			# psi = np.matmul(U, psi)
 			psi_array[i, :] = psi
-			psi = U @ psi
+			psi = np.ascontiguousarray(U) @ psi
 
 		G_pop = np.abs(psi_array[:,0])**2
 		E_pop = np.abs(psi_array[:,1])**2
@@ -96,9 +106,11 @@ class ExciteRydberg:
 		# define time vector
 		max_Omega12 = self.func_Omega12_from_Power(probe_peak_power)
 		max_Omega23 = self.func_Omega23_from_Power(couple_power)
-		if self.Delta is None:
+		if Delta is None:
 			self.Delta = self.transition.get_OptimalDetuning(
 				rabiFreq1=max_Omega12, rabiFreq2=max_Omega23)
+		else:
+			self.Delta = Delta
 		max_freq = np.max([max_Omega12, max_Omega23, self.Delta])
 		stop_time = delay + duration + hold + 10e-9
 		self.time_array = np.linspace(0, stop_time, int(2 * stop_time *
@@ -118,13 +130,6 @@ class ExciteRydberg:
 		self.delta = self.transition.get_DiffRydACStark(probe_peak_power, couple_power)
 
 		# calculate Hamiltonians
-		# H_array = np.zeros((self.time_array.shape[0], 3, 3))
-		# for i, time in enumerate(self.time_array):
-		# 	H_array[i, :, :] = self.get_hamiltonian(
-		# 		Omega12=Omega12_array[i],
-		# 		Omega23=Omega23,
-		# 		Delta=self.Delta, delta=self.delta
-		# 	)
 		H_array = self.get_hamiltonian_array(
 			Omega12=Omega12_array, Omega23=Omega23, Delta=self.Delta,
 			delta=self.delta)
@@ -140,9 +145,11 @@ class ExciteRydberg:
 		# define time vector
 		max_Omega12 = self.func_Omega12_from_Power(probe_peak_power)
 		max_Omega23 = self.func_Omega23_from_Power(couple_power)
-		if self.Delta is None:
+		if Delta is None:
 			self.Delta = self.transition.get_OptimalDetuning(
 				rabiFreq1=max_Omega12, rabiFreq2=max_Omega23)
+		else:
+			self.Delta = Delta
 		max_freq = np.max([max_Omega12, max_Omega23, self.Delta])
 		stop_time = delay + duration + hold + 10e-9
 		self.time_array = np.linspace(0, stop_time, int(2 * stop_time *
@@ -165,8 +172,12 @@ class ExciteRydberg:
 		sol = solve_ivp(self.get_dot_rho, y0=np.ravel(self.rho0),
 						t_span=[np.min(self.time_array), np.max(
 							self.time_array)], t_eval=self.time_array, args=(
-			duration, delay, hold, probe_peak_power, Omega23, Delta, diffAC))
-		time = sol.t
-		rho_t = np.reshape(sol.y, (3, 3, len(time)))
+			duration, delay, hold, probe_peak_power, Omega23))
+		rho_t = np.reshape(sol.y, (3, 3, len(self.time_array)))
+
+		# populations
+		G_pop = rho_t[0,0,:]
+		E_pop = rho_t[1,1,:]
+		R_pop = rho_t[2,2,:]
 
 		return G_pop, E_pop, R_pop, self.probe_power, self.time_array
