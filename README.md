@@ -1,6 +1,6 @@
 # mm-wave Lab Physics Models
 
-This is our repository of shared code for simulations and calculations of 
+This is our repository of shared code for calculations of 
 interest to mm-wave Lab. 
 
 For a minimal working example of the format and function we are going for, 
@@ -33,8 +33,13 @@ edit in your Python IDE.
 ## Contributing
 Whenever you want to edit or add to the repo, checkout a new Git branch.
 
-Make your edits.
+Make your edits, making commits and pushing code to your branch as 
+you go.
 
-Create a pull request for your branch.
+Create a pull request for your branch. One colleague needs to review and 
+approve your code before you can merge your branch. Consider using the 
+automated PyLinter to edit your code to match the PEP8 style guide. 
 
-## Test Cases 
+Once your code is approved, merge commit the branch and then delete it. 
+
+Repeat as necessary.
