@@ -6,7 +6,7 @@ import numpy as np
 import models.rydberg_calcs as calcs
 
 
-def whiteGateError(FWHM1, FWHM2, Pp, Pc, N=1 / 2):
+def white_gate_error(FWHM1, FWHM2, Pp, Pc, N=1 / 2):
     # Calculate the gate error for a pi*N gate due to laser phase noise
     transition = calcs.RydbergTransition()
     rabiFreqTotal = transition.get_totalRabiAngularFreq(Pp, Pc)  # in 2pi*Hz
@@ -18,7 +18,7 @@ def whiteGateError(FWHM1, FWHM2, Pp, Pc, N=1 / 2):
     return epsilon
 
 
-def servoGateError(sg, fg, rabiFreq12, rabiFreq23, N=1 / 2):
+def servo_gate_error(sg, fg, rabiFreq12, rabiFreq23, N=1 / 2):
     # Calculate the gate error due to a servo bump at the specified integrated
     # noise power sg and center frequency fg
     transition = calcs.RydbergTransition()
@@ -27,14 +27,13 @@ def servoGateError(sg, fg, rabiFreq12, rabiFreq23, N=1 / 2):
     rabiFreqTotal = rabiFreq12 * rabiFreq23 / (2 * Delta)
 
     epsilon = 2 * sg * (np.pi * fg * rabiFreqTotal)**2
-    epsilon *= (1 - (-1)**(2 * N) *
-                np.cos(4 * np.pi**2 * N * fg / rabiFreqTotal))
+    epsilon *= (1 - (-1)**(2 * N) * np.cos(4 * np.pi**2 * N * fg / rabiFreqTotal))
     epsilon /= (rabiFreqTotal**2 - 4 * np.pi**2 * fg**2)**2
 
     return epsilon
 
 
-def intensityGateError(sigma1, sigma2, N=1 / 2):
+def intensity_gate_error(sigma1, sigma2, N=1 / 2):
     # Calculate the gate error due to relative intensity noise in a two-photon
     # excitation
 

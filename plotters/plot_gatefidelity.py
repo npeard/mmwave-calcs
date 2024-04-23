@@ -17,7 +17,7 @@ def plot_whiteGateError():
     Pc = 3
 
     xv, yv = np.meshgrid(FWHM1, FWHM2)
-    GateError = gf.whiteGateError(xv, yv, Pp, Pc, N=1)
+    GateError = gf.white_gate_error(xv, yv, Pp, Pc, N=1)
 
     fig, (ax1) = plt.subplots(nrows=1)
     s1 = ax1.imshow(np.asarray(GateError), aspect='auto', origin="lower",
@@ -38,9 +38,9 @@ def plot_whiteGateError():
     plt.tight_layout()
     plt.show()
 
-    print(gf.whiteGateError(10e3, 200e3, Pp, Pc, N=1))
-    print(gf.whiteGateError(10e3, 1, Pp, Pc, N=1))
-    print(gf.whiteGateError(1, 1, Pp, Pc, N=1))
+    print(gf.white_gate_error(10e3, 200e3, Pp, Pc, N=1))
+    print(gf.white_gate_error(10e3, 1, Pp, Pc, N=1))
+    print(gf.white_gate_error(1, 1, Pp, Pc, N=1))
 
 
 def plot_servoGateError_Rabi():
@@ -48,12 +48,12 @@ def plot_servoGateError_Rabi():
     rabi23 = np.linspace(10e3, 1e9, 500)  # Hz
 
     xv, yv = np.meshgrid(rabi12, rabi23)
-    GateError1MHz = gf.servoGateError(sg=1, fg=1e6, rabiFreq12=xv,
-                                      rabiFreq23=yv,
-                                      N=1)
-    GateError500kHz = gf.servoGateError(sg=1, fg=0.5e6, rabiFreq12=xv,
-                                        rabiFreq23=yv,
-                                        N=1)
+    GateError1MHz = gf.servo_gate_error(sg=1, fg=1e6, rabiFreq12=xv,
+										rabiFreq23=yv,
+										N=1)
+    GateError500kHz = gf.servo_gate_error(sg=1, fg=0.5e6, rabiFreq12=xv,
+										  rabiFreq23=yv,
+										  N=1)
 
     fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(10, 5))
     s1 = ax1.imshow(np.asarray(GateError1MHz), aspect='auto', origin="lower",
@@ -92,8 +92,8 @@ def plot_servoGateError_Power():
     rabi23 = transition.get_R_RabiAngularFreq(laserPower2)
 
     xv, yv = np.meshgrid(rabi12, rabi23)
-    GateError = gf.servoGateError(sg=1, fg=1e6, rabiFreq12=xv, rabiFreq23=yv,
-                                  N=1)
+    GateError = gf.servo_gate_error(sg=1, fg=1e6, rabiFreq12=xv, rabiFreq23=yv,
+									N=1)
 
     fig, (ax1) = plt.subplots(nrows=1)
     s1 = ax1.imshow(np.asarray(GateError), aspect='auto', origin="lower",
@@ -116,7 +116,7 @@ def plot_intensityGateError():
     sigma23 = np.linspace(1e-8, 1e-3, 500)  # relative intensity variance
 
     xv, yv = np.meshgrid(sigma12, sigma23)
-    GateError = gf.intensityGateError(sigma1=xv, sigma2=yv, N=1)
+    GateError = gf.intensity_gate_error(sigma1=xv, sigma2=yv, N=1)
 
     fig, (ax1) = plt.subplots(nrows=1)
     s1 = ax1.imshow(np.asarray(GateError), aspect='auto', origin="lower",
