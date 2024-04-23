@@ -3,9 +3,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import models.rydberg_dynamics as rydnamics
-import matplotlib.colors as colors
 import models.pulse_calcs as pulses
 from tqdm import tqdm
+from matplotlib.colors import LogNorm
 
 
 def plot_pulse():
@@ -17,7 +17,7 @@ def plot_pulse():
 	plt.xlabel("Time")
 	plt.show()
 def plot_state_dynamics():
-	runner = rydnamics.ExciteRydberg()
+	runner = rydnamics.UnitaryRydberg()
 
 	G, E, R, pulse, time = runner.probe_pulse_unitary(duration=5e-9,
 													  delay=10e-9,
@@ -41,7 +41,7 @@ def plot_state_hold_vs_probe_power():
 	# At "optimal" detuning, do pi pulse durations match those calculated
 	# from theory as we change the 456nm peak power?
 
-	runner = rydnamics.ExciteRydberg()
+	runner = rydnamics.UnitaryRydberg()
 
 	coupling_power = 1
 	probe_powers = np.linspace(1e-3, 10e-3, 20)
@@ -77,7 +77,7 @@ def plot_state_hold_vs_probe_power():
 
 
 def plot_state_power_vs_power_fixed_pi():
-	runner = rydnamics.ExciteRydberg()
+	runner = rydnamics.UnitaryRydberg()
 
 	coupling_powers = np.linspace(0.1, 10, 20)
 	probe_powers = np.linspace(1e-3, 10e-3, 20)
@@ -136,7 +136,7 @@ def plot_state_power_vs_power_fixed_pi():
 
 def plot_state_couple_power_vs_detune(coupling_powers=None, detunings=None,
 									   probe_peak_power=None, duration=None):
-	runner = rydnamics.ExciteRydberg()
+	runner = rydnamics.UnitaryRydberg()
 
 	Ground_list = []
 	Inter_list = []
@@ -179,7 +179,7 @@ def plot_state_couple_power_vs_detune(coupling_powers=None, detunings=None,
 	plt.show()
 
 def plot_rho_dynamics():
-	runner = rydnamics.ExciteRydberg()
+	runner = rydnamics.UnitaryRydberg()
 
 	G, E, R, pulse, time = runner.probe_pulse_neumann(duration=5e-9,
 													  delay=10e-9,
@@ -199,6 +199,102 @@ def plot_rho_dynamics():
 	ax2.set_ylabel("Power (W)")
 	plt.show()
 
+def plot_lindblad_dynamics():
+	runner = rydnamics.LossyRydberg()
+
+	Ground, Inter, Rydberg, Sweep, time, Loss = runner.probe_pulse_lindblad(
+		duration=5e-9, delay=10e-9, hold=27e-9, probe_peak_power=1e-3,
+		couple_power=0.1,
+		Delta=1.3e10)
+	fig, ax1 = plt.subplots(figsize=(8, 8))
+	ax2 = ax1.twinx()
+	ax1.plot(time, Ground, label="Ground Population")
+	ax1.plot(time, Inter, label="Intermediate Population")
+	ax1.plot(time, Rydberg, label="Rydberg Population")
+	ax1.plot(time, Loss, label="Loss")
+	ax2.plot(time, Sweep, label="456nm Pulse", color='cyan')
+	ax1.legend()
+	ax2.legend()
+	ax2.set_ylabel("Power (W)")
+	plt.show()
+
+def plot_lindblad_couple_power_vs_detune(coupling_powers=None, detunings=None,
+									   probe_peak_power=None, duration=None):
+	runner = rydnamics.LossyRydberg()
+
+	Rydberg_final = []
+	Inter_final = []
+	Loss_final = []
+	pi_pulse_duration = []
+	optimal_detuning = []
+
+	for Delta in tqdm(detunings):
+		for Pc in coupling_powers:
+			hold = runner.transition.get_PiPulseDuration(Pp=probe_peak_power,
+														 Pc=Pc)
+			Ground, Inter, Rydberg, Sweep, _, Loss = runner.probe_pulse_lindblad(
+				duration=0e-9, delay=5e-9, hold=hold,
+				probe_peak_power=probe_peak_power,
+				couple_power=Pc,
+				Delta=Delta)
+			Rydberg_final.append(Rydberg[-1])
+			Inter_final.append(Inter[-1])
+			Loss_final.append(Loss[-1])
+	Ryd_pop = np.asarray(Rydberg_final)
+	Ryd_pop = np.reshape(Ryd_pop, (len(detunings), len(coupling_powers))).T
+
+	Inter_pop = np.asarray(Inter_final)
+	Inter_pop = np.reshape(Inter_pop, (len(detunings), len(coupling_powers))).T
+
+	Loss_pop = np.asarray(Loss_final)
+	Loss_pop = np.reshape(Loss_pop, (len(detunings), len(coupling_powers))).T
+
+	for Pc in coupling_powers:
+		optimal_detuning.append(runner.transition.get_OptimalDetuning(
+			P1=probe_peak_power,
+														  P2=Pc))
+	optimal_detuning = np.asarray(optimal_detuning)
+
+	fig, ax1 = plt.subplots(nrows=1)
+	s1 = ax1.imshow(np.real(Ryd_pop), vmax=np.max(np.real(Ryd_pop)),
+					aspect='auto', origin="lower",
+					extent=[np.min(detunings), np.max(detunings),
+							np.min(coupling_powers), np.max(coupling_powers)])
+	cbar = fig.colorbar(s1, ax=ax1)
+	cbar.set_label(r'Rydberg Population')
+	ax1.set_xlabel(r'Detuning (2pi x GHz)')
+	ax1.set_ylabel(r'1064nm Power (W)')
+	ax1.plot(optimal_detuning, coupling_powers, color='cyan')
+	plt.tight_layout()
+	plt.show()
+
+	fig, ax2 = plt.subplots(nrows=1)
+	s2 = ax2.imshow(np.real(Inter_pop), norm=LogNorm(vmax=1), aspect='auto',
+					origin="lower",
+					extent=[np.min(detunings), np.max(detunings),
+							np.min(coupling_powers), np.max(coupling_powers)])
+	cbar = fig.colorbar(s2, ax=ax2)
+	cbar.set_label(r'7p Population')
+	ax2.set_xlabel(r'Detuning (2pi x GHz)')
+	ax2.set_ylabel(r'1064nm Power (W)')
+	ax2.plot(optimal_detuning, coupling_powers, color='cyan')
+	plt.tight_layout()
+	plt.show()
+
+	fig, ax3 = plt.subplots(nrows=1)
+	s3 = ax3.imshow(np.real(Loss_pop), norm=LogNorm(vmax=1), aspect='auto',
+					origin="lower",
+					extent=[np.min(detunings), np.max(detunings),
+							np.min(coupling_powers), np.max(coupling_powers)])
+	cbar = fig.colorbar(s3, ax=ax3)
+	cbar.set_label(r'Loss Population')
+	ax3.set_xlabel(r'Detuning (2pi x GHz)')
+	ax3.set_ylabel(r'1064nm Power (W)')
+	ax3.plot(optimal_detuning, coupling_powers, color='cyan')
+	plt.tight_layout()
+	plt.show()
+
+
 if __name__ == '__main__':
-	plot_state_dynamics()
 	plot_rho_dynamics()
+	plot_lindblad_dynamics()
