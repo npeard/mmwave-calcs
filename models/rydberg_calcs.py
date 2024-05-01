@@ -88,10 +88,10 @@ class RydbergTransition:
                                              j2=self.j2)
         HFS_g = cs().getHFSEnergyShift(j=self.j1, f=4,
                                        A=cs().getHFSCoefficients(n=self.n1,
-                                                                               l=self.l1, j=self.j1)[0])
+                                                                 l=self.l1, j=self.j1)[0])
         HFS_e = cs().getHFSEnergyShift(j=self.j2, f=5,
                                        A=cs().getHFSCoefficients(n=self.n2,
-                                                                               l=self.l2, j=self.j2)[0])
+                                                                 l=self.l2, j=self.j2)[0])
         return freq_1 - HFS_g + HFS_e  # in Hz
 
     def get_R_TransitionFreq(self):
@@ -100,7 +100,7 @@ class RydbergTransition:
                                              j2=self.j3)
         HFS_e = cs().getHFSEnergyShift(j=self.j2, f=5,
                                        A=cs().getHFSCoefficients(n=self.n2,
-                                                                               l=self.l2, j=self.j2)[0])
+                                                                 l=self.l2, j=self.j2)[0])
         # ARC doesn't calculate hyperfine structure for n=47, l=2, j=2.5?
         return freq_2 - HFS_e  # in Hz
 
@@ -144,7 +144,7 @@ class RydbergTransition:
                                               rabiFreq2=rabiFreq_2)
             return rabiFreq_1 * rabiFreq_2 / 2 / Delta0
         else:
-            return np.sqrt(rabiFreq_1**2 + rabiFreq_2**2)
+            return 0.5 * np.sqrt(rabiFreq_1**2 + rabiFreq_2**2)
 
     def get_PiPulseDuration(self, Pp, Pc, resonance=False):
         omega = self.get_totalRabiAngularFreq(Pp, Pc, resonance=resonance)
@@ -177,14 +177,14 @@ class RydbergTransition:
 
         print("Probe laser frequency", trans1 * 1e-9, "GHz")
         print("Couple laser frequency", trans2 * 1e-9, "GHz")
-        
+
         print("\nOptimal detuning", Delta0 * 1e-9 / (2 * np.pi), "GHz ")
 
         print("\nOptimal probe frequency", (trans1 + Delta0 / (2 * np.pi) -
-                                           AOM456) * 1e-9, "GHz")
+                                            AOM456) * 1e-9, "GHz")
         print("Optimal couple frequency", (trans2 - Delta0 / (2 * np.pi) -
-                                          AOM1064) * 1e-9, "GHz")
-        
+                                           AOM1064) * 1e-9, "GHz")
+
         print("\nExpected Rabi Frequency = 2*pi",
               self.get_totalRabiAngularFreq(Pp, Pc) * 1e-6 / (2 * np.pi), "MHz")
         print("Pi Pulse Duration", self.get_PiPulseDuration(Pp, Pc) * 1e9, "ns")
@@ -196,33 +196,34 @@ class RydbergTransition:
                                            j2=self.j3, q=self.q2,
                                            laserPower=tweezer_power,
                                            laserWaist=1e-6)  # in 2pi*Hz
-        
+
         transition_frequency = self.get_R_TransitionFreq()
         print("Transition Frequency (GHz)", transition_frequency * 1e-9)
-        tweezer_frequency = 2.99792e8/(1069.79e-9)
+        tweezer_frequency = 2.99792e8 / (1069.79e-9)
         print("Tweezer Frequency (GHz)", tweezer_frequency * 1e-9)
         tweezer_detuning = transition_frequency - tweezer_frequency
         print("Tweezer Detuning (GHz)", tweezer_detuning * 1e-9)
-        stark_shift = rabiFreq_2**2 / 4 / (2*np.pi*tweezer_detuning)
-        print("Tweezer Stark Shift (MHz)", stark_shift/(2*np.pi) * 1e-6)
-        
+        stark_shift = rabiFreq_2**2 / 4 / (2 * np.pi * tweezer_detuning)
+        print("Tweezer Stark Shift (MHz)", stark_shift / (2 * np.pi) * 1e-6)
+
     def print_ac_stark_shift(self, Pp, Pc):
         diff_Stark = self.get_DiffRydACStark(Pp, Pc)
-        print("Differential Stark Shift (MHz)", diff_Stark/(2*np.pi) * 1e-6)
-        
+        print("Differential Stark Shift (MHz)", diff_Stark / (2 * np.pi) * 1e-6)
+
         rabiFreq_1 = self.get_E_RabiAngularFreq(laserPower=Pp)
         rabiFreq_2 = self.get_R_RabiAngularFreq(laserPower=Pc)
         Delta0 = self.get_OptimalDetuning(rabiFreq1=rabiFreq_1, rabiFreq2=rabiFreq_2)
-        
+
         Stark_1 = rabiFreq_1**2 / 4 / Delta0
         Stark_2 = rabiFreq_2**2 / 4 / Delta0
-        print("Stark Shift 1 (MHz)", Stark_1/(2*np.pi) * 1e-6)
-        print("Stark Shift 2 (MHz)", Stark_2/(2*np.pi) * 1e-6)
-        
+        print("Stark Shift 1 (MHz)", Stark_1 / (2 * np.pi) * 1e-6)
+        print("Stark Shift 2 (MHz)", Stark_2 / (2 * np.pi) * 1e-6)
+
+
 if __name__ == '__main__':
     transition40 = RydbergTransition(laserWaist=25e-6, n1=6, l1=0, j1=0.5,
-                                         mj1=0.5, n2=7, l2=1, j2=1.5, mj2=1.5,
-                                         q2=-1, n3=40, l3=0, j3=0.5)
-    
+                                     mj1=0.5, n2=7, l2=1, j2=1.5, mj2=1.5,
+                                     q2=-1, n3=40, l3=0, j3=0.5)
+
     transition40.print_tweezer_stark_shift(tweezer_power=0.010)
     transition40.print_ac_stark_shift(Pp=0.010, Pc=2)

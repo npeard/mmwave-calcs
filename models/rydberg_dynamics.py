@@ -240,14 +240,28 @@ class LossyRydberg(UnitaryRydberg):
         probe_power = (pulses.get_BlackmanPulse(t, duration, delay, hold) *
                        probe_peak_power)
         Omega12 = self.func_Omega12_from_Power(probe_power).item()
-        Ht = self.get_hamiltonian(Omega12, Omega23, self.Delta,
-                                  self.delta)
+        Ht = self.get_hamiltonian(Omega12, Omega23, self.Delta, self.delta)
+
+        return self.compute_dot_rho(rho, Ht, self.gamma2, self.gamma3)
+
+    def get_dot_rho_duo(self, t, rho, probe_duration, probe_delay, probe_hold,
+                        probe_peak_power, couple_duration, couple_delay,
+                        couple_hold, couple_peak_power):
+        probe_power = (pulses.get_BlackmanPulse(t, probe_duration,
+                                                probe_delay, probe_hold) *
+                       probe_peak_power)
+        Omega12 = self.func_Omega12_from_Power(probe_power).item()
+        couple_power = (pulses.get_BlackmanPulse(t, couple_duration,
+                                                 couple_delay, couple_hold) *
+                        couple_peak_power)
+        Omega23 = self.func_Omega23_from_Power(couple_power).item()
+        Ht = self.get_hamiltonian(Omega12, Omega23, self.Delta, self.delta)
 
         return self.compute_dot_rho(rho, Ht, self.gamma2, self.gamma3)
 
     def probe_pulse_lindblad(self, duration, delay, hold,
                              probe_peak_power, couple_power, Delta=None,
-                             evolve_time = 0):
+                             evolve_time=0):
         # define time vector
         max_Omega12 = self.func_Omega12_from_Power(probe_peak_power)
         max_Omega23 = self.func_Omega23_from_Power(couple_power)
@@ -277,7 +291,7 @@ class LossyRydberg(UnitaryRydberg):
         sol = solve_ivp(self.get_dot_rho, y0=np.ravel(self.rho0),
                         t_span=[np.min(self.time_array), np.max(
                             self.time_array)], t_eval=self.time_array, args=(
-            duration, delay, hold, probe_peak_power, Omega23))
+            duration, delay, hold, probe_peak_power, Omega23), first_step=1e-9)
         rho_t = np.reshape(sol.y, (4, 4, len(self.time_array)))
         rho_t = np.real(rho_t)
 
@@ -288,3 +302,47 @@ class LossyRydberg(UnitaryRydberg):
         loss_pop = rho_t[3, 3, :]
 
         return G_pop, E_pop, R_pop, self.probe_power, self.time_array, loss_pop
+
+    def duo_pulse_lindblad(self, probe_duration, probe_delay, probe_hold,
+                           probe_peak_power, couple_duration, couple_delay,
+                           couple_hold, couple_peak_power,
+                           Delta=0.0):
+        # define time vector
+        max_Omega12 = self.func_Omega12_from_Power(probe_peak_power)
+        max_Omega23 = self.func_Omega23_from_Power(couple_peak_power)
+        self.Delta = Delta
+        self.delta = 0.0
+        max_freq = np.max([max_Omega12, max_Omega23, self.Delta])
+        stop_time = (probe_delay + probe_duration + probe_hold +
+                     couple_delay + couple_duration + couple_hold + 10e-9)
+        self.time_array = np.linspace(0, stop_time, int(2 * stop_time *
+                                                        max_freq) + 1)
+
+        # define the pulse
+        self.couple_power = (pulses.get_VectorizedBlackmanPulse(
+            self.time_array, couple_duration, couple_delay, couple_hold) *
+            couple_peak_power)
+        self.couple_power[self.couple_power < 0] = 0
+        self.probe_power = pulses.get_VectorizedBlackmanPulse(self.time_array,
+                                                              probe_duration, probe_delay,
+                                                              probe_hold) * probe_peak_power
+        self.probe_power[self.probe_power < 0] = 0
+
+        # solve initial value problem
+        sol = solve_ivp(self.get_dot_rho_duo, y0=np.ravel(self.rho0),
+                        t_span=[np.min(self.time_array), np.max(
+                            self.time_array)], t_eval=self.time_array, args=(
+            probe_duration, probe_delay, probe_hold, probe_peak_power,
+            couple_duration, couple_delay, couple_hold,
+            couple_peak_power), first_step=1e-9)
+        rho_t = np.reshape(sol.y, (4, 4, len(self.time_array)))
+        rho_t = np.real(rho_t)
+
+        # populations
+        G_pop = rho_t[0, 0, :]
+        E_pop = rho_t[1, 1, :]
+        R_pop = rho_t[2, 2, :]
+        loss_pop = rho_t[3, 3, :]
+
+        return (G_pop, E_pop, R_pop, self.probe_power, self.couple_power,
+                self.time_array, loss_pop)

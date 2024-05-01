@@ -217,9 +217,9 @@ def plot_lindblad_dynamics():
     runner = rydnamics.LossyRydberg()
 
     Ground, Inter, Rydberg, Sweep, time, Loss = runner.probe_pulse_lindblad(
-        duration=5e-9, delay=10e-9, hold=27e-9, probe_peak_power=1e-3,
+        duration=0e-9, delay=5e-9, hold=22e-9, probe_peak_power=1e-3,
         couple_power=0.1,
-        Delta=1.3e10)
+        Delta=0, evolve_time=50e-9)
     fig, ax1 = plt.subplots(figsize=(8, 8))
     ax2 = ax1.twinx()
     ax1.plot(time, Ground, label="Ground Population")
@@ -308,7 +308,8 @@ def plot_lindblad_couple_power_vs_detune(coupling_powers=None, detunings=None,
     ax3.plot(optimal_detuning, coupling_powers, color='cyan')
     plt.tight_layout()
     plt.show()
-    
+
+
 def plot_lindblad_fast_probe(coupling_powers=None, probe_peak_power=None):
     runner = rydnamics.LossyRydberg()
 
@@ -326,7 +327,7 @@ def plot_lindblad_fast_probe(coupling_powers=None, probe_peak_power=None):
                 duration=0e-9, delay=5e-9, hold=hold,
                 probe_peak_power=Pp,
                 couple_power=Pc,
-                Delta=0, evolve_time=0)
+                Delta=0, evolve_time=100e-9)
             Rydberg_final.append(Rydberg[-1])
             Inter_final.append(Inter[-1])
             Loss_final.append(Loss[-1])
@@ -340,10 +341,10 @@ def plot_lindblad_fast_probe(coupling_powers=None, probe_peak_power=None):
 
     Loss_pop = np.asarray(Loss_final)
     Loss_pop = np.reshape(Loss_pop, (len(probe_peak_power), len(coupling_powers))).T
-    
+
     Ground_pop = np.asarray(Ground_final)
     Ground_pop = np.reshape(Ground_pop, (len(probe_peak_power), len(coupling_powers))).T
-    
+
     # setup plotting
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2)
     s1 = ax1.imshow(np.real(Ryd_pop), vmax=np.max(np.real(Ryd_pop)),
@@ -354,8 +355,8 @@ def plot_lindblad_fast_probe(coupling_powers=None, probe_peak_power=None):
     cbar.set_label(r'Rydberg Population')
     ax1.set_xlabel(r'456nm Power (W)')
     ax1.set_ylabel(r'1064nm Power (W)')
-    
-    s2 = ax2.imshow(np.real(Inter_pop), #norm=LogNorm(vmax=1),
+
+    s2 = ax2.imshow(np.real(Inter_pop),  # norm=LogNorm(vmax=1),
                     aspect='auto',
                     origin="lower",
                     extent=[np.min(probe_peak_power), np.max(probe_peak_power),
@@ -365,7 +366,7 @@ def plot_lindblad_fast_probe(coupling_powers=None, probe_peak_power=None):
     ax2.set_xlabel(r'456nm Power (W)')
     ax2.set_ylabel(r'1064nm Power (W)')
 
-    s3 = ax3.imshow(np.real(Loss_pop), #norm=LogNorm(vmax=1),
+    s3 = ax3.imshow(np.real(Loss_pop),  # norm=LogNorm(vmax=1),
                     aspect='auto',
                     origin="lower",
                     extent=[np.min(probe_peak_power), np.max(probe_peak_power),
@@ -374,7 +375,7 @@ def plot_lindblad_fast_probe(coupling_powers=None, probe_peak_power=None):
     cbar.set_label(r'Loss Population')
     ax3.set_xlabel(r'456nm Power (W)')
     ax3.set_ylabel(r'1064nm Power (W)')
-    
+
     s4 = ax4.imshow(np.real(Ground_pop),  # norm=LogNorm(vmax=1),
                     aspect='auto',
                     origin="lower",
@@ -384,11 +385,140 @@ def plot_lindblad_fast_probe(coupling_powers=None, probe_peak_power=None):
     cbar.set_label(r'Ground Population')
     ax4.set_xlabel(r'456nm Power (W)')
     ax4.set_ylabel(r'1064nm Power (W)')
-    
+
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_duo_pulse(probe_duration=0, probe_delay=10e-9, probe_hold=20e-9,
+                   probe_peak_power=10e-3, couple_duration=0, couple_delay=15e-9,
+                   couple_hold=20e-9, couple_peak_power=4,
+                   Delta=0.0):
+    runner = rydnamics.LossyRydberg()
+
+    Ground, Inter, Rydberg, Probe, Couple, time, Loss = (
+        runner.duo_pulse_lindblad(probe_duration=probe_duration,
+                                  probe_delay=probe_delay,
+                                  probe_hold=probe_hold,
+                                  probe_peak_power=probe_peak_power,
+                                  couple_duration=couple_duration,
+                                  couple_delay=couple_delay,
+                                  couple_hold=couple_hold,
+                                  couple_peak_power=couple_peak_power, Delta=Delta))
+    fig, ax1 = plt.subplots(figsize=(8, 8))
+    ax2 = ax1.twinx()
+    ax1.plot(time, Ground, label="Ground Population")
+    ax1.plot(time, Inter, label="Intermediate Population")
+    ax1.plot(time, Rydberg, label="Rydberg Population")
+    ax1.plot(time, Loss, label="Loss")
+    ax2.plot(time, Probe, label="456nm Pulse", color='cyan')
+    ax2.plot(time, Couple, label="1064nm Pulse", color='red')
+    ax1.legend()
+    ax2.legend()
+    ax2.set_ylabel("Power (W)")
+    plt.show()
+
+
+def plot_lindblad_duo_pulse(probe_delays=None, couple_delays=None,
+                            probe_peak_power=None, couple_peak_power=None):
+    runner = rydnamics.LossyRydberg()
+
+    Rydberg_final = []
+    Inter_final = []
+    Loss_final = []
+    pi_pulse_duration = []
+    Ground_final = []
+
+    for pDelay in tqdm(probe_delays):
+        for cDelay in couple_delays:
+            hold = runner.transition.get_PiPulseDuration(Pp=probe_peak_power,
+                                                         Pc=couple_peak_power,
+                                                         resonance=True)
+            Ground, Inter, Rydberg, _, _, _, Loss = (
+                runner.duo_pulse_lindblad(
+                    probe_duration=0, probe_delay=pDelay, probe_hold=hold,
+                    probe_peak_power=probe_peak_power, couple_duration=0,
+                    couple_delay=cDelay,
+                    couple_hold=hold, couple_peak_power=couple_peak_power,
+                    Delta=0))
+            Rydberg_final.append(Rydberg[-1])
+            Inter_final.append(Inter[-1])
+            Loss_final.append(Loss[-1])
+            pi_pulse_duration.append(hold)
+            Ground_final.append(Ground[-1])
+    Ryd_pop = np.asarray(Rydberg_final)
+    Ryd_pop = np.reshape(Ryd_pop,
+                         (len(probe_delays), len(couple_delays))).T
+
+    Inter_pop = np.asarray(Inter_final)
+    Inter_pop = np.reshape(Inter_pop,
+                           (len(probe_delays), len(couple_delays))).T
+
+    Loss_pop = np.asarray(Loss_final)
+    Loss_pop = np.reshape(Loss_pop,
+                          (len(probe_delays), len(couple_delays))).T
+
+    Ground_pop = np.asarray(Ground_final)
+    Ground_pop = np.reshape(Ground_pop,
+                            (len(probe_delays), len(couple_delays))).T
+
+    # setup plotting
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2)
+    s1 = ax1.imshow(np.real(Ryd_pop), vmax=np.max(np.real(Ryd_pop)),
+                    aspect='auto', origin="lower",
+                    extent=[np.min(probe_delays), np.max(probe_delays),
+                            np.min(couple_delays), np.max(couple_delays)])
+    cbar = fig.colorbar(s1, ax=ax1)
+    cbar.set_label(r'Rydberg Population')
+    ax1.set_xlabel(r'456nm Delay (s)')
+    ax1.set_ylabel(r'1064nm Delay (s)')
+
+    s2 = ax2.imshow(np.real(Inter_pop),  # norm=LogNorm(vmax=1),
+                    aspect='auto',
+                    origin="lower",
+                    extent=[np.min(probe_delays), np.max(probe_delays),
+                            np.min(couple_delays), np.max(couple_delays)])
+    cbar = fig.colorbar(s2, ax=ax2)
+    cbar.set_label(r'7p Population')
+    ax2.set_xlabel(r'456nm Delay (s)')
+    ax2.set_ylabel(r'1064nm Delay (s)')
+
+    s3 = ax3.imshow(np.real(Loss_pop),  # norm=LogNorm(vmax=1),
+                    aspect='auto',
+                    origin="lower",
+                    extent=[np.min(probe_delays), np.max(probe_delays),
+                            np.min(couple_delays), np.max(couple_delays)])
+    cbar = fig.colorbar(s3, ax=ax3)
+    cbar.set_label(r'Loss Population')
+    ax3.set_xlabel(r'456nm Delay (s)')
+    ax3.set_ylabel(r'1064nm Delay (s)')
+
+    s4 = ax4.imshow(np.real(Ground_pop),  # norm=LogNorm(vmax=1),
+                    aspect='auto',
+                    origin="lower",
+                    extent=[np.min(probe_delays), np.max(probe_delays),
+                            np.min(couple_delays), np.max(couple_delays)])
+    cbar = fig.colorbar(s4, ax=ax4)
+    cbar.set_label(r'Ground Population')
+    ax4.set_xlabel(r'456nm Delay (s)')
+    ax4.set_ylabel(r'1064nm Delay (s)')
+
     plt.tight_layout()
     plt.show()
 
 
 if __name__ == '__main__':
-    plot_rho_dynamics()
-    plot_lindblad_dynamics()
+    # plot_lindblad_dynamics()
+
+    # coupling_powers = np.linspace(0.001, 0.2, 10)
+    # probe_peak_power = np.linspace(0.001, 0.01, 10)
+    # plot_lindblad_fast_probe(coupling_powers=coupling_powers,
+    #                                    probe_peak_power=probe_peak_power)
+
+    plot_duo_pulse()
+
+    # probe_delays = np.linspace(0, 50e-9, 20)
+    # couple_delays = np.linspace(0, 50e-9, 20)
+    # plot_lindblad_duo_pulse(probe_delays=probe_delays,
+    #                         couple_delays=couple_delays,
+    #                         probe_peak_power=20e-3, couple_peak_power=5)
