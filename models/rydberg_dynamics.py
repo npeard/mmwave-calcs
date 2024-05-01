@@ -246,7 +246,8 @@ class LossyRydberg(UnitaryRydberg):
         return self.compute_dot_rho(rho, Ht, self.gamma2, self.gamma3)
 
     def probe_pulse_lindblad(self, duration, delay, hold,
-                             probe_peak_power, couple_power, Delta=None):
+                             probe_peak_power, couple_power, Delta=None,
+                             evolve_time = 0):
         # define time vector
         max_Omega12 = self.func_Omega12_from_Power(probe_peak_power)
         max_Omega23 = self.func_Omega23_from_Power(couple_power)
@@ -256,7 +257,7 @@ class LossyRydberg(UnitaryRydberg):
         else:
             self.Delta = Delta
         max_freq = np.max([max_Omega12, max_Omega23, self.Delta])
-        stop_time = delay + duration + hold + 10e-9
+        stop_time = delay + duration + hold + 10e-9 + evolve_time
         self.time_array = np.linspace(0, stop_time, int(2 * stop_time *
                                                         max_freq) + 1)
 

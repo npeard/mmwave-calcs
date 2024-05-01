@@ -309,14 +309,14 @@ def plot_lindblad_couple_power_vs_detune(coupling_powers=None, detunings=None,
     plt.tight_layout()
     plt.show()
     
-def plot_lindblad_fast_probe(coupling_powers=None, detunings=None,
-                                         probe_peak_power=None):
+def plot_lindblad_fast_probe(coupling_powers=None, probe_peak_power=None):
     runner = rydnamics.LossyRydberg()
 
     Rydberg_final = []
     Inter_final = []
     Loss_final = []
     pi_pulse_duration = []
+    Ground_final = []
 
     for Pp in tqdm(probe_peak_power):
         for Pc in coupling_powers:
@@ -324,23 +324,28 @@ def plot_lindblad_fast_probe(coupling_powers=None, detunings=None,
                                                          Pc=Pc, resonance=True)
             Ground, Inter, Rydberg, Sweep, _, Loss = runner.probe_pulse_lindblad(
                 duration=0e-9, delay=5e-9, hold=hold,
-                probe_peak_power=probe_peak_power,
+                probe_peak_power=Pp,
                 couple_power=Pc,
-                Delta=0)
+                Delta=0, evolve_time=0)
             Rydberg_final.append(Rydberg[-1])
             Inter_final.append(Inter[-1])
             Loss_final.append(Loss[-1])
             pi_pulse_duration.append(hold)
+            Ground_final.append(Ground[-1])
     Ryd_pop = np.asarray(Rydberg_final)
-    Ryd_pop = np.reshape(Ryd_pop, (len(detunings), len(coupling_powers))).T
+    Ryd_pop = np.reshape(Ryd_pop, (len(probe_peak_power), len(coupling_powers))).T
 
     Inter_pop = np.asarray(Inter_final)
-    Inter_pop = np.reshape(Inter_pop, (len(detunings), len(coupling_powers))).T
+    Inter_pop = np.reshape(Inter_pop, (len(probe_peak_power), len(coupling_powers))).T
 
     Loss_pop = np.asarray(Loss_final)
-    Loss_pop = np.reshape(Loss_pop, (len(detunings), len(coupling_powers))).T
-
-    fig, ax1 = plt.subplots(nrows=1)
+    Loss_pop = np.reshape(Loss_pop, (len(probe_peak_power), len(coupling_powers))).T
+    
+    Ground_pop = np.asarray(Ground_final)
+    Ground_pop = np.reshape(Ground_pop, (len(probe_peak_power), len(coupling_powers))).T
+    
+    # setup plotting
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2)
     s1 = ax1.imshow(np.real(Ryd_pop), vmax=np.max(np.real(Ryd_pop)),
                     aspect='auto', origin="lower",
                     extent=[np.min(probe_peak_power), np.max(probe_peak_power),
@@ -349,11 +354,9 @@ def plot_lindblad_fast_probe(coupling_powers=None, detunings=None,
     cbar.set_label(r'Rydberg Population')
     ax1.set_xlabel(r'456nm Power (W)')
     ax1.set_ylabel(r'1064nm Power (W)')
-    plt.tight_layout()
-    plt.show()
-
-    fig, ax2 = plt.subplots(nrows=1)
-    s2 = ax2.imshow(np.real(Inter_pop), norm=LogNorm(vmax=1), aspect='auto',
+    
+    s2 = ax2.imshow(np.real(Inter_pop), #norm=LogNorm(vmax=1),
+                    aspect='auto',
                     origin="lower",
                     extent=[np.min(probe_peak_power), np.max(probe_peak_power),
                             np.min(coupling_powers), np.max(coupling_powers)])
@@ -361,11 +364,9 @@ def plot_lindblad_fast_probe(coupling_powers=None, detunings=None,
     cbar.set_label(r'7p Population')
     ax2.set_xlabel(r'456nm Power (W)')
     ax2.set_ylabel(r'1064nm Power (W)')
-    plt.tight_layout()
-    plt.show()
 
-    fig, ax3 = plt.subplots(nrows=1)
-    s3 = ax3.imshow(np.real(Loss_pop), norm=LogNorm(vmax=1), aspect='auto',
+    s3 = ax3.imshow(np.real(Loss_pop), #norm=LogNorm(vmax=1),
+                    aspect='auto',
                     origin="lower",
                     extent=[np.min(probe_peak_power), np.max(probe_peak_power),
                             np.min(coupling_powers), np.max(coupling_powers)])
@@ -373,6 +374,17 @@ def plot_lindblad_fast_probe(coupling_powers=None, detunings=None,
     cbar.set_label(r'Loss Population')
     ax3.set_xlabel(r'456nm Power (W)')
     ax3.set_ylabel(r'1064nm Power (W)')
+    
+    s4 = ax4.imshow(np.real(Ground_pop),  # norm=LogNorm(vmax=1),
+                    aspect='auto',
+                    origin="lower",
+                    extent=[np.min(probe_peak_power), np.max(probe_peak_power),
+                            np.min(coupling_powers), np.max(coupling_powers)])
+    cbar = fig.colorbar(s4, ax=ax4)
+    cbar.set_label(r'Ground Population')
+    ax4.set_xlabel(r'456nm Power (W)')
+    ax4.set_ylabel(r'1064nm Power (W)')
+    
     plt.tight_layout()
     plt.show()
 
