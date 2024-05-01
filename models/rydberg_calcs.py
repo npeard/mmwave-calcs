@@ -129,14 +129,17 @@ class RydbergTransition:
         else:
             raise ValueError("Must specify either P1, P2 or rabiFreq1, rabiFreq2")
 
-    def get_totalRabiAngularFreq(self, Pp, Pc):
+    def get_totalRabiAngularFreq(self, Pp, Pc, resonance=False):
         rabiFreq_1 = self.get_E_RabiAngularFreq(laserPower=Pp)
         rabiFreq_2 = self.get_R_RabiAngularFreq(laserPower=Pc)
-        Delta0 = self.get_OptimalDetuning(rabiFreq1=rabiFreq_1, rabiFreq2=rabiFreq_2)
-        return rabiFreq_1 * rabiFreq_2 / 2 / Delta0
+        if not resonance:
+            Delta0 = self.get_OptimalDetuning(rabiFreq1=rabiFreq_1, rabiFreq2=rabiFreq_2)
+            return rabiFreq_1 * rabiFreq_2 / 2 / Delta0
+        else:
+            return np.sqrt(rabiFreq_1**2 + rabiFreq_2**2)
 
-    def get_PiPulseDuration(self, Pp, Pc):
-        omega = self.get_totalRabiAngularFreq(Pp, Pc)
+    def get_PiPulseDuration(self, Pp, Pc, resonance=False):
+        omega = self.get_totalRabiAngularFreq(Pp, Pc, resonance=resonance)
         return np.pi / omega
 
     def get_DiffRydACStark(self, Pp, Pc):
