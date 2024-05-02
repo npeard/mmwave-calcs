@@ -22,6 +22,8 @@ class RydbergTransition:
         self.q2 = q2
         self.RabiAngularFreq_1_from_Power = None
         self.RabiAngularFreq_2_from_Power = None
+        self.Power_from_RabiAngularFreq_1 = None
+        self.Power_from_RabiAngularFreq_2 = None
 
         self.init_fast_lookup()
 
@@ -33,6 +35,9 @@ class RydbergTransition:
         Pp_RabiAngularFreq = np.array(Pp_RabiAngularFreq)
         self.RabiAngularFreq_1_from_Power = interp1d(Pp, Pp_RabiAngularFreq,
                                                      kind='cubic')
+        # inverse
+        self.Power_from_RabiAngularFreq_1 = interp1d(Pp_RabiAngularFreq, Pp,
+                                                     kind='cubic')
 
         Pc = np.linspace(0, 10, 100)
         Pc_RabiAngularFreq = []
@@ -40,6 +45,9 @@ class RydbergTransition:
             Pc_RabiAngularFreq.append(self.get_R_RabiAngularFreq(laserPower=p))
         Pc_RabiAngularFreq = np.array(Pc_RabiAngularFreq)
         self.RabiAngularFreq_2_from_Power = interp1d(Pc, Pc_RabiAngularFreq,
+                                                     kind='cubic')
+        # inverse
+        self.Power_from_RabiAngularFreq_2 = interp1d(Pc_RabiAngularFreq, Pc,
                                                      kind='cubic')
 
     def get_E_RabiAngularFreq(self, laserPower):
@@ -71,6 +79,19 @@ class RydbergTransition:
             rabiFreq_2 = self.RabiAngularFreq_2_from_Power(laserPower)
 
         return rabiFreq_2  # in 2pi*Hz
+    
+    def get_balanced_laser_power(self, probe_power=None, couple_power=None):
+        if probe_power is None:
+            couple_rabi = self.RabiAngularFreq_2_from_Power(couple_power)
+            probe_power = self.Power_from_RabiAngularFreq_1(couple_rabi)
+            return probe_power # in W
+        elif couple_power is None:
+            probe_rabi = self.RabiAngularFreq_1_from_Power(probe_power)
+            couple_power = self.Power_from_RabiAngularFreq_2(probe_rabi)
+            return couple_power # in W
+        else:
+            print("You messed up")
+            pass
 
     def get_E_Linewidth(self):
         gamma2 = 1 / cs().getStateLifetime(self.n2, self.l2, self.j2, temperature=300.0,
