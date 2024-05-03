@@ -170,6 +170,14 @@ class RydbergTransition:
     def get_PiPulseDuration(self, Pp, Pc, resonance=False):
         omega = self.get_totalRabiAngularFreq(Pp, Pc, resonance=resonance)
         return np.pi / omega
+    
+    def get_pi_detuning(self, probe_power, couple_power, pi_time):
+        # get the detuning required to implement a pi pulse of duration pi_time
+        rabiFreq_1 = self.get_E_RabiAngularFreq(laserPower=probe_power)
+        rabiFreq_2 = self.get_R_RabiAngularFreq(laserPower=couple_power)
+        detuning = pi_time/np.pi/2 * rabiFreq_1 * rabiFreq_2 # in 2pi*Hz
+        
+        return detuning
 
     def get_DiffRydACStark(self, Pp, Pc):
         rabiFreq_1 = self.get_E_RabiAngularFreq(laserPower=Pp)
