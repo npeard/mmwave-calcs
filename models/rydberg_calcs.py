@@ -204,14 +204,18 @@ class RydbergTransition:
         rabiFreq_2 = self.get_R_RabiAngularFreq(laserPower=Pc)
         Delta0 = self.get_OptimalDetuning(rabiFreq1=rabiFreq_1, rabiFreq2=rabiFreq_2)
 
-        print("Probe laser frequency", trans1 * 1e-9, "GHz")
-        print("Couple laser frequency", trans2 * 1e-9, "GHz")
+        print("Probe laser frequency (with AOM)", (trans1 - AOM456) * 1e-9,
+              "GHz")
+        print("Couple laser frequency (with AOM)", (trans2 - AOM1064) * 1e-9,
+                                                    "GHz")
 
         print("\nOptimal detuning", Delta0 * 1e-9 / (2 * np.pi), "GHz ")
 
-        print("\nOptimal probe frequency", (trans1 + Delta0 / (2 * np.pi) -
+        print("\nOptimal probe frequency (with AOM)", (trans1 + Delta0 / (2 *
+                                                                     np.pi) -
                                             AOM456) * 1e-9, "GHz")
-        print("Optimal couple frequency", (trans2 - Delta0 / (2 * np.pi) -
+        print("Optimal couple frequency (with AOM)", (trans2 - Delta0 / (2 *
+                                                                     np.pi) -
                                            AOM1064) * 1e-9, "GHz")
 
         print("\nExpected Rabi Frequency = 2*pi",
@@ -254,5 +258,6 @@ if __name__ == '__main__':
                                      mj1=0.5, n2=7, l2=1, j2=1.5, mj2=1.5,
                                      q2=-1, n3=40, l3=0, j3=0.5)
 
+    transition40.print_laser_frequencies(Pp=0.010, Pc=2)
     transition40.print_tweezer_stark_shift(tweezer_power=0.010)
     transition40.print_ac_stark_shift(Pp=0.010, Pc=2)
