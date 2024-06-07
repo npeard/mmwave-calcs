@@ -8,6 +8,7 @@ from tqdm import tqdm
 from matplotlib.colors import LogNorm
 
 
+
 def plot_pulse():
     time = np.linspace(0, 1, 10000)
     plt.plot(time, pulses.get_VectorizedBlackmanPulse(time, duration=0.2,

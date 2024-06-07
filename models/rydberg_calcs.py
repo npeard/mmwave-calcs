@@ -22,6 +22,8 @@ class RydbergTransition:
         self.q2 = q2
         self.RabiAngularFreq_1_from_Power = None
         self.RabiAngularFreq_2_from_Power = None
+        self.Power_from_RabiAngularFreq_1 = None
+        self.Power_from_RabiAngularFreq_2 = None
 
         self.init_fast_lookup()
 
@@ -33,6 +35,9 @@ class RydbergTransition:
         Pp_RabiAngularFreq = np.array(Pp_RabiAngularFreq)
         self.RabiAngularFreq_1_from_Power = interp1d(Pp, Pp_RabiAngularFreq,
                                                      kind='cubic')
+        # inverse
+        self.Power_from_RabiAngularFreq_1 = interp1d(Pp_RabiAngularFreq, Pp,
+                                                     kind='cubic')
 
         Pc = np.linspace(0, 10, 100)
         Pc_RabiAngularFreq = []
@@ -40,6 +45,9 @@ class RydbergTransition:
             Pc_RabiAngularFreq.append(self.get_R_RabiAngularFreq(laserPower=p))
         Pc_RabiAngularFreq = np.array(Pc_RabiAngularFreq)
         self.RabiAngularFreq_2_from_Power = interp1d(Pc, Pc_RabiAngularFreq,
+                                                     kind='cubic')
+        # inverse
+        self.Power_from_RabiAngularFreq_2 = interp1d(Pc_RabiAngularFreq, Pc,
                                                      kind='cubic')
 
     def get_E_RabiAngularFreq(self, laserPower):
@@ -71,6 +79,19 @@ class RydbergTransition:
             rabiFreq_2 = self.RabiAngularFreq_2_from_Power(laserPower)
 
         return rabiFreq_2  # in 2pi*Hz
+    
+    def get_balanced_laser_power(self, probe_power=None, couple_power=None):
+        if probe_power is None:
+            couple_rabi = self.RabiAngularFreq_2_from_Power(couple_power)
+            probe_power = self.Power_from_RabiAngularFreq_1(couple_rabi)
+            return probe_power # in W
+        elif couple_power is None:
+            probe_rabi = self.RabiAngularFreq_1_from_Power(probe_power)
+            couple_power = self.Power_from_RabiAngularFreq_2(probe_rabi)
+            return couple_power # in W
+        else:
+            print("You messed up")
+            pass
 
     def get_E_Linewidth(self):
         gamma2 = 1 / cs().getStateLifetime(self.n2, self.l2, self.j2, temperature=300.0,
@@ -149,6 +170,14 @@ class RydbergTransition:
     def get_PiPulseDuration(self, Pp, Pc, resonance=False):
         omega = self.get_totalRabiAngularFreq(Pp, Pc, resonance=resonance)
         return np.pi / omega
+    
+    def get_pi_detuning(self, probe_power, couple_power, pi_time):
+        # get the detuning required to implement a pi pulse of duration pi_time
+        rabiFreq_1 = self.get_E_RabiAngularFreq(laserPower=probe_power)
+        rabiFreq_2 = self.get_R_RabiAngularFreq(laserPower=couple_power)
+        detuning = pi_time/np.pi/2 * rabiFreq_1 * rabiFreq_2 # in 2pi*Hz
+        
+        return detuning
 
     def get_DiffRydACStark(self, Pp, Pc):
         rabiFreq_1 = self.get_E_RabiAngularFreq(laserPower=Pp)
@@ -175,14 +204,18 @@ class RydbergTransition:
         rabiFreq_2 = self.get_R_RabiAngularFreq(laserPower=Pc)
         Delta0 = self.get_OptimalDetuning(rabiFreq1=rabiFreq_1, rabiFreq2=rabiFreq_2)
 
-        print("Probe laser frequency", trans1 * 1e-9, "GHz")
-        print("Couple laser frequency", trans2 * 1e-9, "GHz")
+        print("Probe laser frequency (with AOM)", (trans1 - AOM456) * 1e-9,
+              "GHz")
+        print("Couple laser frequency (with AOM)", (trans2 - AOM1064) * 1e-9,
+                                                    "GHz")
 
         print("\nOptimal detuning", Delta0 * 1e-9 / (2 * np.pi), "GHz ")
 
-        print("\nOptimal probe frequency", (trans1 + Delta0 / (2 * np.pi) -
+        print("\nOptimal probe frequency (with AOM)", (trans1 + Delta0 / (2 *
+                                                                     np.pi) -
                                             AOM456) * 1e-9, "GHz")
-        print("Optimal couple frequency", (trans2 - Delta0 / (2 * np.pi) -
+        print("Optimal couple frequency (with AOM)", (trans2 - Delta0 / (2 *
+                                                                     np.pi) -
                                            AOM1064) * 1e-9, "GHz")
 
         print("\nExpected Rabi Frequency = 2*pi",
@@ -225,5 +258,6 @@ if __name__ == '__main__':
                                      mj1=0.5, n2=7, l2=1, j2=1.5, mj2=1.5,
                                      q2=-1, n3=40, l3=0, j3=0.5)
 
+    transition40.print_laser_frequencies(Pp=0.010, Pc=2)
     transition40.print_tweezer_stark_shift(tweezer_power=0.010)
     transition40.print_ac_stark_shift(Pp=0.010, Pc=2)
