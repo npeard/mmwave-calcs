@@ -55,7 +55,7 @@ class ACStarkShift:
         calc_full.defineShirleyHamiltonian(fn=1)
 
         U_AC_Shirley = []
-        
+
         for freq, eField in product(freqs, eFields):
             calc_full.diagonalise(eField, freq, progressOutput=False)
             U_AC_Shirley.append(calc_full.targetShifts)
