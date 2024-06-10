@@ -51,41 +51,39 @@ def plot_Cs_ground_state_tweezer_shift():
 
 
 def plot_Cs_7p_tweezer_shift():
+    tweezer_wavelength = np.asarray([1069.79]) * 1e-9
+    tweezer_power = np.asarray([20e-3])
+
     shifter = ac_stark.ACStarkShift()
     wavelengths = np.linspace(850, 1400, 2000) * 1e-9
-    powers = np.asarray([20e-3])
+    powers = tweezer_power
     shirley_shift_wavelength_6S = shifter.ac_stark_shift_shirley(wavelengths,
                                                                  powers).squeeze()
 
     powers = np.linspace(0, 20e-3, 1000)
-    shirley_shift_power_6S = shifter.ac_stark_shift_shirley(np.asarray([1070])
-                                                            * 1e-9,
+    shirley_shift_power_6S = shifter.ac_stark_shift_shirley(tweezer_wavelength,
                                                             powers).squeeze()
 
     shifter_7P32 = ac_stark.ACStarkShift(n=7, l=1, j=1.5)
-    powers = np.asarray([20e-3])
-    shirley_shift_wavelength_7P32 = shifter_7P32.ac_stark_shift_shirley(wavelengths,
-                                                                        powers).squeeze()
+    powers = tweezer_power
+    shirley_shift_wavelength_7P32 = shifter_7P32.ac_stark_shift_shirley(
+        wavelengths, powers).squeeze()
 
     powers = np.linspace(0, 20e-3, 1000)
-    shirley_shift_power_7P32 = shifter_7P32.ac_stark_shift_shirley(np.asarray([
-        1070])
-        * 1e-9,
-        powers).squeeze()
+    shirley_shift_power_7P32 = shifter_7P32.ac_stark_shift_shirley(tweezer_wavelength,
+                                                                   powers).squeeze()
 
     shifter_7P12 = ac_stark.ACStarkShift(n=7, l=1, j=0.5)
-    powers = np.asarray([20e-3])
+    powers = tweezer_power
     shirley_shift_wavelength_7P12 = shifter_7P12.ac_stark_shift_shirley(
         wavelengths,
         powers).squeeze()
 
     powers = np.linspace(0, 20e-3, 1000)
-    shirley_shift_power_7P12 = shifter_7P12.ac_stark_shift_shirley(np.asarray([
-        1070])
-        * 1e-9,
-        powers).squeeze()
+    shirley_shift_power_7P12 = shifter_7P12.ac_stark_shift_shirley(tweezer_wavelength,
+                                                                   powers).squeeze()
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 8))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
     ax1.plot(wavelengths * 1e9, shirley_shift_wavelength_7P32 * 1e-6,
              '--',
              label=f"state = {shifter_7P32.state}")
@@ -96,10 +94,12 @@ def plot_Cs_7p_tweezer_shift():
              '--',
              label=f"state = {shifter.state}")
     ax1.set_xlabel("wavelength (nm)")
-    ax1.set_ylim([-2000, 2000])
+    ax1.set_ylim([-200, 200])
     ax1.set_ylabel("AC Stark Shift (MHz)")
+    ax1.set_title("tweezer power = " + str(tweezer_power[0] * 1e3) + " mW")
 
     ax1.legend()
+    ax1.grid()
 
     ax2.plot(powers * 1e3, shirley_shift_power_7P32 * 1e-6, '--',
              label=f"state = {shifter_7P32.state}")
@@ -110,9 +110,12 @@ def plot_Cs_7p_tweezer_shift():
     ax2.set_xlabel("tweezer power (mW)")
     # ax2.set_ylim([0, 100])
     ax2.set_ylabel("AC Stark Shift (MHz)")
+    ax2.set_title("tweezer wavelength = " + str(tweezer_wavelength[0] * 1e9) + " nm")
 
     ax2.legend()
+    ax2.grid()
 
+    plt.suptitle("7P AC Stark Shifts, waist = " + str(shifter.laserWaist * 1e6) + " um")
     plt.tight_layout()
     plt.show()
 

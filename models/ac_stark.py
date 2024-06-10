@@ -2,7 +2,7 @@ import numpy as np
 from itertools import product
 from arc import DynamicPolarizability, ShirleyMethod
 from arc import Cesium as Cs
-from models.utility import wavelength2freq, freq2wavelength, power2field
+from models.utility import wavelength2freq, power2field
 from scipy.constants import c as C_c
 from scipy.constants import epsilon_0
 
