@@ -6,12 +6,13 @@ import networkx as nx
 
 
 class AtomState:
-    def __init__(self, n=7, l=1, j=1.5, mj=1.5):
+    def __init__(self, n=7, l=1, j=1.5, mj=1.5, environmentTemperature=0.):
         self.atom = Cs()
         self.n = n
         self.l = l
         self.j = j
         self.mj = mj
+        self.environmentTemperature = environmentTemperature
 
         # calculation variables
         self.nmin = 6 - 2
@@ -22,7 +23,7 @@ class AtomState:
     def get_transition_matrix(self):
         self.levels = LevelPlot(self.atom)
         self.levels.makeLevels(self.nmin, self.nmax, self.lmin, self.lmax)
-        self.levels.makeTransitionMatrix(environmentTemperature=0.,
+        self.levels.makeTransitionMatrix(environmentTemperature=self.environmentTemperature,
                                          printDecays=False)
 
         return self.levels.transitionMatrix
@@ -335,6 +336,6 @@ if __name__ == '__main__':
     # transition40.print_tweezer_stark_shift(tweezer_power=0.010)
     # transition40.print_ac_stark_shift(Pp=0.010, Pc=2)
 
-    state = AtomState(n=40, l=2, j=1.5)
-    state.get_shortest_decay()
-    # state.plot_levels()
+    state = AtomState(n=47, l=5, j=4.5, environmentTemperature=300.)
+    #state.get_shortest_decay()
+    state.plot_levels()
