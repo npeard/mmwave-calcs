@@ -1,6 +1,78 @@
-from arc import Cesium as cs
+from arc import Cesium as Cs
+from arc import LevelPlot
 import numpy as np
 from scipy.interpolate import interp1d
+import networkx as nx
+
+
+class AtomState:
+    def __init__(self, n=7, l=1, j=1.5, mj=1.5):
+        self.atom = Cs()
+        self.n = n
+        self.l = l
+        self.j = j
+        self.mj = mj
+
+        # calculation variables
+        self.nmin = 6 - 2
+        self.nmax = self.n + 5
+        self.lmin = 0
+        self.lmax = self.l + 5
+
+    def get_transition_matrix(self):
+        self.levels = LevelPlot(self.atom)
+        self.levels.makeLevels(self.nmin, self.nmax, self.lmin, self.lmax)
+        self.levels.makeTransitionMatrix(environmentTemperature=0.,
+                                         printDecays=False)
+
+        return self.levels.transitionMatrix
+
+    def get_shortest_decay(self, source=None, target=None):
+        transition_matrix = self.get_transition_matrix()
+
+        # define source and target states
+        if source is None:
+            source = [self.n, self.l, self.j, 0.5]
+        if target is None:
+            target = [6, 0, 0.5, 0.5]
+        source = self.levels.levelLabel.index(source)
+        target = self.levels.levelLabel.index(target)
+        print("Source state: ", self.levels.levelLabel[source])
+        print("Target state: ", self.levels.levelLabel[target])
+
+        adj_matrix = np.copy(transition_matrix)
+        # diagonal entries are just total decay rates
+        adj_matrix[adj_matrix < 0] = 0
+        # convert weights to units of time rather than rates
+        adj_matrix[adj_matrix > 0] = 1 / adj_matrix[adj_matrix > 0]
+        # zero weight edges are not included in the graph
+
+        # create graph
+        G = nx.from_numpy_array(adj_matrix, create_using=nx.Graph)
+
+        # print(G.edges(data=True))
+        decay_path = nx.shortest_path(G, source=source, target=target,
+                                      weight='weight')
+        decay_time = nx.shortest_path_length(G, source=source, target=target,
+                                             weight='weight')
+
+        # calculate fraction of atoms that take this path
+        fraction = 1
+        for node, next_node in zip(decay_path, decay_path[1:]):
+            fraction *= (transition_matrix[node, next_node] /
+                         np.abs(transition_matrix[node, node]))
+
+        # print("Shortest decay path: ", decay_path)
+        print("Shortest decay path: ", [self.levels.levelLabel[i] for i in decay_path])
+        print("Decay time: ", decay_time)
+        print("Fraction of atoms that take this path: ", fraction)
+
+    def plot_levels(self):
+        # Plot Energy Levels of Cesium
+        levels = LevelPlot(self.atom)
+        levels.makeLevels(self.nmin, self.nmax, self.lmin, self.lmax)
+        levels.drawLevels()
+        levels.showPlot()
 
 
 class RydbergTransition:
@@ -54,7 +126,7 @@ class RydbergTransition:
         # laserPower is in W
         # laserWaist is in m
         if self.RabiAngularFreq_1_from_Power is None:
-            rabiFreq_1 = cs().getRabiFrequency(n1=self.n1, l1=self.l1, j1=self.j1,
+            rabiFreq_1 = Cs().getRabiFrequency(n1=self.n1, l1=self.l1, j1=self.j1,
                                                mj1=self.mj1,
                                                n2=self.n2,
                                                l2=self.l2,
@@ -70,7 +142,7 @@ class RydbergTransition:
         # laserPower is in W
         # laserWaist is in m
         if self.RabiAngularFreq_2_from_Power is None:
-            rabiFreq_2 = cs().getRabiFrequency(n1=self.n2, l1=self.l2, j1=self.j2, mj1=self.mj2, n2=self.n3,
+            rabiFreq_2 = Cs().getRabiFrequency(n1=self.n2, l1=self.l2, j1=self.j2, mj1=self.mj2, n2=self.n3,
                                                l2=self.l3,
                                                j2=self.j3, q=self.q2,
                                                laserPower=laserPower,
@@ -79,60 +151,60 @@ class RydbergTransition:
             rabiFreq_2 = self.RabiAngularFreq_2_from_Power(laserPower)
 
         return rabiFreq_2  # in 2pi*Hz
-    
+
     def get_balanced_laser_power(self, probe_power=None, couple_power=None):
         if probe_power is None:
             couple_rabi = self.RabiAngularFreq_2_from_Power(couple_power)
             probe_power = self.Power_from_RabiAngularFreq_1(couple_rabi)
-            return probe_power # in W
+            return probe_power  # in W
         elif couple_power is None:
             probe_rabi = self.RabiAngularFreq_1_from_Power(probe_power)
             couple_power = self.Power_from_RabiAngularFreq_2(probe_rabi)
-            return couple_power # in W
+            return couple_power  # in W
         else:
             print("You messed up")
             pass
 
     def get_E_Linewidth(self):
-        gamma2 = 1 / cs().getStateLifetime(self.n2, self.l2, self.j2, temperature=300.0,
+        gamma2 = 1 / Cs().getStateLifetime(self.n2, self.l2, self.j2, temperature=300.0,
                                            includeLevelsUpTo=self.n2 + 5)
         return gamma2  # in Hz
 
     def get_R_Linewidth(self):
-        gamma3 = 1 / cs().getStateLifetime(self.n3, self.l3, self.j3, temperature=300.0,
+        gamma3 = 1 / Cs().getStateLifetime(self.n3, self.l3, self.j3, temperature=300.0,
                                            includeLevelsUpTo=self.n3 + 5)
         return gamma3  # in Hz
 
     def get_E_TransitionFreq(self):
         # Returned values is given relative to the centre of gravity of the hyperfine-split states.
-        freq_1 = cs().getTransitionFrequency(n1=self.n1, l1=self.l1, j1=self.j1, n2=self.n2, l2=self.l2,
+        freq_1 = Cs().getTransitionFrequency(n1=self.n1, l1=self.l1, j1=self.j1, n2=self.n2, l2=self.l2,
                                              j2=self.j2)
-        HFS_g = cs().getHFSEnergyShift(j=self.j1, f=4,
-                                       A=cs().getHFSCoefficients(n=self.n1,
+        HFS_g = Cs().getHFSEnergyShift(j=self.j1, f=4,
+                                       A=Cs().getHFSCoefficients(n=self.n1,
                                                                  l=self.l1, j=self.j1)[0])
-        HFS_e = cs().getHFSEnergyShift(j=self.j2, f=5,
-                                       A=cs().getHFSCoefficients(n=self.n2,
+        HFS_e = Cs().getHFSEnergyShift(j=self.j2, f=5,
+                                       A=Cs().getHFSCoefficients(n=self.n2,
                                                                  l=self.l2, j=self.j2)[0])
         return freq_1 - HFS_g + HFS_e  # in Hz
 
     def get_R_TransitionFreq(self):
         # Returned values is given relative to the centre of gravity of the hyperfine-split states.
-        freq_2 = cs().getTransitionFrequency(n1=self.n2, l1=self.l2, j1=self.j2, n2=self.n3, l2=self.l3,
+        freq_2 = Cs().getTransitionFrequency(n1=self.n2, l1=self.l2, j1=self.j2, n2=self.n3, l2=self.l3,
                                              j2=self.j3)
-        HFS_e = cs().getHFSEnergyShift(j=self.j2, f=5,
-                                       A=cs().getHFSCoefficients(n=self.n2,
+        HFS_e = Cs().getHFSEnergyShift(j=self.j2, f=5,
+                                       A=Cs().getHFSCoefficients(n=self.n2,
                                                                  l=self.l2, j=self.j2)[0])
         # ARC doesn't calculate hyperfine structure for n=47, l=2, j=2.5?
         return freq_2 - HFS_e  # in Hz
 
     def get_E_SaturationPower(self):
-        sat_1 = cs().getSaturationIntensityIsotropic(ng=self.n1, lg=self.l1, jg=self.j1, fg=4,
+        sat_1 = Cs().getSaturationIntensityIsotropic(ng=self.n1, lg=self.l1, jg=self.j1, fg=4,
                                                      ne=self.n2, le=self.l2,
                                                      je=self.j2, fe=5)
         return sat_1 * np.pi * (self.laserWaist / 2)**2  # in Watts
 
     def get_R_SaturationPower(self):
-        sat_2 = cs().getSaturationIntensityIsotropic(ng=self.n2, lg=self.l2, jg=self.j2, fg=5,
+        sat_2 = Cs().getSaturationIntensityIsotropic(ng=self.n2, lg=self.l2, jg=self.j2, fg=5,
                                                      ne=self.n3, le=self.l3,
                                                      je=self.j3, fe=6)
         return sat_2 * np.pi * (self.laserWaist / 2)**2  # in Watts
@@ -170,13 +242,13 @@ class RydbergTransition:
     def get_PiPulseDuration(self, Pp, Pc, resonance=False):
         omega = self.get_totalRabiAngularFreq(Pp, Pc, resonance=resonance)
         return np.pi / omega
-    
+
     def get_pi_detuning(self, probe_power, couple_power, pi_time):
         # get the detuning required to implement a pi pulse of duration pi_time
         rabiFreq_1 = self.get_E_RabiAngularFreq(laserPower=probe_power)
         rabiFreq_2 = self.get_R_RabiAngularFreq(laserPower=couple_power)
-        detuning = pi_time/np.pi/2 * rabiFreq_1 * rabiFreq_2 # in 2pi*Hz
-        
+        detuning = pi_time / np.pi / 2 * rabiFreq_1 * rabiFreq_2  # in 2pi*Hz
+
         return detuning
 
     def get_DiffRydACStark(self, Pp, Pc):
@@ -207,16 +279,16 @@ class RydbergTransition:
         print("Probe laser frequency (with AOM)", (trans1 - AOM456) * 1e-9,
               "GHz")
         print("Couple laser frequency (with AOM)", (trans2 - AOM1064) * 1e-9,
-                                                    "GHz")
+              "GHz")
 
         print("\nOptimal detuning", Delta0 * 1e-9 / (2 * np.pi), "GHz ")
 
         print("\nOptimal probe frequency (with AOM)", (trans1 + Delta0 / (2 *
-                                                                     np.pi) -
-                                            AOM456) * 1e-9, "GHz")
+                                                                          np.pi) -
+                                                       AOM456) * 1e-9, "GHz")
         print("Optimal couple frequency (with AOM)", (trans2 - Delta0 / (2 *
-                                                                     np.pi) -
-                                           AOM1064) * 1e-9, "GHz")
+                                                                         np.pi) -
+                                                      AOM1064) * 1e-9, "GHz")
 
         print("\nExpected Rabi Frequency = 2*pi",
               self.get_totalRabiAngularFreq(Pp, Pc) * 1e-6 / (2 * np.pi), "MHz")
@@ -224,7 +296,7 @@ class RydbergTransition:
 
     def print_tweezer_stark_shift(self, tweezer_power):
         # Two state approximation here is not very accurate
-        rabiFreq_2 = cs().getRabiFrequency(n1=self.n2, l1=self.l2, j1=self.j2,
+        rabiFreq_2 = Cs().getRabiFrequency(n1=self.n2, l1=self.l2, j1=self.j2,
                                            mj1=self.mj2, n2=self.n3,
                                            l2=self.l3,
                                            j2=self.j3, q=self.q2,
@@ -255,10 +327,14 @@ class RydbergTransition:
 
 
 if __name__ == '__main__':
-    transition40 = RydbergTransition(laserWaist=25e-6, n1=6, l1=0, j1=0.5,
-                                     mj1=0.5, n2=7, l2=1, j2=1.5, mj2=1.5,
-                                     q2=-1, n3=40, l3=0, j3=0.5)
+    # transition40 = RydbergTransition(laserWaist=25e-6, n1=6, l1=0, j1=0.5,
+    #                                  mj1=0.5, n2=7, l2=1, j2=1.5, mj2=1.5,
+    #                                  q2=-1, n3=40, l3=0, j3=0.5)
+    #
+    # transition40.print_laser_frequencies(Pp=0.010, Pc=2)
+    # transition40.print_tweezer_stark_shift(tweezer_power=0.010)
+    # transition40.print_ac_stark_shift(Pp=0.010, Pc=2)
 
-    transition40.print_laser_frequencies(Pp=0.010, Pc=2)
-    transition40.print_tweezer_stark_shift(tweezer_power=0.010)
-    transition40.print_ac_stark_shift(Pp=0.010, Pc=2)
+    state = AtomState(n=40, l=2, j=1.5)
+    state.get_shortest_decay()
+    # state.plot_levels()
