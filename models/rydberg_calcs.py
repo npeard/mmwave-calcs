@@ -64,7 +64,8 @@ class AtomState:
                          np.abs(transition_matrix[node, node]))
 
         # print("Shortest decay path: ", decay_path)
-        print("Shortest decay path: ", [self.levels.levelLabel[i] for i in decay_path])
+        print("Probable decay path: ", [self.levels.levelLabel[i] for i in
+                                        decay_path])
         print("Decay time: ", decay_time)
         print("Fraction of atoms that take this path: ", fraction)
 
@@ -337,5 +338,5 @@ if __name__ == '__main__':
     # transition40.print_ac_stark_shift(Pp=0.010, Pc=2)
 
     state = AtomState(n=47, l=5, j=4.5, environmentTemperature=300.)
-    #state.get_shortest_decay()
+    # state.get_shortest_decay()
     state.plot_levels()
