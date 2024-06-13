@@ -223,6 +223,7 @@ class RydbergTransition:
         print("Pi Pulse Duration", self.get_PiPulseDuration(Pp, Pc) * 1e9, "ns")
 
     def print_tweezer_stark_shift(self, tweezer_power):
+        # Two state approximation here is not very accurate
         rabiFreq_2 = cs().getRabiFrequency(n1=self.n2, l1=self.l2, j1=self.j2,
                                            mj1=self.mj2, n2=self.n3,
                                            l2=self.l3,
