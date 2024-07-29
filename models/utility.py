@@ -7,6 +7,10 @@ def wavelength2freq(wavelength):
     return c_c / wavelength
 
 
+def wavelength2angularfreq(wavelength):
+    return wavelength2freq(wavelength) * 2 * np.pi
+
+
 def freq2wavelength(frequency):
     return c_c / frequency
 
