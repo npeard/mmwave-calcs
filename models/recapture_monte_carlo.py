@@ -457,11 +457,11 @@ def run_model(recapture_time, recapture_rate, tweezer_power, quantify_error=Fals
                                                      quantify_error=True)
             temperatures.append(T_ensemble)
         temperatures = np.asarray(temperatures)
-        print("T_ensemble [mK]= ", np.mean(temperatures * 1e6), "+/-", np.std(
+        print("T_ensemble [uK]= ", np.mean(temperatures * 1e6), "+/-", np.std(
             temperatures * 1e6))
 
         plt.hist(temperatures * 1e6)
-        plt.xlabel('Temperature [mK]')
+        plt.xlabel('Temperature [uK]')
         plt.ylabel('Number of shots')
         if true_T_ensemble is not None:
             plt.axvline(x=true_T_ensemble * 1e6, color='r', linestyle='--',
@@ -473,7 +473,7 @@ def run_model(recapture_time, recapture_rate, tweezer_power, quantify_error=Fals
         T_ensemble = tweezer_temperature_regress(recapture_time, recapture_rate,
                                                  tweezer_power,
                                                  plot_results=True)
-        print("T_ensemble [mK] = ", T_ensemble * 1e6)
+        print("T_ensemble [uK] = ", T_ensemble * 1e6)
 
 
 if __name__ == '__main__':
