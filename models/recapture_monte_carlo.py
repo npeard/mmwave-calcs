@@ -72,7 +72,8 @@ def newton_3d(f, t, omega_H, omega_L):
     return dfdt
 
 
-def get_trap_freqs(power, waist=1.2e-6, gamma=1 / Caesium().getStateLifetime(n=6, l=1, j=1.5), mass=Caesium().mass):
+def get_trap_freqs(power, waist=1.5e-6, gamma=1 / Caesium().getStateLifetime(
+    n=6, l=1, j=1.5), mass=Caesium().mass):
     """
     Calculate the trap frequencies based on the trap parameters.
 
@@ -281,20 +282,14 @@ def recapture_rate_3d(t, omega_H, omega_L, trap_temp, T_ensemble, mass=Caesium()
          vy_ensemble,
          z_ensemble,
          vz_ensemble) = monte_carlo_3d(t, omega_H, omega_L, T_ensemble=T_ensemble, do_iHO=do_iHO)
-
-        energy_ind = np.zeros((len(t), x_ensemble_t.shape[0]))
-
-        for i in np.arange(len(t)):
-            for j in np.arange(x_ensemble_t.shape[0]):
-                energy_ind[i, j] = energy_3d(x_ensemble_t[j, i], vx_ensemble_t[j, i], y_ensemble[j, i],
-                                             vy_ensemble[j, i], z_ensemble[j, i],
-                                             vz_ensemble[j, i], mass, omega_H,
-                                             omega_L)
-
-        recapture_number = np.zeros(len(t))
-        for i in np.arange(len(t)):
-            recapture_number[i] = np.sum(energy_ind[i, :] <= effective_trap_depth)
-
+        
+        energy_ind = energy_3d(x_ensemble_t, vx_ensemble_t, y_ensemble, vy_ensemble, z_ensemble, vz_ensemble, mass, omega_H, omega_L)
+        
+        recaptured = np.zeros_like(energy_ind)
+        recaptured[energy_ind <= effective_trap_depth] = 1
+        
+        recapture_number = np.sum(recaptured, axis=0)
+        
         recapture_rate[n, :] = recapture_number / x_ensemble_t.shape[0]
 
     avg_recapture_rate = np.mean(recapture_rate, axis=0)
@@ -327,7 +322,7 @@ def get_simulated_recapture_data(max_us=100e-6, num_recap_times=20, T_ensemble=2
     """
     t = np.linspace(0, max_us, num_recap_times)
     tweezer_power = np.random.random(1) * 50e-3
-    omega_H, omega_L, trap_temp = get_trap_freqs(tweezer_power, 1.2e-6)
+    omega_H, omega_L, trap_temp = get_trap_freqs(tweezer_power, 1.5e-6)
     recapture_rate, _ = recapture_rate_3d(t, omega_H, omega_L, trap_temp, T_ensemble)
     return t, recapture_rate, tweezer_power
 
@@ -418,6 +413,7 @@ def tweezer_temperature_regress(recapture_time, recapture_rate, tweezer_power, t
 
         plt.scatter(recapture_time * 1e6, recapture_rate, label='data')
         plt.plot(recapture_time * 1e6, best_fit, label='GPR fit')
+        plt.fill_between(recapture_time * 1e6, best_fit - error, best_fit + error, alpha=0.5)
         plt.xlabel('t [us]')
         plt.ylabel('recapture rate')
         plt.legend(loc='best')
@@ -477,7 +473,7 @@ def run_model(recapture_time, recapture_rate, tweezer_power, quantify_error=Fals
         T_ensemble = tweezer_temperature_regress(recapture_time, recapture_rate,
                                                  tweezer_power,
                                                  plot_results=True)
-        print("T_ensemble [mK]= ", T_ensemble * 1e6)
+        print("T_ensemble [mK] = ", T_ensemble * 1e6)
 
 
 if __name__ == '__main__':
@@ -485,8 +481,8 @@ if __name__ == '__main__':
 
     recap_times, recap_rate, tweezer_power = get_simulated_recapture_data(50e-6,
                                                                           10,
-                                                                          120e-6)
+                                                                          12e-6)
     print("tweezer power = ", tweezer_power)
     run_model(recap_times, recap_rate, tweezer_power,
               quantify_error=True,
-              true_T_ensemble=120e-6)
+              true_T_ensemble=12e-6)
