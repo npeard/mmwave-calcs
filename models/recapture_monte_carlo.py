@@ -72,7 +72,7 @@ def newton_3d(f, t, omega_H, omega_L):
     return dfdt
 
 
-def get_trap_freqs(power, waist=1.5e-6, gamma=1 / Caesium().getStateLifetime(
+def get_trap_freqs(power, waist=1.15e-6, gamma=1 / Caesium().getStateLifetime(
     n=6, l=1, j=1.5), mass=Caesium().mass):
     """
     Calculate the trap frequencies based on the trap parameters.
@@ -322,7 +322,7 @@ def get_simulated_recapture_data(max_us=100e-6, num_recap_times=20, T_ensemble=2
     """
     t = np.linspace(0, max_us, num_recap_times)
     tweezer_power = np.random.random(1) * 50e-3
-    omega_H, omega_L, trap_temp = get_trap_freqs(tweezer_power, 1.5e-6)
+    omega_H, omega_L, trap_temp = get_trap_freqs(tweezer_power, 1.15e-6)
     recapture_rate, _ = recapture_rate_3d(t, omega_H, omega_L, trap_temp, T_ensemble)
     return t, recapture_rate, tweezer_power
 
@@ -349,7 +349,8 @@ def plot_recapture_rate():
     plt.show()
 
 
-def tweezer_temperature_regress(recapture_time, recapture_rate, tweezer_power, tweezer_waist=1.5e-6, plot_results=False, quantify_error=False):
+def tweezer_temperature_regress(recapture_time, recapture_rate,
+                                tweezer_power, tweezer_waist=1.15e-6, plot_results=False, quantify_error=False):
     """
     Returns the ensemble temperature that best fits the given recapture rate data.
     
@@ -362,7 +363,7 @@ def tweezer_temperature_regress(recapture_time, recapture_rate, tweezer_power, t
     tweezer_power : float
         Tweezer power used to generate the data in W.
     tweezer_waist : float, optional
-        Tweezer waist size in meters. Default is 1.5e-6.
+        Tweezer waist size in meters. Default is 1.15e-6.
     plot_results : bool, optional
         If True, plots the data and the best fit. Default is False.
     quantify_error : bool, optional
@@ -479,10 +480,12 @@ def run_model(recapture_time, recapture_rate, tweezer_power, quantify_error=Fals
 if __name__ == '__main__':
     # plot_recapture_rate()
 
-    recap_times, recap_rate, tweezer_power = get_simulated_recapture_data(50e-6,
-                                                                          10,
-                                                                          12e-6)
-    print("tweezer power = ", tweezer_power)
-    run_model(recap_times, recap_rate, tweezer_power,
-              quantify_error=True,
-              true_T_ensemble=12e-6)
+    # recap_times, recap_rate, tweezer_power = get_simulated_recapture_data(50e-6,
+    #                                                                       10,
+    #                                                                       12e-6)
+    # print("tweezer power = ", tweezer_power)
+    # run_model(recap_times, recap_rate, tweezer_power,
+    #           quantify_error=True,
+    #           true_T_ensemble=12e-6)
+    
+    print(get_trap_freqs(1.4e-3, 1.15e-6))
