@@ -70,8 +70,26 @@ def newton_3d(f, t, omega_H, omega_L):
     return dfdt
 
 
-def get_trap_depth(power, waist, gamma=1 / Caesium().getStateLifetime(
-        n=6, l=1, j=1.5)):
+def get_trap_depth(power, waist, gamma=1 / Caesium().getStateLifetime(n=6, l=1, j=1.5)):
+    """
+    Calculate the depth of a trap given the power and laser waist.
+
+    Parameters
+    ----------
+    power : float
+        Power of the laser in mW.
+    waist : float
+        Laser waist in meters.
+    gamma : float, optional
+        Linewidth of the excited state. The default is
+        1 / Caesium().getStateLifetime(n=6, l=1, j=1.5).
+
+    Returns
+    -------
+    float
+        Depth of the trap in Joules.
+
+    """
     angular_detuning = (wavelength2angularfreq(1070e-9) -
                         wavelength2angularfreq(852e-9))
     intensity = 2 * power / (np.pi * waist**2)
@@ -123,6 +141,24 @@ def get_trap_freqs(power, waist=1.15e-6, mass=Caesium().mass):
 
 
 def get_tau(power, T_ensemble, waist=1.15e-6):
+    """
+    Calculate the energy to trap depth ratio of the 3D system of atoms.
+    This parameter is used by the radial recapture model.
+
+    Parameters
+    ----------
+    power : float
+        Power of the trap in mW.
+    T_ensemble : float
+        Ensemble temperature in K.
+    waist : float, optional
+        Waist of the laser beam in m. Default is 1.2 microns.
+
+    Returns
+    -------
+    tau : float
+        Characteristic energy ratio of the system.
+    """
     U0 = get_trap_depth(power, waist)
     tau = const.k * T_ensemble / U0
 
@@ -130,7 +166,29 @@ def get_tau(power, T_ensemble, waist=1.15e-6):
 
 
 def radial_recapture_rate(t, power, T_ensemble, waist=1.15e-6):
-    # model courtesy of Monika Schleier-Smith
+    """
+    Calculate the radial recapture rate of a 3D system of atoms.
+    This model assumes that the atoms are mainly lost in the radial axis of the
+    trap. Additionally, small velocity losses near the edge are neglected.
+    Agrees reasonably well with the full Monte Carlo model. See derivation
+    courtesy of Monika Schleier-Smith.
+
+    Parameters
+    ----------
+    t : array-like
+        Array of times in seconds.
+    power : float
+        Power of the laser beam in W.
+    T_ensemble : float
+        Ensemble temperature in Kelvin.
+    waist : float, optional
+        Waist of the laser beam in m. Default is 1.15e-6.
+
+    Returns
+    -------
+    probability : array-like
+        1D array of the probability of recapture during each time in t.
+    """
     tau = get_tau(power, T_ensemble, waist)
     omega_H, _, _ = get_trap_freqs(power, waist)
 
@@ -241,10 +299,10 @@ def energy_3d(x, vx, y, vy, z, vz, mass, power, waist):
         Array of z velocities of atoms.
     mass : float
         Mass of atoms in kg.
-    omega_H : float
-        Radial trap angular frequency in rad/s.
-    omega_L : float
-        Longitudinal trap angular frequency in rad/s.
+    power : float
+        Power of the trap in W.
+    waist : float
+        Waist of the trap in m.
 
     Returns
     -------
@@ -310,12 +368,10 @@ def recapture_rate_3d(t, power, waist, T_ensemble, mass=Caesium().mass,
     ----------
     t : array-like
         Array of times in seconds.
-    omega_H : float
-        Radial trap angular frequency in rad/s.
-    omega_L : float
-        Longitudinal trap angular frequency in rad/s.
-    trap_temp : float
-        Trap temperature in K.
+    power : float
+        Power of the laser beam in W.
+    waist : float
+        Waist of the laser beam in m.
     T_ensemble : array-like
         3D array of x, y, z positions and velocities of atoms.
     mass : float, optional
@@ -346,7 +402,7 @@ def recapture_rate_3d(t, power, waist, T_ensemble, mass=Caesium().mass,
          vz_ensemble) = monte_carlo_3d(t, omega_H, omega_L,
                                        T_ensemble=T_ensemble, do_iHO=do_iHO)
 
-        # energy_ind = energy_3d(x_ensemble_t, vx_ensemble_t, y_ensemble, vy_ensemble, z_ensemble, vz_ensemble, mass, omega_H, omega_L)
+        # calculate energy
         energy_ind = total_energy(x_ensemble_t, vx_ensemble_t, y_ensemble,
                                   vy_ensemble, z_ensemble, vz_ensemble, mass,
                                   power, waist)
@@ -407,7 +463,8 @@ def plot_recapture_rate():
                                                          waist, T_ensemble,
                                                          do_iHO=True)
     recapture_rate_free, std_rate_free = recapture_rate_3d(t, power, waist,
-                                                           T_ensemble, do_iHO=False)
+                                                           T_ensemble,
+                                                           do_iHO=False)
 
     plt.errorbar(t * 1e6, recapture_rate_iHO, yerr=std_rate_iHO, label='iHO')
     plt.errorbar(t * 1e6, recapture_rate_free, yerr=std_rate_free, label='free')
@@ -440,7 +497,8 @@ def tweezer_temperature_regress(recapture_time, recapture_rate,
                                 tweezer_waist=1.15e-6,
                                 plot_results=False, quantify_error=False):
     """
-    Returns the ensemble temperature that best fits the given recapture rate data.
+    Returns the ensemble temperature that best fits the given recapture rate
+    data.
 
     Parameters
     ----------
@@ -607,7 +665,8 @@ def run_model(recapture_time, recapture_rate, tweezer_power, recapture_std=None,
 
     else:
         T_ensemble = tweezer_temperature_regress(recapture_time, recapture_rate,
-                                                 tweezer_power, recapture_std=recapture_std,
+                                                 tweezer_power,
+                                                 recapture_std=recapture_std,
                                                  plot_results=True)
         print("T_ensemble [uK] = ", T_ensemble * 1e6)
 
