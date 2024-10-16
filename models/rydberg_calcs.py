@@ -129,13 +129,13 @@ class RydbergTransition:
         sat_1 = cs().getSaturationIntensityIsotropic(ng=self.n1, lg=self.l1, jg=self.j1, fg=4,
                                                      ne=self.n2, le=self.l2,
                                                      je=self.j2, fe=5)
-        return sat_1 * np.pi * (self.laserWaist / 2)**2  # in Watts
+        return sat_1 * np.pi * self.laserWaist**2  # in Watts
 
     def get_R_SaturationPower(self):
         sat_2 = cs().getSaturationIntensityIsotropic(ng=self.n2, lg=self.l2, jg=self.j2, fg=5,
                                                      ne=self.n3, le=self.l3,
                                                      je=self.j3, fe=6)
-        return sat_2 * np.pi * (self.laserWaist / 2)**2  # in Watts
+        return sat_2 * np.pi * self.laserWaist**2  # in Watts
 
     def get_OptimalDetuning(self, P1=None, P2=None, rabiFreq1=None,
                             rabiFreq2=None, gamma2=None, gamma3=None):
