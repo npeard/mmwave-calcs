@@ -199,15 +199,24 @@ class RydbergTransition:
 
     def print_laser_frequencies(self, Pp, Pc, AOM456=-220e6, AOM1064=-110e6):
         trans1 = self.get_E_TransitionFreq()
+        line1 = self.get_E_Linewidth()
         trans2 = self.get_R_TransitionFreq()
+        line2 = self.get_R_Linewidth()
         rabiFreq_1 = self.get_E_RabiAngularFreq(laserPower=Pp)
         rabiFreq_2 = self.get_R_RabiAngularFreq(laserPower=Pc)
         Delta0 = self.get_OptimalDetuning(rabiFreq1=rabiFreq_1, rabiFreq2=rabiFreq_2)
 
+        print(trans1)
         print("Probe laser frequency (with AOM)", (trans1 - AOM456) * 1e-9,
               "GHz")
+        print(r"Power Broadening $\sqrt(2)*\Omega = $", np.sqrt(2) *
+              rabiFreq_1 / (2*np.pi) * 1e-6, "MHz")
+        print("Natural Linewidth", line1 * 1e-6, "MHz")
         print("Couple laser frequency (with AOM)", (trans2 - AOM1064) * 1e-9,
                                                     "GHz")
+        print(r"Power Broadening $\sqrt(2)*\Omega = $", np.sqrt(2) *
+              rabiFreq_2 / (2*np.pi) * 1e-6, "MHz")
+        print("Natural Linewidth", line2 * 1e-6, "MHz")
 
         print("\nOptimal detuning", Delta0 * 1e-9 / (2 * np.pi), "GHz ")
 
@@ -252,6 +261,14 @@ class RydbergTransition:
         Stark_2 = rabiFreq_2**2 / 4 / Delta0
         print("Stark Shift 1 (MHz)", Stark_1 / (2 * np.pi) * 1e-6)
         print("Stark Shift 2 (MHz)", Stark_2 / (2 * np.pi) * 1e-6)
+        
+    def print_saturation_powers(self):
+        # get the saturation powers for the probe and coupling transitions
+        satPower_E = self.get_E_SaturationPower()
+        satPower_R = self.get_R_SaturationPower()
+        
+        print("Saturation Power E (mW)", satPower_E * 1e3)
+        print("Saturation Power R (mW)", satPower_R * 1e3)
 
 
 if __name__ == '__main__':
