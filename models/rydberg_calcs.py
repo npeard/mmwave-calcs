@@ -1,8 +1,21 @@
 from arc import Cesium as cs
 import numpy as np
 from scipy.interpolate import interp1d
+from models.utility import freq2wavelength
 
-
+class alkaline_constant:
+    # all constant from Daniel Stack's cesium, rubidium document
+    def __init__(self, atom):
+        if atom.elementName == "Cs133":
+            self.ground_state = [6, 0, 0.5] # n, l, j for ground state
+            self.ground_state_f = 3 # F for ground state
+            self.D2_state = [6, 1, 1.5] # n, l, j for excited state
+            self.D1_state = [6, 1, 0.5] # n, l, j for excited state
+            self.I_sat_D2_pi = 1.6536*10 # W/m^2
+            self.I_sat_D2_sigma = 1.1023*10 # W/m^2
+        else:
+            raise ValueError("Only Cs133 is supported now for alkaline atom")
+            
 class RydbergTransition:
     def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, q1=1,
                  n2=7, l2=1, j2=1.5, mj2=1.5, q2=1, n3=47, l3=2, j3=2.5):
@@ -114,6 +127,106 @@ class RydbergTransition:
                                        A=cs().getHFSCoefficients(n=self.n2,
                                                                  l=self.l2, j=self.j2)[0])
         return freq_1 - HFS_g + HFS_e  # in Hz
+    
+
+    def freq_hfs(self, atom, n1, l1, j1, f1, n2, l2, j2, f2, debug = False):
+        """
+        Calculate the hyperfine structure transition frequency between two atomic states.
+
+        This function computes the frequency of a transition between two hyperfine states
+        of an atom, taking into account the hyperfine structure corrections.
+
+        Parameters:
+        atom : Atom object
+            The atom for which the transition is being calculated.
+        n1, l1, j1, f1 : int
+            Quantum numbers for the initial state (principal, orbital, total angular momentum, total atomic angular momentum).
+        n2, l2, j2, f2 : int
+            Quantum numbers for the final state.
+        debug : bool, optional
+            If True, print the calculated frequency in GHz. Default is False.
+
+        Returns:
+        float
+            The hyperfine structure transition frequency in Hz.
+
+        Note:
+        This function uses the `hfs` function to calculate hyperfine structure corrections
+        and the `getTransitionFrequency` method of the atom object to get the base transition frequency.
+        """
+
+
+        Ehfs_1 = self.hfs(atom, n1, l1, j1, f1)
+        Ehfs_2 = self.hfs(atom, n2, l2, j2, f2)
+        f = atom.getTransitionFrequency(n1, l1, j1, n2, l2, j2)
+        f_hfs = f - Ehfs_1 + Ehfs_2
+
+        if debug == True:
+            print(f"Ehfs = {f_hfs/1e9} GHz")
+
+        return f_hfs
+
+
+    def wavelength_hfs(self, atom, n1, l1, j1, f1, n2, l2, j2, f2, debug = False):
+        """
+        return the hyperfine splitting of two states
+
+        Parameters:
+            atom: atom species
+            n1, n2 (int): principles quantum number
+            l1, l2 (int): principles angular momentum number
+            j1, j2 (float): principle total angular momentum (l+s) usually half integer
+        """
+        self.n1 = n1
+        self.l1 = l1
+        self.j1 = j1
+        f = self.freq_hfs(atom, n1, l1, j1, f1, n2, l2, j2, f2, debug = False)
+        w = freq2wavelength(f)
+
+        if debug == True:
+            print(f"λhfs = {w*1e9} nm")
+
+        return w
+
+    def hfs(self, atom, n, l, j, f):
+        A, B = atom.getHFSCoefficients(n, l, j)
+        Ehfs = atom.getHFSEnergyShift(j, f, A, B)
+        return Ehfs
+
+    def alkaline_wavelength_hfs(self, atom, f1 = 3, f2 = 3, transition = "D2", debug = False):
+        """
+        Calculate the wavelength of D2 and D1 transition with hyperfine correction
+        Args:
+            atom: The atom object for which the transition is being calculated.
+            f1: ground state F
+            f2: excited state F
+            debug: If True, print the calculated frequency in GHz. Defaults to False.
+
+        Returns:
+            The hyperfine structure transition wavelength in m.
+
+        Raises:
+            ValueError: If the input tuples don't have exactly 4 elements each.
+
+        """
+        if atom.elementName == "Cs133":
+            state_1 = alkaline_constant(atom).ground_state #[6, 0, 0.5] # n, l, j for ground state]
+            if transition == "D2":
+                state_2 = alkaline_constant(atom).D2_state #[6, 1, 1.5] # n, l, j for excited state
+                if f1 not in [3, 4]:
+                    raise ValueError("f1 must be 3 or 4 for Cs133 D2 transition")
+            elif transition == "D1":
+                state_2 = alkaline_constant(atom).D1_state #[6, 1, 0.5] # n, l, j for excited state
+                if f1 not in [2, 3, 4, 5]:
+                    raise ValueError("f1 must between 2 or 5 for Cs133 D1 transition")
+
+            w = self.wavelength_hfs(atom, *state_1, f1, *state_2, f2, debug = False)
+        else:
+            raise ValueError("Only Cs133 is supported now for alkaline atom")    
+        if debug == True:
+            print(transition + f" λ = {w*1e9} nm")
+
+        return w
 
     def get_R_TransitionFreq(self):
         # Returned values is given relative to the centre of gravity of the hyperfine-split states.
