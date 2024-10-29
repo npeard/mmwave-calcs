@@ -2,6 +2,7 @@ from arc import Cesium as cs
 import numpy as np
 from scipy.interpolate import interp1d
 
+
 # TODO: refactor this class to be inherited from a 2-level transition
 class RydbergTransition:
     def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, q1=1,
