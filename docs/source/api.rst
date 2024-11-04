@@ -11,6 +11,9 @@ API Documentation
    :undoc-members:
    :show-inheritance:
 
+
+Utility Functions
+------------------
 .. automodule:: models.utility
    :members:
    :undoc-members:
