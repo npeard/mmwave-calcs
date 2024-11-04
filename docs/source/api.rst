@@ -1,7 +1,7 @@
 API Documentation
 ===============
 
-.. automodule:: your_package
+.. automodule:: models
    :members:
    :undoc-members:
    :show-inheritance:
@@ -12,5 +12,5 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
-   your_package.submodule1
-   your_package.submodule2
+   models.rydberg_calcs
+   models.submodule2

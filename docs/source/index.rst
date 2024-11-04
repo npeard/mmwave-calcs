@@ -1,4 +1,4 @@
-Welcome to mmwave-calcs documentation!
+Welcome to mmwave-calc documentation!
 ======================================
 
 .. toctree::
