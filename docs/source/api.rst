@@ -1,7 +1,17 @@
 API Documentation
-===============
+===================
 
-.. automodule:: models
+.. automodule:: models.rydberg_calcs
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: models.rydberg_dynamics
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: models.utility
    :members:
    :undoc-members:
    :show-inheritance:
@@ -11,6 +21,3 @@ Submodules
 
 .. toctree::
    :maxdepth: 4
-
-   models.rydberg_calcs
-   models.submodule2

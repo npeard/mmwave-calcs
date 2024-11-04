@@ -52,6 +52,20 @@ class RydbergTransition:
                                                      kind='cubic')
 
     def get_E_RabiAngularFreq(self, laserPower):
+        """
+        Compute the Rabi angular frequency for the 6S1/2 -> 7P3/2
+        excited state transition.
+
+        Parameters
+        ----------
+        laserPower : float
+            The power of the laser, in W.
+
+        Returns
+        -------
+        rabiFreq_1 : float
+            The Rabi angular frequency, in 2pi*Hz.
+        """
         # laserPower is in W
         # laserWaist is in m
         if self.RabiAngularFreq_1_from_Power is None:

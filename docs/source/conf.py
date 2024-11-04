@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../models'))
+sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
 
 project = 'mmwave-calc'
 copyright = '2024, Nolan Peard, Lin Xin, Sam Cohen, Tony Zhang, Michelle Wu'
