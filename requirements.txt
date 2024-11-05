@@ -1,3 +1,9 @@
 pytest>=7.0.0
 black>=23.0.0
 flake8>=6.0.0
+numpy
+scipy
+matplotlib
+ARC-Alkali-Rydberg-Calculator>=3.5
+numba
+scikit-optimize
