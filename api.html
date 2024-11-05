@@ -44,7 +44,55 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#utility-functions">Utility Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition"><code class="docutils literal notranslate"><span class="pre">RydbergTransition</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.get_BinDiffRydACStark"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.get_BinDiffRydACStark()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.get_DiffRydACStark"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.get_DiffRydACStark()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.get_E_Linewidth"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.get_E_Linewidth()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.get_E_RabiAngularFreq"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.get_E_RabiAngularFreq()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.get_E_SaturationPower"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.get_E_SaturationPower()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.get_E_TransitionFreq"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.get_E_TransitionFreq()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.get_OptimalDetuning"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.get_OptimalDetuning()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.get_PiPulseDuration"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.get_PiPulseDuration()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.get_R_Linewidth"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.get_R_Linewidth()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.get_R_RabiAngularFreq"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.get_R_RabiAngularFreq()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.get_R_SaturationPower"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.get_R_SaturationPower()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.get_R_TransitionFreq"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.get_R_TransitionFreq()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.get_balanced_laser_power"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.get_balanced_laser_power()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.get_pi_detuning"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.get_pi_detuning()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.get_totalRabiAngularFreq"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.get_totalRabiAngularFreq()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.init_fast_lookup"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.init_fast_lookup()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.print_ac_stark_shift"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.print_ac_stark_shift()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.print_laser_frequencies"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.print_laser_frequencies()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.print_saturation_powers"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.print_saturation_powers()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.print_tweezer_stark_shift"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.print_tweezer_stark_shift()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#models.rydberg_dynamics.LossyRydberg"><code class="docutils literal notranslate"><span class="pre">LossyRydberg</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.LossyRydberg.compute_dot_rho"><code class="docutils literal notranslate"><span class="pre">LossyRydberg.compute_dot_rho()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.LossyRydberg.duo_pulse_lindblad"><code class="docutils literal notranslate"><span class="pre">LossyRydberg.duo_pulse_lindblad()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.LossyRydberg.get_dot_rho"><code class="docutils literal notranslate"><span class="pre">LossyRydberg.get_dot_rho()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.LossyRydberg.get_dot_rho_duo"><code class="docutils literal notranslate"><span class="pre">LossyRydberg.get_dot_rho_duo()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.LossyRydberg.get_hamiltonian"><code class="docutils literal notranslate"><span class="pre">LossyRydberg.get_hamiltonian()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.LossyRydberg.probe_pulse_lindblad"><code class="docutils literal notranslate"><span class="pre">LossyRydberg.probe_pulse_lindblad()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#models.rydberg_dynamics.UnitaryRydberg"><code class="docutils literal notranslate"><span class="pre">UnitaryRydberg</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.UnitaryRydberg.compute_dot_rho"><code class="docutils literal notranslate"><span class="pre">UnitaryRydberg.compute_dot_rho()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.UnitaryRydberg.evolve_state"><code class="docutils literal notranslate"><span class="pre">UnitaryRydberg.evolve_state()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.UnitaryRydberg.get_dot_rho"><code class="docutils literal notranslate"><span class="pre">UnitaryRydberg.get_dot_rho()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.UnitaryRydberg.get_hamiltonian"><code class="docutils literal notranslate"><span class="pre">UnitaryRydberg.get_hamiltonian()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.UnitaryRydberg.get_hamiltonian_array"><code class="docutils literal notranslate"><span class="pre">UnitaryRydberg.get_hamiltonian_array()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.UnitaryRydberg.probe_pulse_neumann"><code class="docutils literal notranslate"><span class="pre">UnitaryRydberg.probe_pulse_neumann()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.UnitaryRydberg.probe_pulse_unitary"><code class="docutils literal notranslate"><span class="pre">UnitaryRydberg.probe_pulse_unitary()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-models.utility">Utility Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#models.utility.freq2wavelength"><code class="docutils literal notranslate"><span class="pre">freq2wavelength()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.utility.power2field"><code class="docutils literal notranslate"><span class="pre">power2field()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.utility.wavelength2angularfreq"><code class="docutils literal notranslate"><span class="pre">wavelength2angularfreq()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.utility.wavelength2freq"><code class="docutils literal notranslate"><span class="pre">wavelength2freq()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a><ul class="simple">
 </ul>
 </li>
@@ -76,10 +124,226 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="api-documentation">
-<h1>API Documentation<a class="headerlink" href="#api-documentation" title="Link to this heading"></a></h1>
-<section id="utility-functions">
-<h2>Utility Functions<a class="headerlink" href="#utility-functions" title="Link to this heading"></a></h2>
+  <section id="module-models.rydberg_calcs">
+<span id="api-documentation"></span><h1>API Documentation<a class="headerlink" href="#module-models.rydberg_calcs" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">models.rydberg_calcs.</span></span><span class="sig-name descname"><span class="pre">RydbergTransition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">laserWaist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.5e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mj1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mj2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">47</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition.get_BinDiffRydACStark">
+<span class="sig-name descname"><span class="pre">get_BinDiffRydACStark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Pp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Pc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition.get_BinDiffRydACStark"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition.get_BinDiffRydACStark" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition.get_DiffRydACStark">
+<span class="sig-name descname"><span class="pre">get_DiffRydACStark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Pp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Pc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition.get_DiffRydACStark"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition.get_DiffRydACStark" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition.get_E_Linewidth">
+<span class="sig-name descname"><span class="pre">get_E_Linewidth</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition.get_E_Linewidth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition.get_E_Linewidth" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition.get_E_RabiAngularFreq">
+<span class="sig-name descname"><span class="pre">get_E_RabiAngularFreq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">laserPower</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition.get_E_RabiAngularFreq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition.get_E_RabiAngularFreq" title="Link to this definition"></a></dt>
+<dd><p>Compute the Rabi angular frequency for the 6S1/2 -&gt; 7P3/2
+excited state transition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>laserPower</strong> (<em>float</em>) – The power of the laser, in W.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>rabiFreq_1</strong> – The Rabi angular frequency, in 2pi*Hz.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition.get_E_SaturationPower">
+<span class="sig-name descname"><span class="pre">get_E_SaturationPower</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition.get_E_SaturationPower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition.get_E_SaturationPower" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition.get_E_TransitionFreq">
+<span class="sig-name descname"><span class="pre">get_E_TransitionFreq</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition.get_E_TransitionFreq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition.get_E_TransitionFreq" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition.get_OptimalDetuning">
+<span class="sig-name descname"><span class="pre">get_OptimalDetuning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">P1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rabiFreq1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rabiFreq2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition.get_OptimalDetuning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition.get_OptimalDetuning" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition.get_PiPulseDuration">
+<span class="sig-name descname"><span class="pre">get_PiPulseDuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Pp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Pc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resonance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition.get_PiPulseDuration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition.get_PiPulseDuration" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition.get_R_Linewidth">
+<span class="sig-name descname"><span class="pre">get_R_Linewidth</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition.get_R_Linewidth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition.get_R_Linewidth" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition.get_R_RabiAngularFreq">
+<span class="sig-name descname"><span class="pre">get_R_RabiAngularFreq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">laserPower</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition.get_R_RabiAngularFreq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition.get_R_RabiAngularFreq" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition.get_R_SaturationPower">
+<span class="sig-name descname"><span class="pre">get_R_SaturationPower</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition.get_R_SaturationPower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition.get_R_SaturationPower" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition.get_R_TransitionFreq">
+<span class="sig-name descname"><span class="pre">get_R_TransitionFreq</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition.get_R_TransitionFreq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition.get_R_TransitionFreq" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition.get_balanced_laser_power">
+<span class="sig-name descname"><span class="pre">get_balanced_laser_power</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">probe_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition.get_balanced_laser_power"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition.get_balanced_laser_power" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition.get_pi_detuning">
+<span class="sig-name descname"><span class="pre">get_pi_detuning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">probe_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pi_time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition.get_pi_detuning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition.get_pi_detuning" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition.get_totalRabiAngularFreq">
+<span class="sig-name descname"><span class="pre">get_totalRabiAngularFreq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Pp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Pc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resonance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition.get_totalRabiAngularFreq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition.get_totalRabiAngularFreq" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition.init_fast_lookup">
+<span class="sig-name descname"><span class="pre">init_fast_lookup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition.init_fast_lookup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition.init_fast_lookup" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition.print_ac_stark_shift">
+<span class="sig-name descname"><span class="pre">print_ac_stark_shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Pp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Pc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition.print_ac_stark_shift"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition.print_ac_stark_shift" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition.print_laser_frequencies">
+<span class="sig-name descname"><span class="pre">print_laser_frequencies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Pp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Pc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">AOM456</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-220000000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">AOM1064</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-110000000.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition.print_laser_frequencies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition.print_laser_frequencies" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition.print_saturation_powers">
+<span class="sig-name descname"><span class="pre">print_saturation_powers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition.print_saturation_powers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition.print_saturation_powers" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_calcs.RydbergTransition.print_tweezer_stark_shift">
+<span class="sig-name descname"><span class="pre">print_tweezer_stark_shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tweezer_power</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#RydbergTransition.print_tweezer_stark_shift"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.RydbergTransition.print_tweezer_stark_shift" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-models.rydberg_dynamics">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.LossyRydberg">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">models.rydberg_dynamics.</span></span><span class="sig-name descname"><span class="pre">LossyRydberg</span></span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#LossyRydberg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.LossyRydberg" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#models.rydberg_dynamics.UnitaryRydberg" title="models.rydberg_dynamics.UnitaryRydberg"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnitaryRydberg</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.LossyRydberg.compute_dot_rho">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compute_dot_rho</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">H</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#LossyRydberg.compute_dot_rho"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.LossyRydberg.compute_dot_rho" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.LossyRydberg.duo_pulse_lindblad">
+<span class="sig-name descname"><span class="pre">duo_pulse_lindblad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">probe_duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_hold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_peak_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_hold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_peak_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#LossyRydberg.duo_pulse_lindblad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.LossyRydberg.duo_pulse_lindblad" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.LossyRydberg.get_dot_rho">
+<span class="sig-name descname"><span class="pre">get_dot_rho</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_peak_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Omega23</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#LossyRydberg.get_dot_rho"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.LossyRydberg.get_dot_rho" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.LossyRydberg.get_dot_rho_duo">
+<span class="sig-name descname"><span class="pre">get_dot_rho_duo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_hold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_peak_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_hold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_peak_power</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#LossyRydberg.get_dot_rho_duo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.LossyRydberg.get_dot_rho_duo" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.LossyRydberg.get_hamiltonian">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_hamiltonian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Omega12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Omega23</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Delta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#LossyRydberg.get_hamiltonian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.LossyRydberg.get_hamiltonian" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.LossyRydberg.probe_pulse_lindblad">
+<span class="sig-name descname"><span class="pre">probe_pulse_lindblad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_peak_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evolve_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#LossyRydberg.probe_pulse_lindblad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.LossyRydberg.probe_pulse_lindblad" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.UnitaryRydberg">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">models.rydberg_dynamics.</span></span><span class="sig-name descname"><span class="pre">UnitaryRydberg</span></span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#UnitaryRydberg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.UnitaryRydberg" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.UnitaryRydberg.compute_dot_rho">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compute_dot_rho</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">H</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#UnitaryRydberg.compute_dot_rho"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.UnitaryRydberg.compute_dot_rho" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.UnitaryRydberg.evolve_state">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">evolve_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">H_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deltaT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psi0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#UnitaryRydberg.evolve_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.UnitaryRydberg.evolve_state" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.UnitaryRydberg.get_dot_rho">
+<span class="sig-name descname"><span class="pre">get_dot_rho</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_peak_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Omega23</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#UnitaryRydberg.get_dot_rho"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.UnitaryRydberg.get_dot_rho" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.UnitaryRydberg.get_hamiltonian">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_hamiltonian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Omega12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Omega23</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Delta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#UnitaryRydberg.get_hamiltonian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.UnitaryRydberg.get_hamiltonian" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.UnitaryRydberg.get_hamiltonian_array">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_hamiltonian_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Omega12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Omega23</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Delta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#UnitaryRydberg.get_hamiltonian_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.UnitaryRydberg.get_hamiltonian_array" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.UnitaryRydberg.probe_pulse_neumann">
+<span class="sig-name descname"><span class="pre">probe_pulse_neumann</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_peak_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#UnitaryRydberg.probe_pulse_neumann"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.UnitaryRydberg.probe_pulse_neumann" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.UnitaryRydberg.probe_pulse_unitary">
+<span class="sig-name descname"><span class="pre">probe_pulse_unitary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_peak_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#UnitaryRydberg.probe_pulse_unitary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.UnitaryRydberg.probe_pulse_unitary" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<section id="module-models.utility">
+<span id="utility-functions"></span><h2>Utility Functions<a class="headerlink" href="#module-models.utility" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="models.utility.freq2wavelength">
+<span class="sig-prename descclassname"><span class="pre">models.utility.</span></span><span class="sig-name descname"><span class="pre">freq2wavelength</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/utility.html#freq2wavelength"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.utility.freq2wavelength" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.utility.power2field">
+<span class="sig-prename descclassname"><span class="pre">models.utility.</span></span><span class="sig-name descname"><span class="pre">power2field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">laserPower</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">laserWaist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/utility.html#power2field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.utility.power2field" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.utility.wavelength2angularfreq">
+<span class="sig-prename descclassname"><span class="pre">models.utility.</span></span><span class="sig-name descname"><span class="pre">wavelength2angularfreq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wavelength</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/utility.html#wavelength2angularfreq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.utility.wavelength2angularfreq" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.utility.wavelength2freq">
+<span class="sig-prename descclassname"><span class="pre">models.utility.</span></span><span class="sig-name descname"><span class="pre">wavelength2freq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wavelength</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/utility.html#wavelength2freq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.utility.wavelength2freq" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 </section>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>

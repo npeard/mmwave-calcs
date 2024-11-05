@@ -1,0 +1,494 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>models.rydberg_dynamics &mdash; mmwave-calc  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            mmwave-calc
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">mmwave-calc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">models.rydberg_dynamics</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for models.rydberg_dynamics</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">models.rydberg_calcs</span> <span class="k">as</span> <span class="nn">ryd</span>
+<span class="kn">import</span> <span class="nn">models.pulse_calcs</span> <span class="k">as</span> <span class="nn">pulses</span>
+<span class="kn">import</span> <span class="nn">scipy.linalg</span>
+<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">solve_ivp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numba</span> <span class="kn">import</span> <span class="n">njit</span><span class="p">,</span> <span class="n">objmode</span>
+
+
+<div class="viewcode-block" id="UnitaryRydberg">
+<a class="viewcode-back" href="../../api.html#models.rydberg_dynamics.UnitaryRydberg">[docs]</a>
+<span class="k">class</span> <span class="nc">UnitaryRydberg</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># intial state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">psi0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rho0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span>
+                               <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>
+
+        <span class="c1"># parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>  <span class="c1"># seconds</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">probe_power</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># watts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">couple_power</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># watts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Delta</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transition</span> <span class="o">=</span> <span class="n">ryd</span><span class="o">.</span><span class="n">RydbergTransition</span><span class="p">()</span>
+
+        <span class="c1"># interpolated Rabi angular frequencies for fast lookup</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">func_Omega12_from_Power</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transition</span><span class="o">.</span><span class="n">RabiAngularFreq_1_from_Power</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">func_Omega23_from_Power</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transition</span><span class="o">.</span><span class="n">RabiAngularFreq_2_from_Power</span><span class="p">)</span>
+
+<div class="viewcode-block" id="UnitaryRydberg.get_hamiltonian_array">
+<a class="viewcode-back" href="../../api.html#models.rydberg_dynamics.UnitaryRydberg.get_hamiltonian_array">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@njit</span><span class="p">(</span><span class="s1">&#39;float64[:,:,:](float64[:], float64, float64, float64)&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_hamiltonian_array</span><span class="p">(</span><span class="n">Omega12</span><span class="p">,</span> <span class="n">Omega23</span><span class="p">,</span> <span class="n">Delta</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+        <span class="c1"># basis</span>
+        <span class="n">sm1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>  <span class="c1"># sigma minus</span>
+        <span class="n">sm2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>  <span class="c1"># sigma minus</span>
+        <span class="n">Detune</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+        <span class="n">detune</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+
+        <span class="c1"># Hamiltonian</span>
+        <span class="n">H12</span> <span class="o">=</span> <span class="n">Omega12</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">sm1</span> <span class="o">+</span> <span class="n">sm1</span><span class="o">.</span><span class="n">T</span><span class="p">)[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+        <span class="n">H23</span> <span class="o">=</span> <span class="n">Omega23</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">sm2</span> <span class="o">+</span> <span class="n">sm2</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">H23</span> <span class="o">=</span> <span class="n">H23</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+        <span class="n">HDelta</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">Detune</span> <span class="o">*</span> <span class="n">Delta</span> <span class="o">-</span> <span class="n">detune</span> <span class="o">*</span> <span class="n">delta</span>
+        <span class="n">HDelta</span> <span class="o">=</span> <span class="n">HDelta</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+
+        <span class="k">return</span> <span class="n">H12</span> <span class="o">+</span> <span class="n">H23</span> <span class="o">+</span> <span class="n">HDelta</span></div>
+
+
+<div class="viewcode-block" id="UnitaryRydberg.get_hamiltonian">
+<a class="viewcode-back" href="../../api.html#models.rydberg_dynamics.UnitaryRydberg.get_hamiltonian">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@njit</span><span class="p">(</span><span class="s1">&#39;float64[:,:](float64, float64, float64, float64)&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_hamiltonian</span><span class="p">(</span><span class="n">Omega12</span><span class="p">,</span> <span class="n">Omega23</span><span class="p">,</span> <span class="n">Delta</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+        <span class="c1"># basis</span>
+        <span class="n">sm1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>  <span class="c1"># sigma minus</span>
+        <span class="n">sm2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>  <span class="c1"># sigma minus</span>
+        <span class="n">Detune</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+        <span class="n">detune</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+
+        <span class="c1"># Hamiltonian</span>
+        <span class="n">H12</span> <span class="o">=</span> <span class="n">Omega12</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">sm1</span> <span class="o">+</span> <span class="n">sm1</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">H23</span> <span class="o">=</span> <span class="n">Omega23</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">sm2</span> <span class="o">+</span> <span class="n">sm2</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">HDelta</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">Detune</span> <span class="o">*</span> <span class="n">Delta</span> <span class="o">-</span> <span class="n">detune</span> <span class="o">*</span> <span class="n">delta</span>
+
+        <span class="k">return</span> <span class="n">H12</span> <span class="o">+</span> <span class="n">H23</span> <span class="o">+</span> <span class="n">HDelta</span></div>
+
+
+<div class="viewcode-block" id="UnitaryRydberg.compute_dot_rho">
+<a class="viewcode-back" href="../../api.html#models.rydberg_dynamics.UnitaryRydberg.compute_dot_rho">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@njit</span><span class="p">(</span><span class="s1">&#39;complex128[:](complex128[:], float64[:,:])&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">compute_dot_rho</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">H</span><span class="p">):</span>
+        <span class="n">rho</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">rho</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">Ht</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="p">(</span><span class="n">Ht</span> <span class="o">@</span> <span class="n">rho</span> <span class="o">-</span> <span class="n">rho</span> <span class="o">@</span> <span class="n">Ht</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="UnitaryRydberg.get_dot_rho">
+<a class="viewcode-back" href="../../api.html#models.rydberg_dynamics.UnitaryRydberg.get_dot_rho">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_dot_rho</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">rho</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="n">hold</span><span class="p">,</span> <span class="n">probe_peak_power</span><span class="p">,</span>
+                    <span class="n">Omega23</span><span class="p">):</span>
+        <span class="n">probe_power</span> <span class="o">=</span> <span class="p">(</span><span class="n">pulses</span><span class="o">.</span><span class="n">get_BlackmanPulse</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="n">hold</span><span class="p">)</span> <span class="o">*</span>
+                       <span class="n">probe_peak_power</span><span class="p">)</span>
+        <span class="n">Omega12</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_Omega12_from_Power</span><span class="p">(</span><span class="n">probe_power</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="n">Ht</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hamiltonian</span><span class="p">(</span><span class="n">Omega12</span><span class="p">,</span> <span class="n">Omega23</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Delta</span><span class="p">,</span>
+                                  <span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_dot_rho</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">Ht</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="UnitaryRydberg.evolve_state">
+<a class="viewcode-back" href="../../api.html#models.rydberg_dynamics.UnitaryRydberg.evolve_state">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@njit</span><span class="p">(</span><span class="s1">&#39;Tuple((float64[:], float64[:], float64[:]))(float64[:,:,:], &#39;</span>
+          <span class="s1">&#39;float64, complex128[:])&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">evolve_state</span><span class="p">(</span><span class="n">H_array</span><span class="p">,</span> <span class="n">deltaT</span><span class="p">,</span> <span class="n">psi0</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">objmode</span><span class="p">(</span><span class="n">U_array</span><span class="o">=</span><span class="s1">&#39;complex128[:,:,:]&#39;</span><span class="p">):</span>
+            <span class="n">U_array</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">expm</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">H_array</span> <span class="o">*</span> <span class="n">deltaT</span><span class="p">)</span>
+        <span class="c1"># This could be faster if used Numpy functions to approximate</span>
+        <span class="c1"># matrix exponential.</span>
+
+        <span class="n">psi</span> <span class="o">=</span> <span class="n">psi0</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>
+        <span class="n">psi_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">H_array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">psi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                             <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">U</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">U_array</span><span class="p">):</span>
+            <span class="c1"># psi = np.matmul(U, psi)</span>
+            <span class="n">psi_array</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">psi</span>
+            <span class="n">psi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">U</span><span class="p">)</span> <span class="o">@</span> <span class="n">psi</span>
+
+        <span class="n">G_pop</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">psi_array</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">E_pop</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">psi_array</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">R_pop</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">psi_array</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">G_pop</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">E_pop</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+                <span class="n">R_pop</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="UnitaryRydberg.probe_pulse_unitary">
+<a class="viewcode-back" href="../../api.html#models.rydberg_dynamics.UnitaryRydberg.probe_pulse_unitary">[docs]</a>
+    <span class="k">def</span> <span class="nf">probe_pulse_unitary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="n">hold</span><span class="p">,</span> <span class="n">probe_peak_power</span><span class="o">=</span><span class="mf">10e-3</span><span class="p">,</span>
+                            <span class="n">couple_power</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">Delta</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># define time vector</span>
+        <span class="n">max_Omega12</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_Omega12_from_Power</span><span class="p">(</span><span class="n">probe_peak_power</span><span class="p">)</span>
+        <span class="n">max_Omega23</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_Omega23_from_Power</span><span class="p">(</span><span class="n">couple_power</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">Delta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Delta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition</span><span class="o">.</span><span class="n">get_OptimalDetuning</span><span class="p">(</span>
+                <span class="n">rabiFreq1</span><span class="o">=</span><span class="n">max_Omega12</span><span class="p">,</span> <span class="n">rabiFreq2</span><span class="o">=</span><span class="n">max_Omega23</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Delta</span> <span class="o">=</span> <span class="n">Delta</span>
+        <span class="n">max_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="n">max_Omega12</span><span class="p">,</span> <span class="n">max_Omega23</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Delta</span><span class="p">])</span>
+        <span class="n">stop_time</span> <span class="o">=</span> <span class="n">delay</span> <span class="o">+</span> <span class="n">duration</span> <span class="o">+</span> <span class="n">hold</span> <span class="o">+</span> <span class="mf">10e-9</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">stop_time</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">stop_time</span> <span class="o">*</span>
+                                                        <span class="n">max_freq</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># define the pulse</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">couple_power</span> <span class="o">=</span> <span class="n">couple_power</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">probe_power</span> <span class="o">=</span> <span class="n">pulses</span><span class="o">.</span><span class="n">get_VectorizedBlackmanPulse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">,</span>
+                                                              <span class="n">duration</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span>
+                                                              <span class="n">hold</span><span class="p">)</span> <span class="o">*</span> <span class="n">probe_peak_power</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">probe_power</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">probe_power</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">Omega12_array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_Omega12_from_Power</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">probe_power</span><span class="p">)</span>
+        <span class="n">Omega23</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_Omega23_from_Power</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">couple_power</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+        <span class="c1"># compensate AC stark shift</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition</span><span class="o">.</span><span class="n">get_DiffRydACStark</span><span class="p">(</span><span class="n">probe_peak_power</span><span class="p">,</span> <span class="n">couple_power</span><span class="p">)</span>
+
+        <span class="c1"># calculate Hamiltonians</span>
+        <span class="n">H_array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hamiltonian_array</span><span class="p">(</span>
+            <span class="n">Omega12</span><span class="o">=</span><span class="n">Omega12_array</span><span class="p">,</span> <span class="n">Omega23</span><span class="o">=</span><span class="n">Omega23</span><span class="p">,</span> <span class="n">Delta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">Delta</span><span class="p">,</span>
+            <span class="n">delta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="p">)</span>
+
+        <span class="n">deltaT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">G_pop</span><span class="p">,</span> <span class="n">E_pop</span><span class="p">,</span> <span class="n">R_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evolve_state</span><span class="p">(</span><span class="n">H_array</span><span class="p">,</span> <span class="n">deltaT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">psi0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">G_pop</span><span class="p">,</span> <span class="n">E_pop</span><span class="p">,</span> <span class="n">R_pop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">probe_power</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_array</span></div>
+
+
+<div class="viewcode-block" id="UnitaryRydberg.probe_pulse_neumann">
+<a class="viewcode-back" href="../../api.html#models.rydberg_dynamics.UnitaryRydberg.probe_pulse_neumann">[docs]</a>
+    <span class="k">def</span> <span class="nf">probe_pulse_neumann</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="n">hold</span><span class="p">,</span> <span class="n">probe_peak_power</span><span class="o">=</span><span class="mf">10e-3</span><span class="p">,</span>
+                            <span class="n">couple_power</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">Delta</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># define time vector</span>
+        <span class="n">max_Omega12</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_Omega12_from_Power</span><span class="p">(</span><span class="n">probe_peak_power</span><span class="p">)</span>
+        <span class="n">max_Omega23</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_Omega23_from_Power</span><span class="p">(</span><span class="n">couple_power</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">Delta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Delta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition</span><span class="o">.</span><span class="n">get_OptimalDetuning</span><span class="p">(</span>
+                <span class="n">rabiFreq1</span><span class="o">=</span><span class="n">max_Omega12</span><span class="p">,</span> <span class="n">rabiFreq2</span><span class="o">=</span><span class="n">max_Omega23</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Delta</span> <span class="o">=</span> <span class="n">Delta</span>
+        <span class="n">max_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="n">max_Omega12</span><span class="p">,</span> <span class="n">max_Omega23</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Delta</span><span class="p">])</span>
+        <span class="n">stop_time</span> <span class="o">=</span> <span class="n">delay</span> <span class="o">+</span> <span class="n">duration</span> <span class="o">+</span> <span class="n">hold</span> <span class="o">+</span> <span class="mf">10e-9</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">stop_time</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">stop_time</span> <span class="o">*</span>
+                                                        <span class="n">max_freq</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># define the pulse</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">couple_power</span> <span class="o">=</span> <span class="n">couple_power</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">probe_power</span> <span class="o">=</span> <span class="n">pulses</span><span class="o">.</span><span class="n">get_VectorizedBlackmanPulse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">,</span>
+                                                              <span class="n">duration</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span>
+                                                              <span class="n">hold</span><span class="p">)</span> <span class="o">*</span> <span class="n">probe_peak_power</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">probe_power</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">probe_power</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">Omega12_array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_Omega12_from_Power</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">probe_power</span><span class="p">)</span>
+        <span class="n">Omega23</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_Omega23_from_Power</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">couple_power</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+        <span class="c1"># compensate AC stark shift</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition</span><span class="o">.</span><span class="n">get_DiffRydACStark</span><span class="p">(</span><span class="n">probe_peak_power</span><span class="p">,</span>
+                                                        <span class="n">couple_power</span><span class="p">)</span>
+
+        <span class="c1"># solve initial value problem</span>
+        <span class="n">sol</span> <span class="o">=</span> <span class="n">solve_ivp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_dot_rho</span><span class="p">,</span> <span class="n">y0</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rho0</span><span class="p">),</span>
+                        <span class="n">t_span</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">)],</span> <span class="n">t_eval</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span>
+            <span class="n">duration</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="n">hold</span><span class="p">,</span> <span class="n">probe_peak_power</span><span class="p">,</span> <span class="n">Omega23</span><span class="p">))</span>
+        <span class="n">rho_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">)))</span>
+        <span class="n">rho_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">rho_t</span><span class="p">)</span>
+
+        <span class="c1"># populations</span>
+        <span class="n">G_pop</span> <span class="o">=</span> <span class="n">rho_t</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">E_pop</span> <span class="o">=</span> <span class="n">rho_t</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">R_pop</span> <span class="o">=</span> <span class="n">rho_t</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="p">:]</span>
+
+        <span class="k">return</span> <span class="n">G_pop</span><span class="p">,</span> <span class="n">E_pop</span><span class="p">,</span> <span class="n">R_pop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">probe_power</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_array</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="LossyRydberg">
+<a class="viewcode-back" href="../../api.html#models.rydberg_dynamics.LossyRydberg">[docs]</a>
+<span class="k">class</span> <span class="nc">LossyRydberg</span><span class="p">(</span><span class="n">UnitaryRydberg</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">UnitaryRydberg</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rho0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>
+
+        <span class="c1"># decay rates</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gamma2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition</span><span class="o">.</span><span class="n">get_E_Linewidth</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gamma3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition</span><span class="o">.</span><span class="n">get_R_Linewidth</span><span class="p">()</span>
+
+<div class="viewcode-block" id="LossyRydberg.get_hamiltonian">
+<a class="viewcode-back" href="../../api.html#models.rydberg_dynamics.LossyRydberg.get_hamiltonian">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@njit</span><span class="p">(</span><span class="s1">&#39;float64[:,:](float64, float64, float64, float64)&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_hamiltonian</span><span class="p">(</span><span class="n">Omega12</span><span class="p">,</span> <span class="n">Omega23</span><span class="p">,</span> <span class="n">Delta</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+        <span class="c1"># basis</span>
+        <span class="n">sm1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>  <span class="c1"># sigma minus</span>
+        <span class="n">sm2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>  <span class="c1"># sigma minus</span>
+        <span class="n">Detune</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+        <span class="n">detune</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+
+        <span class="c1"># Hamiltonian</span>
+        <span class="n">H12</span> <span class="o">=</span> <span class="n">Omega12</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">sm1</span> <span class="o">+</span> <span class="n">sm1</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">H23</span> <span class="o">=</span> <span class="n">Omega23</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">sm2</span> <span class="o">+</span> <span class="n">sm2</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">HDelta</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">Detune</span> <span class="o">*</span> <span class="n">Delta</span> <span class="o">-</span> <span class="n">detune</span> <span class="o">*</span> <span class="n">delta</span>
+
+        <span class="k">return</span> <span class="n">H12</span> <span class="o">+</span> <span class="n">H23</span> <span class="o">+</span> <span class="n">HDelta</span></div>
+
+
+<div class="viewcode-block" id="LossyRydberg.compute_dot_rho">
+<a class="viewcode-back" href="../../api.html#models.rydberg_dynamics.LossyRydberg.compute_dot_rho">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@njit</span><span class="p">(</span><span class="s1">&#39;complex128[:](complex128[:], float64[:,:], float64, float64)&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">compute_dot_rho</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">gamma2</span><span class="p">,</span> <span class="n">gamma3</span><span class="p">):</span>
+        <span class="c1"># loss channel</span>
+        <span class="n">spLoss1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+            <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>  <span class="c1"># sigma plus, since the loss channel is &quot;above&quot; the Rydberg state</span>
+        <span class="n">spLoss2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+            <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>  <span class="c1"># sigma plus, since the loss channel is &quot;above&quot; the Rydberg state</span>
+
+        <span class="n">rho</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">rho</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+        <span class="n">Ht</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>
+
+        <span class="n">vonNeumann</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="p">(</span><span class="n">Ht</span> <span class="o">@</span> <span class="n">rho</span> <span class="o">-</span> <span class="n">rho</span> <span class="o">@</span> <span class="n">Ht</span><span class="p">)</span>
+
+        <span class="n">loss_e</span> <span class="o">=</span> <span class="n">gamma2</span> <span class="o">*</span> <span class="p">(</span><span class="n">spLoss1</span> <span class="o">@</span> <span class="p">(</span><span class="n">rho</span> <span class="o">@</span> <span class="n">spLoss1</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+                           <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">spLoss1</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="p">(</span><span class="n">spLoss1</span> <span class="o">@</span> <span class="n">rho</span><span class="p">)</span> <span class="o">+</span> <span class="n">rho</span> <span class="o">@</span> <span class="p">(</span><span class="n">spLoss1</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">spLoss1</span><span class="p">)))</span>
+        <span class="n">loss_r</span> <span class="o">=</span> <span class="n">gamma3</span> <span class="o">*</span> <span class="p">(</span><span class="n">spLoss2</span> <span class="o">@</span> <span class="p">(</span><span class="n">rho</span> <span class="o">@</span> <span class="n">spLoss2</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+                           <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">spLoss2</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="p">(</span><span class="n">spLoss2</span> <span class="o">@</span> <span class="n">rho</span><span class="p">)</span> <span class="o">+</span> <span class="n">rho</span> <span class="o">@</span> <span class="p">(</span><span class="n">spLoss2</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">spLoss2</span><span class="p">)))</span>
+
+        <span class="n">dot_rho</span> <span class="o">=</span> <span class="n">vonNeumann</span> <span class="o">+</span> <span class="n">loss_e</span> <span class="o">+</span> <span class="n">loss_r</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">dot_rho</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LossyRydberg.get_dot_rho">
+<a class="viewcode-back" href="../../api.html#models.rydberg_dynamics.LossyRydberg.get_dot_rho">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_dot_rho</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">rho</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="n">hold</span><span class="p">,</span> <span class="n">probe_peak_power</span><span class="p">,</span>
+                    <span class="n">Omega23</span><span class="p">):</span>
+        <span class="n">probe_power</span> <span class="o">=</span> <span class="p">(</span><span class="n">pulses</span><span class="o">.</span><span class="n">get_BlackmanPulse</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="n">hold</span><span class="p">)</span> <span class="o">*</span>
+                       <span class="n">probe_peak_power</span><span class="p">)</span>
+        <span class="n">Omega12</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_Omega12_from_Power</span><span class="p">(</span><span class="n">probe_power</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="n">Ht</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hamiltonian</span><span class="p">(</span><span class="n">Omega12</span><span class="p">,</span> <span class="n">Omega23</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Delta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_dot_rho</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">Ht</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma3</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LossyRydberg.get_dot_rho_duo">
+<a class="viewcode-back" href="../../api.html#models.rydberg_dynamics.LossyRydberg.get_dot_rho_duo">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_dot_rho_duo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">rho</span><span class="p">,</span> <span class="n">probe_duration</span><span class="p">,</span> <span class="n">probe_delay</span><span class="p">,</span> <span class="n">probe_hold</span><span class="p">,</span>
+                        <span class="n">probe_peak_power</span><span class="p">,</span> <span class="n">couple_duration</span><span class="p">,</span> <span class="n">couple_delay</span><span class="p">,</span>
+                        <span class="n">couple_hold</span><span class="p">,</span> <span class="n">couple_peak_power</span><span class="p">):</span>
+        <span class="n">probe_power</span> <span class="o">=</span> <span class="p">(</span><span class="n">pulses</span><span class="o">.</span><span class="n">get_BlackmanPulse</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">probe_duration</span><span class="p">,</span>
+                                                <span class="n">probe_delay</span><span class="p">,</span> <span class="n">probe_hold</span><span class="p">)</span> <span class="o">*</span>
+                       <span class="n">probe_peak_power</span><span class="p">)</span>
+        <span class="n">Omega12</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_Omega12_from_Power</span><span class="p">(</span><span class="n">probe_power</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="n">couple_power</span> <span class="o">=</span> <span class="p">(</span><span class="n">pulses</span><span class="o">.</span><span class="n">get_BlackmanPulse</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">couple_duration</span><span class="p">,</span>
+                                                 <span class="n">couple_delay</span><span class="p">,</span> <span class="n">couple_hold</span><span class="p">)</span> <span class="o">*</span>
+                        <span class="n">couple_peak_power</span><span class="p">)</span>
+        <span class="n">Omega23</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_Omega23_from_Power</span><span class="p">(</span><span class="n">couple_power</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="n">Ht</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hamiltonian</span><span class="p">(</span><span class="n">Omega12</span><span class="p">,</span> <span class="n">Omega23</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Delta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_dot_rho</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">Ht</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma3</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LossyRydberg.probe_pulse_lindblad">
+<a class="viewcode-back" href="../../api.html#models.rydberg_dynamics.LossyRydberg.probe_pulse_lindblad">[docs]</a>
+    <span class="k">def</span> <span class="nf">probe_pulse_lindblad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="n">hold</span><span class="p">,</span>
+                             <span class="n">probe_peak_power</span><span class="p">,</span> <span class="n">couple_power</span><span class="p">,</span> <span class="n">Delta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                             <span class="n">evolve_time</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="c1"># define time vector</span>
+        <span class="n">max_Omega12</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_Omega12_from_Power</span><span class="p">(</span><span class="n">probe_peak_power</span><span class="p">)</span>
+        <span class="n">max_Omega23</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_Omega23_from_Power</span><span class="p">(</span><span class="n">couple_power</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">Delta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Delta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition</span><span class="o">.</span><span class="n">get_OptimalDetuning</span><span class="p">(</span>
+                <span class="n">rabiFreq1</span><span class="o">=</span><span class="n">max_Omega12</span><span class="p">,</span> <span class="n">rabiFreq2</span><span class="o">=</span><span class="n">max_Omega23</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Delta</span> <span class="o">=</span> <span class="n">Delta</span>
+        <span class="n">max_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="n">max_Omega12</span><span class="p">,</span> <span class="n">max_Omega23</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Delta</span><span class="p">])</span>
+        <span class="n">stop_time</span> <span class="o">=</span> <span class="n">delay</span> <span class="o">+</span> <span class="n">duration</span> <span class="o">+</span> <span class="n">hold</span> <span class="o">+</span> <span class="mf">10e-9</span> <span class="o">+</span> <span class="n">evolve_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">stop_time</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">stop_time</span> <span class="o">*</span>
+                                                        <span class="n">max_freq</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># define the pulse</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">couple_power</span> <span class="o">=</span> <span class="n">couple_power</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">probe_power</span> <span class="o">=</span> <span class="n">pulses</span><span class="o">.</span><span class="n">get_VectorizedBlackmanPulse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">,</span>
+                                                              <span class="n">duration</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span>
+                                                              <span class="n">hold</span><span class="p">)</span> <span class="o">*</span> <span class="n">probe_peak_power</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">probe_power</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">probe_power</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">Omega23</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_Omega23_from_Power</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">couple_power</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+        <span class="c1"># compensate AC stark shift</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition</span><span class="o">.</span><span class="n">get_DiffRydACStark</span><span class="p">(</span><span class="n">probe_peak_power</span><span class="p">,</span>
+                                                        <span class="n">couple_power</span><span class="p">)</span>
+
+        <span class="c1"># solve initial value problem</span>
+        <span class="n">sol</span> <span class="o">=</span> <span class="n">solve_ivp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_dot_rho</span><span class="p">,</span> <span class="n">y0</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rho0</span><span class="p">),</span>
+                        <span class="n">t_span</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">)],</span> <span class="n">t_eval</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span>
+            <span class="n">duration</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="n">hold</span><span class="p">,</span> <span class="n">probe_peak_power</span><span class="p">,</span> <span class="n">Omega23</span><span class="p">),</span> <span class="n">first_step</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">)</span>
+        <span class="n">rho_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">)))</span>
+        <span class="n">rho_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">rho_t</span><span class="p">)</span>
+
+        <span class="c1"># populations</span>
+        <span class="n">G_pop</span> <span class="o">=</span> <span class="n">rho_t</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">E_pop</span> <span class="o">=</span> <span class="n">rho_t</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">R_pop</span> <span class="o">=</span> <span class="n">rho_t</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">loss_pop</span> <span class="o">=</span> <span class="n">rho_t</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="p">:]</span>
+
+        <span class="k">return</span> <span class="n">G_pop</span><span class="p">,</span> <span class="n">E_pop</span><span class="p">,</span> <span class="n">R_pop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">probe_power</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">,</span> <span class="n">loss_pop</span></div>
+
+
+<div class="viewcode-block" id="LossyRydberg.duo_pulse_lindblad">
+<a class="viewcode-back" href="../../api.html#models.rydberg_dynamics.LossyRydberg.duo_pulse_lindblad">[docs]</a>
+    <span class="k">def</span> <span class="nf">duo_pulse_lindblad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">probe_duration</span><span class="p">,</span> <span class="n">probe_delay</span><span class="p">,</span> <span class="n">probe_hold</span><span class="p">,</span>
+                           <span class="n">probe_peak_power</span><span class="p">,</span> <span class="n">couple_duration</span><span class="p">,</span> <span class="n">couple_delay</span><span class="p">,</span>
+                           <span class="n">couple_hold</span><span class="p">,</span> <span class="n">couple_peak_power</span><span class="p">,</span>
+                           <span class="n">Delta</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+        <span class="c1"># define time vector</span>
+        <span class="n">max_Omega12</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_Omega12_from_Power</span><span class="p">(</span><span class="n">probe_peak_power</span><span class="p">)</span>
+        <span class="n">max_Omega23</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_Omega23_from_Power</span><span class="p">(</span><span class="n">couple_peak_power</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Delta</span> <span class="o">=</span> <span class="n">Delta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">max_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="n">max_Omega12</span><span class="p">,</span> <span class="n">max_Omega23</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Delta</span><span class="p">])</span>
+        <span class="n">stop_time</span> <span class="o">=</span> <span class="p">(</span><span class="n">probe_delay</span> <span class="o">+</span> <span class="n">probe_duration</span> <span class="o">+</span> <span class="n">probe_hold</span> <span class="o">+</span>
+                     <span class="n">couple_delay</span> <span class="o">+</span> <span class="n">couple_duration</span> <span class="o">+</span> <span class="n">couple_hold</span> <span class="o">+</span> <span class="mf">10e-9</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">stop_time</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">stop_time</span> <span class="o">*</span>
+                                                        <span class="n">max_freq</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># define the pulse</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">couple_power</span> <span class="o">=</span> <span class="p">(</span><span class="n">pulses</span><span class="o">.</span><span class="n">get_VectorizedBlackmanPulse</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">,</span> <span class="n">couple_duration</span><span class="p">,</span> <span class="n">couple_delay</span><span class="p">,</span> <span class="n">couple_hold</span><span class="p">)</span> <span class="o">*</span>
+            <span class="n">couple_peak_power</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">couple_power</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">couple_power</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">probe_power</span> <span class="o">=</span> <span class="n">pulses</span><span class="o">.</span><span class="n">get_VectorizedBlackmanPulse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">,</span>
+                                                              <span class="n">probe_duration</span><span class="p">,</span> <span class="n">probe_delay</span><span class="p">,</span>
+                                                              <span class="n">probe_hold</span><span class="p">)</span> <span class="o">*</span> <span class="n">probe_peak_power</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">probe_power</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">probe_power</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># solve initial value problem</span>
+        <span class="n">sol</span> <span class="o">=</span> <span class="n">solve_ivp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_dot_rho_duo</span><span class="p">,</span> <span class="n">y0</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rho0</span><span class="p">),</span>
+                        <span class="n">t_span</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">)],</span> <span class="n">t_eval</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span>
+            <span class="n">probe_duration</span><span class="p">,</span> <span class="n">probe_delay</span><span class="p">,</span> <span class="n">probe_hold</span><span class="p">,</span> <span class="n">probe_peak_power</span><span class="p">,</span>
+            <span class="n">couple_duration</span><span class="p">,</span> <span class="n">couple_delay</span><span class="p">,</span> <span class="n">couple_hold</span><span class="p">,</span>
+            <span class="n">couple_peak_power</span><span class="p">),</span> <span class="n">first_step</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">)</span>
+        <span class="n">rho_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">)))</span>
+        <span class="n">rho_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">rho_t</span><span class="p">)</span>
+
+        <span class="c1"># populations</span>
+        <span class="n">G_pop</span> <span class="o">=</span> <span class="n">rho_t</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">E_pop</span> <span class="o">=</span> <span class="n">rho_t</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">R_pop</span> <span class="o">=</span> <span class="n">rho_t</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">loss_pop</span> <span class="o">=</span> <span class="n">rho_t</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="p">:]</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">G_pop</span><span class="p">,</span> <span class="n">E_pop</span><span class="p">,</span> <span class="n">R_pop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">probe_power</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">couple_power</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">time_array</span><span class="p">,</span> <span class="n">loss_pop</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Nolan Peard, Lin Xin, Sam Cohen, Tony Zhang, Michelle Wu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
