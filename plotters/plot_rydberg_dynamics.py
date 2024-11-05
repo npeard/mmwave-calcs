@@ -11,9 +11,9 @@ from matplotlib.colors import LogNorm
 
 def plot_pulse():
     time = np.linspace(0, 1, 10000)
-    plt.plot(time, pulses.get_VectorizedBlackmanPulse(time, duration=0.2,
-                                                      delay=0.3,
-                                                      hold=0.))
+    plt.plot(time, pulses.get_vectorized_blackman_pulse(time, duration=0.2,
+                                                        delay=0.3,
+                                                        hold=0.))
     plt.ylabel("Amplitude")
     plt.xlabel("Time")
     plt.show()
@@ -55,8 +55,8 @@ def plot_state_hold_vs_probe_power():
     pi_pulse_duration = []
 
     for Pp in tqdm(probe_powers):
-        pi_pulse_duration.append(runner.transition.get_PiPulseDuration(Pp=Pp,
-                                                                       Pc=coupling_power))
+        pi_pulse_duration.append(runner.transition.get_pi_pulse_duration(Pp=Pp,
+                                                                         Pc=coupling_power))
         for hold in holds:
             Ground, Inter, Rydberg, Sweep, _ = runner.probe_pulse_unitary(duration=0e-9,
                                                                           delay=5e-9,
@@ -94,7 +94,7 @@ def plot_state_power_vs_power_fixed_pi():
 
     coupling_powers = np.linspace(0.1, 10, 20)
     probe_powers = np.linspace(1e-3, 10e-3, 20)
-    holds = runner.transition.get_PiPulseDuration(Pp=5e-3, Pc=5)
+    holds = runner.transition.get_pi_pulse_duration(Pp=5e-3, Pc=5)
 
     Ground_list = []
     Inter_list = []
@@ -160,8 +160,8 @@ def plot_state_couple_power_vs_detune(coupling_powers=None, detunings=None,
 
     for Delta in tqdm(detunings):
         for Pc in coupling_powers:
-            hold = runner.transition.get_PiPulseDuration(Pp=probe_peak_power,
-                                                         Pc=Pc)
+            hold = runner.transition.get_pi_pulse_duration(Pp=probe_peak_power,
+                                                           Pc=Pc)
             Ground, Inter, Rydberg, Sweep, _ = runner.probe_pulse_unitary(
                 duration=duration,
                 delay=5e-9, hold=hold,
@@ -173,7 +173,7 @@ def plot_state_couple_power_vs_detune(coupling_powers=None, detunings=None,
     Ryd_pop = np.reshape(Ryd_pop, (len(detunings), len(coupling_powers))).T
 
     for Pc in coupling_powers:
-        optimal_detuning.append(runner.transition.get_OptimalDetuning(
+        optimal_detuning.append(runner.transition.get_optimal_detuning(
             P1=probe_peak_power, P2=Pc))
     optimal_detuning = np.asarray(optimal_detuning)
 
@@ -246,8 +246,8 @@ def plot_lindblad_couple_power_vs_detune(coupling_powers=None, detunings=None,
 
     for Delta in tqdm(detunings):
         for Pc in coupling_powers:
-            hold = runner.transition.get_PiPulseDuration(Pp=probe_peak_power,
-                                                         Pc=Pc)
+            hold = runner.transition.get_pi_pulse_duration(Pp=probe_peak_power,
+                                                           Pc=Pc)
             Ground, Inter, Rydberg, Sweep, _, Loss = runner.probe_pulse_lindblad(
                 duration=0e-9, delay=5e-9, hold=hold,
                 probe_peak_power=probe_peak_power,
@@ -266,7 +266,7 @@ def plot_lindblad_couple_power_vs_detune(coupling_powers=None, detunings=None,
     Loss_pop = np.reshape(Loss_pop, (len(detunings), len(coupling_powers))).T
 
     for Pc in coupling_powers:
-        optimal_detuning.append(runner.transition.get_OptimalDetuning(
+        optimal_detuning.append(runner.transition.get_optimal_detuning(
             P1=probe_peak_power,
             P2=Pc))
     optimal_detuning = np.asarray(optimal_detuning)
@@ -322,8 +322,8 @@ def plot_lindblad_fast_probe(coupling_powers=None, probe_peak_power=None):
 
     for Pp in tqdm(probe_peak_power):
         for Pc in coupling_powers:
-            hold = runner.transition.get_PiPulseDuration(Pp=Pp,
-                                                         Pc=Pc, resonance=True)
+            hold = runner.transition.get_pi_pulse_duration(Pp=Pp,
+                                                           Pc=Pc, resonance=True)
             Ground, Inter, Rydberg, Sweep, _, Loss = runner.probe_pulse_lindblad(
                 duration=0e-9, delay=5e-9, hold=hold,
                 probe_peak_power=Pp,
@@ -432,9 +432,9 @@ def plot_lindblad_duo_pulse(probe_delays=None, couple_delays=None,
 
     for pDelay in tqdm(probe_delays):
         for cDelay in couple_delays:
-            hold = runner.transition.get_PiPulseDuration(Pp=probe_peak_power,
-                                                         Pc=couple_peak_power,
-                                                         resonance=True)
+            hold = runner.transition.get_pi_pulse_duration(Pp=probe_peak_power,
+                                                           Pc=couple_peak_power,
+                                                           resonance=True)
             Ground, Inter, Rydberg, _, _, _, Loss = (
                 runner.duo_pulse_lindblad(
                     probe_duration=0, probe_delay=pDelay, probe_hold=hold,

@@ -9,7 +9,7 @@ import models.rydberg_calcs as calcs
 def white_gate_error(FWHM1, FWHM2, Pp, Pc, N=1 / 2):
     # Calculate the gate error for a pi*N gate due to laser phase noise
     transition = calcs.RydbergTransition()
-    rabiFreqTotal = transition.get_totalRabiAngularFreq(Pp, Pc)  # in 2pi*Hz
+    rabiFreqTotal = transition.get_total_rabi_angular_freq(Pp, Pc)  # in 2pi*Hz
     h1 = FWHM1 / (2 * np.pi)
     h2 = FWHM2 / (2 * np.pi)
 
@@ -22,8 +22,8 @@ def servo_gate_error(sg, fg, rabiFreq12, rabiFreq23, N=1 / 2):
     # Calculate the gate error due to a servo bump at the specified integrated
     # noise power sg and center frequency fg
     transition = calcs.RydbergTransition()
-    Delta = transition.get_OptimalDetuning(rabiFreq1=rabiFreq12,
-                                           rabiFreq2=rabiFreq23)
+    Delta = transition.get_optimal_detuning(rabiFreq1=rabiFreq12,
+                                            rabiFreq2=rabiFreq23)
     rabiFreqTotal = rabiFreq12 * rabiFreq23 / (2 * Delta)
 
     epsilon = 2 * sg * (np.pi * fg * rabiFreqTotal)**2

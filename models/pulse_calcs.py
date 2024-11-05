@@ -3,7 +3,7 @@ from numba import njit
 
 
 @njit
-def get_BlackmanPulse(t, duration, delay, hold=0):
+def get_blackman_pulse(t, duration, delay, hold=0):
     # if hold is not 0, not a true Blackman pulse
     pulse = 0
     a0 = 0.42
@@ -30,11 +30,11 @@ def get_BlackmanPulse(t, duration, delay, hold=0):
 
 
 @njit
-def get_VectorizedBlackmanPulse(t, duration, delay, hold=0):
+def get_vectorized_blackman_pulse(t, duration, delay, hold=0):
     pulse_pts = np.zeros_like(t)
 
     for j in range(len(pulse_pts)):
-        pulse_pts[j] = get_BlackmanPulse(t[j], duration=duration,
-                                         delay=delay, hold=hold)
+        pulse_pts[j] = get_blackman_pulse(t[j], duration=duration,
+                                          delay=delay, hold=hold)
 
     return pulse_pts

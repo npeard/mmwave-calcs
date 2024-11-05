@@ -71,7 +71,7 @@ class UnitaryRydberg:
 
     def get_dot_rho(self, t, rho, duration, delay, hold, probe_peak_power,
                     Omega23):
-        probe_power = (pulses.get_BlackmanPulse(t, duration, delay, hold) *
+        probe_power = (pulses.get_blackman_pulse(t, duration, delay, hold) *
                        probe_peak_power)
         Omega12 = self.func_Omega12_from_Power(probe_power).item()
         Ht = self.get_hamiltonian(Omega12, Omega23, self.Delta,
@@ -109,7 +109,7 @@ class UnitaryRydberg:
         max_Omega12 = self.func_Omega12_from_Power(probe_peak_power)
         max_Omega23 = self.func_Omega23_from_Power(couple_power)
         if Delta is None:
-            self.Delta = self.transition.get_OptimalDetuning(
+            self.Delta = self.transition.get_optimal_detuning(
                 rabiFreq1=max_Omega12, rabiFreq2=max_Omega23)
         else:
             self.Delta = Delta
@@ -120,15 +120,15 @@ class UnitaryRydberg:
 
         # define the pulse
         self.couple_power = couple_power
-        self.probe_power = pulses.get_VectorizedBlackmanPulse(self.time_array,
-                                                              duration, delay,
-                                                              hold) * probe_peak_power
+        self.probe_power = pulses.get_vectorized_blackman_pulse(self.time_array,
+                                                                duration, delay,
+                                                                hold) * probe_peak_power
         self.probe_power[self.probe_power < 0] = 0
         Omega12_array = self.func_Omega12_from_Power(self.probe_power)
         Omega23 = self.func_Omega23_from_Power(self.couple_power).item()
 
         # compensate AC stark shift
-        self.delta = self.transition.get_DiffRydACStark(probe_peak_power, couple_power)
+        self.delta = self.transition.get_diff_ryd_ac_stark(probe_peak_power, couple_power)
 
         # calculate Hamiltonians
         H_array = self.get_hamiltonian_array(
@@ -147,7 +147,7 @@ class UnitaryRydberg:
         max_Omega12 = self.func_Omega12_from_Power(probe_peak_power)
         max_Omega23 = self.func_Omega23_from_Power(couple_power)
         if Delta is None:
-            self.Delta = self.transition.get_OptimalDetuning(
+            self.Delta = self.transition.get_optimal_detuning(
                 rabiFreq1=max_Omega12, rabiFreq2=max_Omega23)
         else:
             self.Delta = Delta
@@ -158,16 +158,16 @@ class UnitaryRydberg:
 
         # define the pulse
         self.couple_power = couple_power
-        self.probe_power = pulses.get_VectorizedBlackmanPulse(self.time_array,
-                                                              duration, delay,
-                                                              hold) * probe_peak_power
+        self.probe_power = pulses.get_vectorized_blackman_pulse(self.time_array,
+                                                                duration, delay,
+                                                                hold) * probe_peak_power
         self.probe_power[self.probe_power < 0] = 0
         Omega12_array = self.func_Omega12_from_Power(self.probe_power)
         Omega23 = self.func_Omega23_from_Power(self.couple_power).item()
 
         # compensate AC stark shift
-        self.delta = self.transition.get_DiffRydACStark(probe_peak_power,
-                                                        couple_power)
+        self.delta = self.transition.get_diff_ryd_ac_stark(probe_peak_power,
+                                                           couple_power)
 
         # solve initial value problem
         sol = solve_ivp(self.get_dot_rho, y0=np.ravel(self.rho0),
@@ -191,8 +191,8 @@ class LossyRydberg(UnitaryRydberg):
         self.rho0 = np.asarray([[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.complex128)
 
         # decay rates
-        self.gamma2 = self.transition.get_E_Linewidth()
-        self.gamma3 = self.transition.get_R_Linewidth()
+        self.gamma2 = self.transition.get_e_linewidth()
+        self.gamma3 = self.transition.get_r_linewidth()
 
     @staticmethod
     @njit('float64[:,:](float64, float64, float64, float64)')
@@ -237,7 +237,7 @@ class LossyRydberg(UnitaryRydberg):
 
     def get_dot_rho(self, t, rho, duration, delay, hold, probe_peak_power,
                     Omega23):
-        probe_power = (pulses.get_BlackmanPulse(t, duration, delay, hold) *
+        probe_power = (pulses.get_blackman_pulse(t, duration, delay, hold) *
                        probe_peak_power)
         Omega12 = self.func_Omega12_from_Power(probe_power).item()
         Ht = self.get_hamiltonian(Omega12, Omega23, self.Delta, self.delta)
@@ -247,12 +247,12 @@ class LossyRydberg(UnitaryRydberg):
     def get_dot_rho_duo(self, t, rho, probe_duration, probe_delay, probe_hold,
                         probe_peak_power, couple_duration, couple_delay,
                         couple_hold, couple_peak_power):
-        probe_power = (pulses.get_BlackmanPulse(t, probe_duration,
-                                                probe_delay, probe_hold) *
+        probe_power = (pulses.get_blackman_pulse(t, probe_duration,
+                                                 probe_delay, probe_hold) *
                        probe_peak_power)
         Omega12 = self.func_Omega12_from_Power(probe_power).item()
-        couple_power = (pulses.get_BlackmanPulse(t, couple_duration,
-                                                 couple_delay, couple_hold) *
+        couple_power = (pulses.get_blackman_pulse(t, couple_duration,
+                                                  couple_delay, couple_hold) *
                         couple_peak_power)
         Omega23 = self.func_Omega23_from_Power(couple_power).item()
         Ht = self.get_hamiltonian(Omega12, Omega23, self.Delta, self.delta)
@@ -266,7 +266,7 @@ class LossyRydberg(UnitaryRydberg):
         max_Omega12 = self.func_Omega12_from_Power(probe_peak_power)
         max_Omega23 = self.func_Omega23_from_Power(couple_power)
         if Delta is None:
-            self.Delta = self.transition.get_OptimalDetuning(
+            self.Delta = self.transition.get_optimal_detuning(
                 rabiFreq1=max_Omega12, rabiFreq2=max_Omega23)
         else:
             self.Delta = Delta
@@ -277,15 +277,15 @@ class LossyRydberg(UnitaryRydberg):
 
         # define the pulse
         self.couple_power = couple_power
-        self.probe_power = pulses.get_VectorizedBlackmanPulse(self.time_array,
-                                                              duration, delay,
-                                                              hold) * probe_peak_power
+        self.probe_power = pulses.get_vectorized_blackman_pulse(self.time_array,
+                                                                duration, delay,
+                                                                hold) * probe_peak_power
         self.probe_power[self.probe_power < 0] = 0
         Omega23 = self.func_Omega23_from_Power(self.couple_power).item()
 
         # compensate AC stark shift
-        self.delta = self.transition.get_DiffRydACStark(probe_peak_power,
-                                                        couple_power)
+        self.delta = self.transition.get_diff_ryd_ac_stark(probe_peak_power,
+                                                           couple_power)
 
         # solve initial value problem
         sol = solve_ivp(self.get_dot_rho, y0=np.ravel(self.rho0),
@@ -319,13 +319,13 @@ class LossyRydberg(UnitaryRydberg):
                                                         max_freq) + 1)
 
         # define the pulse
-        self.couple_power = (pulses.get_VectorizedBlackmanPulse(
+        self.couple_power = (pulses.get_vectorized_blackman_pulse(
             self.time_array, couple_duration, couple_delay, couple_hold) *
             couple_peak_power)
         self.couple_power[self.couple_power < 0] = 0
-        self.probe_power = pulses.get_VectorizedBlackmanPulse(self.time_array,
-                                                              probe_duration, probe_delay,
-                                                              probe_hold) * probe_peak_power
+        self.probe_power = pulses.get_vectorized_blackman_pulse(self.time_array,
+                                                                probe_duration, probe_delay,
+                                                                probe_hold) * probe_peak_power
         self.probe_power[self.probe_power < 0] = 0
 
         # solve initial value problem
