@@ -3,6 +3,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 
+# TODO: refactor this class to be inherited from a 2-level transition
 class RydbergTransition:
     def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, q1=1,
                  n2=7, l2=1, j2=1.5, mj2=1.5, q2=1, n3=47, l3=2, j3=2.5):
@@ -51,6 +52,20 @@ class RydbergTransition:
                                                      kind='cubic')
 
     def get_E_RabiAngularFreq(self, laserPower):
+        """
+        Compute the Rabi angular frequency for the 6S1/2 -> 7P3/2
+        excited state transition.
+
+        Parameters
+        ----------
+        laserPower : float
+            The power of the laser, in W.
+
+        Returns
+        -------
+        rabiFreq_1 : float
+            The Rabi angular frequency, in 2pi*Hz.
+        """
         # laserPower is in W
         # laserWaist is in m
         if self.RabiAngularFreq_1_from_Power is None:

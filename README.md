@@ -30,16 +30,42 @@ You can edit the Python code in the repo and your Jupyter notebook
 simultaneously. Restart your Jupyter kernel to reload any Python code you 
 edit in your Python IDE.
 
-## Contributing
-Whenever you want to edit or add to the repo, checkout a new Git branch.
+## Quick Start for Contributors
 
-Make your edits, making commits and pushing code to your branch as 
-you go.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/username/your-project.git
+   cd your-project
+   ```
 
-Create a pull request for your branch. One colleague needs to review and 
-approve your code before you can merge your branch. Consider using the 
-automated PyLinter to edit your code to match the PEP8 style guide. 
+2. Create a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
-Once your code is approved, merge commit the branch and then delete it. 
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   pip install -e .
+   ```
 
-Repeat as necessary.
+4. Create a new branch for your feature:
+   ```bash
+   git checkout -b feature-name
+   ```
+
+5. Make your changes and run tests:
+   ```bash
+   pytest tests/
+   ```
+
+6. Commit and push your changes:
+   ```bash
+   git add .
+   git commit -m "Description of changes"
+   git push origin feature-name
+   ```
+
+7. Open a Pull Request on GitHub
+
