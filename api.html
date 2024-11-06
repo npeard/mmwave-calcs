@@ -67,6 +67,25 @@
 <li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.print_saturation_powers"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.print_saturation_powers()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#models.rydberg_dynamics.LossyRydberg"><code class="docutils literal notranslate"><span class="pre">LossyRydberg</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.LossyRydberg.compute_dot_rho"><code class="docutils literal notranslate"><span class="pre">LossyRydberg.compute_dot_rho()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.LossyRydberg.duo_pulse_lindblad"><code class="docutils literal notranslate"><span class="pre">LossyRydberg.duo_pulse_lindblad()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.LossyRydberg.get_dot_rho"><code class="docutils literal notranslate"><span class="pre">LossyRydberg.get_dot_rho()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.LossyRydberg.get_dot_rho_duo"><code class="docutils literal notranslate"><span class="pre">LossyRydberg.get_dot_rho_duo()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.LossyRydberg.get_hamiltonian"><code class="docutils literal notranslate"><span class="pre">LossyRydberg.get_hamiltonian()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.LossyRydberg.probe_pulse_lindblad"><code class="docutils literal notranslate"><span class="pre">LossyRydberg.probe_pulse_lindblad()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#models.rydberg_dynamics.UnitaryRydberg"><code class="docutils literal notranslate"><span class="pre">UnitaryRydberg</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.UnitaryRydberg.compute_dot_rho"><code class="docutils literal notranslate"><span class="pre">UnitaryRydberg.compute_dot_rho()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.UnitaryRydberg.evolve_state"><code class="docutils literal notranslate"><span class="pre">UnitaryRydberg.evolve_state()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.UnitaryRydberg.get_dot_rho"><code class="docutils literal notranslate"><span class="pre">UnitaryRydberg.get_dot_rho()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.UnitaryRydberg.get_hamiltonian"><code class="docutils literal notranslate"><span class="pre">UnitaryRydberg.get_hamiltonian()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.UnitaryRydberg.get_hamiltonian_array"><code class="docutils literal notranslate"><span class="pre">UnitaryRydberg.get_hamiltonian_array()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.UnitaryRydberg.probe_pulse_neumann"><code class="docutils literal notranslate"><span class="pre">UnitaryRydberg.probe_pulse_neumann()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_dynamics.UnitaryRydberg.probe_pulse_unitary"><code class="docutils literal notranslate"><span class="pre">UnitaryRydberg.probe_pulse_unitary()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#models.gatefidelity.intensity_gate_error"><code class="docutils literal notranslate"><span class="pre">intensity_gate_error()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#models.gatefidelity.servo_gate_error"><code class="docutils literal notranslate"><span class="pre">servo_gate_error()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#models.gatefidelity.white_gate_error"><code class="docutils literal notranslate"><span class="pre">white_gate_error()</span></code></a></li>
@@ -476,6 +495,442 @@ Rydberg transitions and prints them in milliwatts (mW).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-models.rydberg_dynamics">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.LossyRydberg">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">models.rydberg_dynamics.</span></span><span class="sig-name descname"><span class="pre">LossyRydberg</span></span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#LossyRydberg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.LossyRydberg" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#models.rydberg_dynamics.UnitaryRydberg" title="models.rydberg_dynamics.UnitaryRydberg"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnitaryRydberg</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.LossyRydberg.compute_dot_rho">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compute_dot_rho</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">H</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#LossyRydberg.compute_dot_rho"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.LossyRydberg.compute_dot_rho" title="Link to this definition"></a></dt>
+<dd><p>Compute the time derivative of the density matrix rho for a three-level
+quantum system using the von Neumann equation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rho</strong> (<em>np.ndarray</em>) – A 4x4 density matrix representing the quantum state of the system</p></li>
+<li><p><strong>H</strong> (<em>np.ndarray</em>) – A 4x4 Hamiltonian matrix representing the dynamics of the system</p></li>
+<li><p><strong>gamma2</strong> (<em>float</em>) – The linewidth of the intermediate state, in Hz</p></li>
+<li><p><strong>gamma3</strong> (<em>float</em>) – The linewidth of the Rydberg state, in Hz</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The time derivative of the density matrix rho, a 4x4 complex matrix</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The von Neumann equation is a quantum mechanical equation that describes
+the time evolution of a quantum system. The Liouville equation is a
+special case of the von Neumann equation for a closed system. The
+von Neumann equation is given by:</p>
+<p>d/dt rho = -i [H, rho] + gamma2 * L(spLoss1) + gamma3 * L(spLoss2)</p>
+<p>where rho is the density matrix of the system, H is the Hamiltonian
+matrix, gamma2 and gamma3 are the linewidths of the intermediate and
+Rydberg states, and L is the Lindblad superoperator.</p>
+<p>The Lindblad superoperator is given by:</p>
+<p>L(A) = A &#64; rho &#64; A.T - 0.5 * (A.T &#64; A &#64; rho + rho &#64; A.T &#64; A)</p>
+<p>The Lindblad superoperator is used to describe the loss of coherence
+due to the decay of the intermediate and Rydberg states. The loss
+channel is modeled as a decay from the Rydberg state to the ground
+state, and from the intermediate state to the ground state.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.LossyRydberg.duo_pulse_lindblad">
+<span class="sig-name descname"><span class="pre">duo_pulse_lindblad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">probe_duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_hold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_peak_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_hold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_peak_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#LossyRydberg.duo_pulse_lindblad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.LossyRydberg.duo_pulse_lindblad" title="Link to this definition"></a></dt>
+<dd><p>Simulate a two-pulse sequence, first a probe pulse, then a couple pulse,
+and compute the populations of the ground state, the intermediate state,
+and the Rydberg state, as well as the probe and couple pulse powers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>probe_duration</strong> (<em>float</em>) – Duration of the probe pulse in seconds.</p></li>
+<li><p><strong>probe_delay</strong> (<em>float</em>) – Delay between the start of the simulation and the start of the
+probe pulse in seconds.</p></li>
+<li><p><strong>probe_hold</strong> (<em>float</em>) – Duration of the hold period after the probe pulse in seconds.</p></li>
+<li><p><strong>probe_peak_power</strong> (<em>float</em>) – Peak power of the probe pulse in Watts.</p></li>
+<li><p><strong>couple_duration</strong> (<em>float</em>) – Duration of the couple pulse in seconds.</p></li>
+<li><p><strong>couple_delay</strong> (<em>float</em>) – Delay between the start of the simulation and the start of the
+couple pulse in seconds.</p></li>
+<li><p><strong>couple_hold</strong> (<em>float</em>) – Duration of the hold period after the couple pulse in seconds.</p></li>
+<li><p><strong>couple_peak_power</strong> (<em>float</em>) – Peak power of the couple pulse in Watts.</p></li>
+<li><p><strong>Delta</strong> (<em>float</em><em>, </em><em>optional</em>) – Detuning of the probe pulse in Hz. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>G_pop</strong> (<em>numpy.ndarray</em>) – Population of the ground state.</p></li>
+<li><p><strong>E_pop</strong> (<em>numpy.ndarray</em>) – Population of the intermediate state.</p></li>
+<li><p><strong>R_pop</strong> (<em>numpy.ndarray</em>) – Population of the Rydberg state.</p></li>
+<li><p><strong>probe_power</strong> (<em>numpy.ndarray</em>) – Probe power at each time step.</p></li>
+<li><p><strong>couple_power</strong> (<em>numpy.ndarray</em>) – Couple power at each time step.</p></li>
+<li><p><strong>time_array</strong> (<em>numpy.ndarray</em>) – Time array for the simulation.</p></li>
+<li><p><strong>loss_pop</strong> (<em>numpy.ndarray</em>) – Population of the loss state.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.LossyRydberg.get_dot_rho">
+<span class="sig-name descname"><span class="pre">get_dot_rho</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_peak_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Omega23</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#LossyRydberg.get_dot_rho"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.LossyRydberg.get_dot_rho" title="Link to this definition"></a></dt>
+<dd><p>Compute the time derivative of the density matrix <cite>rho</cite> for a given
+Hamiltonian <cite>H</cite> corresponding to a probe pulse with the given
+parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>float</em>) – Time at which to evaluate the time derivative.</p></li>
+<li><p><strong>rho</strong> (<em>complex128</em><em>[</em><em>:</em><em>]</em>) – Flattened density matrix of the quantum state, expected to be a 4x4
+matrix when reshaped.</p></li>
+<li><p><strong>duration</strong> (<em>float</em>) – Duration of the probe pulse.</p></li>
+<li><p><strong>delay</strong> (<em>float</em>) – Delay before the probe pulse starts.</p></li>
+<li><p><strong>hold</strong> (<em>float</em>) – Duration of the flat top of the probe pulse.</p></li>
+<li><p><strong>probe_peak_power</strong> (<em>float</em>) – Maximum power of the probe pulse.</p></li>
+<li><p><strong>Omega23</strong> (<em>float</em>) – Rabi angular frequency of the coupling laser.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>complex128[</strong> – Flattened array representing the time derivative of the density
+matrix <cite>rho</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><p>]</p>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The time derivative is calculated using the commutator of the
+Hamiltonian <cite>H</cite> with the density matrix <cite>rho</cite>, which describes the
+unitary evolution of the quantum state according to the Schrödinger
+equation. This function wraps the <cite>compute_dot_rho</cite> function which is
+Numba-compiled.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.LossyRydberg.get_dot_rho_duo">
+<span class="sig-name descname"><span class="pre">get_dot_rho_duo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_hold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_peak_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_hold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_peak_power</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#LossyRydberg.get_dot_rho_duo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.LossyRydberg.get_dot_rho_duo" title="Link to this definition"></a></dt>
+<dd><p>Compute the time derivative of the density matrix <cite>rho</cite> for a given
+Hamiltonian <cite>H</cite> corresponding to a dual probe and coupling pulse with
+the given parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>float</em>) – Time at which to evaluate the time derivative.</p></li>
+<li><p><strong>rho</strong> (<em>complex128</em><em>[</em><em>:</em><em>]</em>) – Flattened density matrix of the quantum state, expected to be a 4x4
+matrix when reshaped.</p></li>
+<li><p><strong>probe_duration</strong> (<em>float</em>) – Duration of the probe pulse.</p></li>
+<li><p><strong>probe_delay</strong> (<em>float</em>) – Delay before the probe pulse starts.</p></li>
+<li><p><strong>probe_hold</strong> (<em>float</em>) – Duration of the flat top of the probe pulse.</p></li>
+<li><p><strong>probe_peak_power</strong> (<em>float</em>) – Maximum power of the probe pulse.</p></li>
+<li><p><strong>couple_duration</strong> (<em>float</em>) – Duration of the coupling pulse.</p></li>
+<li><p><strong>couple_delay</strong> (<em>float</em>) – Delay before the coupling pulse starts.</p></li>
+<li><p><strong>couple_hold</strong> (<em>float</em>) – Duration of the flat top of the coupling pulse.</p></li>
+<li><p><strong>couple_peak_power</strong> (<em>float</em>) – Maximum power of the coupling pulse.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>complex128[</strong> – Flattened array representing the time derivative of the density
+matrix <cite>rho</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><p>]</p>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The time derivative is calculated using the commutator of the Hamiltonian
+<cite>H</cite> with the density matrix <cite>rho</cite>, which describes the unitary evolution
+of the quantum state according to the Schrödinger equation. This function
+wraps the <cite>compute_dot_rho</cite> function which is Numba-compiled.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.LossyRydberg.get_hamiltonian">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_hamiltonian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Omega12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Omega23</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Delta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#LossyRydberg.get_hamiltonian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.LossyRydberg.get_hamiltonian" title="Link to this definition"></a></dt>
+<dd><p>Constructs the Hamiltonian matrix for a three-level quantum system.</p>
+<p>This function calculates the Hamiltonian for a three-level system
+based on the given Rabi frequencies and detunings. The Hamiltonian
+accounts for the couplings between the ground, intermediate, and
+Rydberg states, and the detunings for the transitions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Omega12</strong> (<em>float</em>) – Rabi frequency for the transition between the ground and
+intermediate state.</p></li>
+<li><p><strong>Omega23</strong> (<em>float</em>) – Rabi frequency for the transition between the intermediate and
+Rydberg state.</p></li>
+<li><p><strong>Delta</strong> (<em>float</em>) – Detuning of the laser field for the intermediate state.</p></li>
+<li><p><strong>delta</strong> (<em>float</em>) – Detuning of the laser field for the Rydberg state.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A 4x4 Hamiltonian matrix representing the dynamics of the system.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.LossyRydberg.probe_pulse_lindblad">
+<span class="sig-name descname"><span class="pre">probe_pulse_lindblad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_peak_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evolve_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#LossyRydberg.probe_pulse_lindblad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.LossyRydberg.probe_pulse_lindblad" title="Link to this definition"></a></dt>
+<dd><p>Solve the Lindblad master equation for a probe pulse.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>duration</strong> (<em>float</em>) – Duration of the probe pulse.</p></li>
+<li><p><strong>delay</strong> (<em>float</em>) – Delay before the probe pulse starts.</p></li>
+<li><p><strong>hold</strong> (<em>float</em>) – Duration of the flat top of the probe pulse.</p></li>
+<li><p><strong>probe_peak_power</strong> (<em>float</em>) – Maximum power of the probe pulse.</p></li>
+<li><p><strong>couple_power</strong> (<em>float</em>) – Power of the coupling pulse.</p></li>
+<li><p><strong>Delta</strong> (<em>float</em><em>, </em><em>optional</em>) – Detuning from the intermediate state. If <cite>None</cite>, the optimal detuning
+is calculated using <cite>transition.get_optimal_detuning</cite>.</p></li>
+<li><p><strong>evolve_time</strong> (<em>float</em><em>, </em><em>optional</em>) – Additional time to evolve the system after the probe pulse.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>G_pop</strong> (<em>real128[:]</em>) – Population of the ground state.</p></li>
+<li><p><strong>E_pop</strong> (<em>real128[:]</em>) – Population of the intermediate state.</p></li>
+<li><p><strong>R_pop</strong> (<em>real128[:]</em>) – Population of the Rydberg state.</p></li>
+<li><p><strong>probe_power</strong> (<em>real128[:]</em>) – Power of the probe pulse as a function of time.</p></li>
+<li><p><strong>time_array</strong> (<em>real128[:]</em>) – Time array.</p></li>
+<li><p><strong>loss_pop</strong> (<em>real128[:]</em>) – Population lost to other states.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.UnitaryRydberg">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">models.rydberg_dynamics.</span></span><span class="sig-name descname"><span class="pre">UnitaryRydberg</span></span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#UnitaryRydberg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.UnitaryRydberg" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.UnitaryRydberg.compute_dot_rho">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compute_dot_rho</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">H</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#UnitaryRydberg.compute_dot_rho"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.UnitaryRydberg.compute_dot_rho" title="Link to this definition"></a></dt>
+<dd><p>Compute the time derivative of the density matrix <cite>rho</cite> for a given
+Hamiltonian <cite>H</cite>.</p>
+<p>This function computes the Liouvillian superoperator acting on the density
+matrix <cite>rho</cite>, which represents the quantum state of a three-level system.
+The time derivative is calculated using the commutator of the Hamiltonian
+<cite>H</cite> with the density matrix <cite>rho</cite>, which describes the unitary evolution
+of the quantum state according to the Schrödinger equation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rho</strong> (<em>complex128</em><em>[</em><em>:</em><em>]</em>) – Flattened density matrix of the quantum state, expected to be a 3x3
+matrix when reshaped.</p></li>
+<li><p><strong>H</strong> (<em>float64</em><em>[</em><em>:</em><em>,</em><em>:</em><em>]</em>) – Hamiltonian matrix in the three-state basis.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>complex128[</strong> – Flattened array representing the time derivative of the density
+matrix <cite>rho</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><p>]</p>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.UnitaryRydberg.evolve_state">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">evolve_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">H_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deltaT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psi0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#UnitaryRydberg.evolve_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.UnitaryRydberg.evolve_state" title="Link to this definition"></a></dt>
+<dd><p>Evolves the quantum state over time using a given Hamiltonian array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>H_array</strong> (<em>float64</em><em>[</em><em>:</em><em>,</em><em>:</em><em>,</em><em>:</em><em>]</em>) – A 3D array representing the Hamiltonian at each time step.</p></li>
+<li><p><strong>deltaT</strong> (<em>float64</em>) – The time step for the evolution.</p></li>
+<li><p><strong>psi0</strong> (<em>complex128</em><em>[</em><em>:</em><em>]</em>) – The initial state vector of the quantum system.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Tuple(float64[</strong> – A tuple containing the ground, intermediate, and Rydberg state
+populations over time.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>], float64[:], float64[:])</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The method calculates the unitary evolution of the quantum state
+using the matrix exponential of the Hamiltonian. The state vector
+is updated at each time step by applying the unitary operator.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.UnitaryRydberg.get_dot_rho">
+<span class="sig-name descname"><span class="pre">get_dot_rho</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_peak_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Omega23</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#UnitaryRydberg.get_dot_rho"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.UnitaryRydberg.get_dot_rho" title="Link to this definition"></a></dt>
+<dd><p>Compute the time derivative of the density matrix <cite>rho</cite> for a given
+Hamiltonian <cite>H</cite> corresponding to a probe pulse with the given
+parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>float</em>) – Time at which to evaluate the time derivative.</p></li>
+<li><p><strong>rho</strong> (<em>complex128</em><em>[</em><em>:</em><em>]</em>) – Flattened density matrix of the quantum state, expected to be a 3x3
+matrix when reshaped.</p></li>
+<li><p><strong>duration</strong> (<em>float</em>) – Duration of the probe pulse.</p></li>
+<li><p><strong>delay</strong> (<em>float</em>) – Delay before the probe pulse starts.</p></li>
+<li><p><strong>hold</strong> (<em>float</em>) – Duration of the flat top of the probe pulse.</p></li>
+<li><p><strong>probe_peak_power</strong> (<em>float</em>) – Maximum power of the probe pulse.</p></li>
+<li><p><strong>Omega23</strong> (<em>float</em>) – Rabi angular frequency of the coupling laser.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>complex128[</strong> – Flattened array representing the time derivative of the density
+matrix <cite>rho</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><p>]</p>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The time derivative is calculated using the commutator of the Hamiltonian
+<cite>H</cite> with the density matrix <cite>rho</cite>, which describes the unitary evolution
+of the quantum state according to the Schrödinger equation. This
+function wraps the <cite>compute_dot_rho</cite> function which is Numba-compiled.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.UnitaryRydberg.get_hamiltonian">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_hamiltonian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Omega12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Omega23</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Delta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#UnitaryRydberg.get_hamiltonian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.UnitaryRydberg.get_hamiltonian" title="Link to this definition"></a></dt>
+<dd><p>Compute Hamiltonian for a given set of Rabi frequencies and detunings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Omega12</strong> (<em>float64</em>) – Probe laser Rabi angular frequency.</p></li>
+<li><p><strong>Omega23</strong> (<em>float64</em>) – Coupling laser Rabi angular frequency.</p></li>
+<li><p><strong>Delta</strong> (<em>float64</em>) – Detuning parameter for the E state transition.</p></li>
+<li><p><strong>delta</strong> (<em>float64</em>) – Detuning parameter for the Rydberg state transition.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>H</strong> – Hamiltonian in the three-state basis.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float64[:,:]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.UnitaryRydberg.get_hamiltonian_array">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_hamiltonian_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Omega12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Omega23</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Delta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#UnitaryRydberg.get_hamiltonian_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.UnitaryRydberg.get_hamiltonian_array" title="Link to this definition"></a></dt>
+<dd><p>Compute Hamiltonian array for a given array of Rabi frequencies and
+detunings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Omega12</strong> (<em>float64</em><em>[</em><em>:</em><em>]</em>) – Array of probe laser Rabi angular frequencies.</p></li>
+<li><p><strong>Omega23</strong> (<em>float64</em>) – Coupling laser Rabi angular frequency.</p></li>
+<li><p><strong>Delta</strong> (<em>float64</em>) – Detuning parameter for the E state transition.</p></li>
+<li><p><strong>delta</strong> (<em>float64</em>) – Detuning parameter for the Rydberg state transition.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>H</strong> – Array of Hamiltonians in the three-state basis. The first axis
+indexes the Hamiltonian at each time step.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float64[:,:,:]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.UnitaryRydberg.probe_pulse_neumann">
+<span class="sig-name descname"><span class="pre">probe_pulse_neumann</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_peak_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#UnitaryRydberg.probe_pulse_neumann"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.UnitaryRydberg.probe_pulse_neumann" title="Link to this definition"></a></dt>
+<dd><p>Simulate the evolution of a quantum state under a probe pulse using the
+von Neumann equation and solving as an initial value problem. Mainly
+used to compare to results from the unitary evolution function above.</p>
+<p>This function calculates the populations of the ground, intermediate, and
+Rydberg states over time when a probe pulse is applied to the system. The
+Hamiltonian is constructed based on the given parameters, and the state is
+evolved using the von Neumann equation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>duration</strong> (<em>float</em>) – Duration of the probe pulse.</p></li>
+<li><p><strong>delay</strong> (<em>float</em>) – Delay before the probe pulse starts.</p></li>
+<li><p><strong>hold</strong> (<em>float</em>) – Duration of the flat top of the probe pulse.</p></li>
+<li><p><strong>probe_peak_power</strong> (<em>float</em><em>, </em><em>optional</em>) – Peak power of the probe pulse, default is 10e-3 W.</p></li>
+<li><p><strong>couple_power</strong> (<em>float</em><em>, </em><em>optional</em>) – Power of the coupling laser, default is 1 W.</p></li>
+<li><p><strong>Delta</strong> (<em>float</em><em>, </em><em>optional</em>) – Detuning for the transition. If None, the optimal detuning is
+calculated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p><strong>Tuple of float64[</strong> –</p>
+<ul class="simple">
+<li><p>Ground state population over time.</p></li>
+<li><p>Intermediate state population over time.</p></li>
+<li><p>Rydberg state population over time.</p></li>
+<li><p>Probe pulse power over time.</p></li>
+<li><p>Time array used for the simulation.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><p>]</p>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.rydberg_dynamics.UnitaryRydberg.probe_pulse_unitary">
+<span class="sig-name descname"><span class="pre">probe_pulse_unitary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probe_peak_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">couple_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_dynamics.html#UnitaryRydberg.probe_pulse_unitary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_dynamics.UnitaryRydberg.probe_pulse_unitary" title="Link to this definition"></a></dt>
+<dd><p>Simulate the evolution of a quantum state under a probe pulse using the
+Numba-compiled <cite>evolve_state</cite> function.</p>
+<p>This function calculates the ground, intermediate, and Rydberg state
+populations over time when a probe pulse is applied to the system. It
+constructs the Hamiltonian for the system based on the given parameters,
+compensates for the AC Stark shift, and evolves the state using unitary
+dynamics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>duration</strong> (<em>float</em>) – The duration of the probe pulse.</p></li>
+<li><p><strong>delay</strong> (<em>float</em>) – The delay before the probe pulse starts.</p></li>
+<li><p><strong>hold</strong> (<em>float</em>) – The duration of the flat top of the probe pulse.</p></li>
+<li><p><strong>probe_peak_power</strong> (<em>float</em><em>, </em><em>optional</em>) – The peak power of the probe pulse, default is 10e-3 W.</p></li>
+<li><p><strong>couple_power</strong> (<em>float</em><em>, </em><em>optional</em>) – The power of the coupling laser, default is 1 W.</p></li>
+<li><p><strong>Delta</strong> (<em>float</em><em>, </em><em>optional</em>) – The detuning for the transition. If None, the optimal detuning is
+calculated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p><strong>Tuple of float64[</strong> –</p>
+<ul class="simple">
+<li><p>Ground state population over time.</p></li>
+<li><p>Intermediate state population over time.</p></li>
+<li><p>Rydberg state population over time.</p></li>
+<li><p>Probe pulse power over time.</p></li>
+<li><p>Time array used for the simulation.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><p>]</p>
+</p>
 </dd>
 </dl>
 </dd></dl>
