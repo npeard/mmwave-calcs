@@ -1,0 +1,213 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>models.gatefidelity &mdash; mmwave-calc  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            mmwave-calc
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">mmwave-calc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">models.gatefidelity</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for models.gatefidelity</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Calculate gate errors based on this paper:</span>
+<span class="c1"># Jiang, X., Scott, J., Friesen, M. &amp; Saffman, M. Sensitivity of quantum gate</span>
+<span class="c1"># fidelity to laser phase and intensity noise. Phys. Rev. A 107, 042611 (2023).</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">models.rydberg_calcs</span> <span class="k">as</span> <span class="nn">calcs</span>
+
+
+<div class="viewcode-block" id="white_gate_error">
+<a class="viewcode-back" href="../../api.html#models.gatefidelity.white_gate_error">[docs]</a>
+<span class="k">def</span> <span class="nf">white_gate_error</span><span class="p">(</span><span class="n">FWHM1</span><span class="p">,</span> <span class="n">FWHM2</span><span class="p">,</span> <span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the gate error for a pi*N gate due to laser phase noise.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    FWHM1 : float</span>
+<span class="sd">        The full width at half maximum of the phase noise power spectrum of the</span>
+<span class="sd">        first laser, in Hz.</span>
+<span class="sd">    FWHM2 : float</span>
+<span class="sd">        The full width at half maximum of the phase noise power spectrum of the</span>
+<span class="sd">        second laser, in Hz.</span>
+<span class="sd">    Pp : float</span>
+<span class="sd">        The power of the probe laser, in Watts.</span>
+<span class="sd">    Pc : float</span>
+<span class="sd">        The power of the control laser, in Watts.</span>
+<span class="sd">    N : float, optional</span>
+<span class="sd">        The number of pi rotations, defaults to 1/2.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    epsilon : float</span>
+<span class="sd">        The gate error due to phase noise in the two lasers, in the limit that</span>
+<span class="sd">        the noise is &quot;white&quot; (i.e. the power spectrum is flat).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">transition</span> <span class="o">=</span> <span class="n">calcs</span><span class="o">.</span><span class="n">RydbergTransition</span><span class="p">()</span>
+    <span class="n">rabiFreqTotal</span> <span class="o">=</span> <span class="n">transition</span><span class="o">.</span><span class="n">get_total_rabi_angular_freq</span><span class="p">(</span><span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">)</span>  <span class="c1"># in 2pi*Hz</span>
+    <span class="n">h1</span> <span class="o">=</span> <span class="n">FWHM1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+    <span class="n">h2</span> <span class="o">=</span> <span class="n">FWHM2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+
+    <span class="n">epsilon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">**</span><span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="n">h1</span> <span class="o">+</span> <span class="n">h2</span><span class="p">)</span> <span class="o">*</span> <span class="n">N</span> <span class="o">/</span> <span class="n">rabiFreqTotal</span>
+
+    <span class="k">return</span> <span class="n">epsilon</span></div>
+
+
+
+<div class="viewcode-block" id="servo_gate_error">
+<a class="viewcode-back" href="../../api.html#models.gatefidelity.servo_gate_error">[docs]</a>
+<span class="k">def</span> <span class="nf">servo_gate_error</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">fg</span><span class="p">,</span> <span class="n">rabiFreq12</span><span class="p">,</span> <span class="n">rabiFreq23</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the gate error due to a servo bump at the specified integrated</span>
+<span class="sd">    noise power sg and center frequency fg.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sg : float</span>
+<span class="sd">        The integrated noise power of the servo bump, in Hz^2/Hz.</span>
+<span class="sd">    fg : float</span>
+<span class="sd">        The center frequency of the servo bump, in Hz.</span>
+<span class="sd">    rabiFreq12 : float</span>
+<span class="sd">        The Rabi frequency of the first laser, in 2pi*Hz.</span>
+<span class="sd">    rabiFreq23 : float</span>
+<span class="sd">        The Rabi frequency of the second laser, in 2pi*Hz.</span>
+<span class="sd">    N : float, optional</span>
+<span class="sd">        The number of pi rotations, defaults to 1/2.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    epsilon : float</span>
+<span class="sd">        The gate error due to the servo bump, in the limit that the noise is</span>
+<span class="sd">        confined to a narrow frequency band near the servo bump center</span>
+<span class="sd">        frequency.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">transition</span> <span class="o">=</span> <span class="n">calcs</span><span class="o">.</span><span class="n">RydbergTransition</span><span class="p">()</span>
+    <span class="n">Delta</span> <span class="o">=</span> <span class="n">transition</span><span class="o">.</span><span class="n">get_optimal_detuning</span><span class="p">(</span><span class="n">rabiFreq1</span><span class="o">=</span><span class="n">rabiFreq12</span><span class="p">,</span>
+                                            <span class="n">rabiFreq2</span><span class="o">=</span><span class="n">rabiFreq23</span><span class="p">)</span>
+    <span class="n">rabiFreqTotal</span> <span class="o">=</span> <span class="n">rabiFreq12</span> <span class="o">*</span> <span class="n">rabiFreq23</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">Delta</span><span class="p">)</span>
+
+    <span class="n">epsilon</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">sg</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">fg</span> <span class="o">*</span> <span class="n">rabiFreqTotal</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+    <span class="n">epsilon</span> <span class="o">*=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">N</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">N</span> <span class="o">*</span> <span class="n">fg</span> <span class="o">/</span> <span class="n">rabiFreqTotal</span><span class="p">))</span>
+    <span class="n">epsilon</span> <span class="o">/=</span> <span class="p">(</span><span class="n">rabiFreqTotal</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">fg</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+
+    <span class="k">return</span> <span class="n">epsilon</span></div>
+
+
+
+<div class="viewcode-block" id="intensity_gate_error">
+<a class="viewcode-back" href="../../api.html#models.gatefidelity.intensity_gate_error">[docs]</a>
+<span class="k">def</span> <span class="nf">intensity_gate_error</span><span class="p">(</span><span class="n">sigma1</span><span class="p">,</span> <span class="n">sigma2</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the gate error due to relative intensity noise in a two-photon</span>
+<span class="sd">    excitation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sigma1 : float</span>
+<span class="sd">        The relative intensity variance of the first laser, in Hz^2/Hz.</span>
+<span class="sd">    sigma2 : float</span>
+<span class="sd">        The relative intensity variance of the second laser, in Hz^2/Hz.</span>
+<span class="sd">    N : float, optional</span>
+<span class="sd">        The number of pi rotations, defaults to 1/2.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    epsilon : float</span>
+<span class="sd">        The gate error due to relative intensity noise, in the limit that the</span>
+<span class="sd">        noise is confined to a narrow frequency band near the two-photon Rabi</span>
+<span class="sd">        frequency.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">epsilon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">N</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">sigma1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">sigma2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">4</span>
+    <span class="k">return</span> <span class="n">epsilon</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Nolan Peard, Lin Xin, Sam Cohen, Tony Zhang, Michelle Wu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

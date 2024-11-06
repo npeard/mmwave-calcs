@@ -1,0 +1,830 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>models.recapture_monte_carlo &mdash; mmwave-calc  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            mmwave-calc
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">mmwave-calc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">models.recapture_monte_carlo</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for models.recapture_monte_carlo</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">models.utility</span> <span class="kn">import</span> <span class="n">wavelength2freq</span><span class="p">,</span> <span class="n">wavelength2angularfreq</span>
+<span class="kn">import</span> <span class="nn">scipy.constants</span> <span class="k">as</span> <span class="nn">const</span>
+<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">odeint</span>
+<span class="kn">from</span> <span class="nn">arc</span> <span class="kn">import</span> <span class="n">Caesium</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">skopt</span> <span class="kn">import</span> <span class="n">gp_minimize</span><span class="p">,</span> <span class="n">forest_minimize</span>
+<span class="kn">from</span> <span class="nn">skopt.space</span> <span class="kn">import</span> <span class="n">Real</span>
+<span class="kn">from</span> <span class="nn">skopt.utils</span> <span class="kn">import</span> <span class="n">use_named_args</span>
+<span class="kn">from</span> <span class="nn">skopt.plots</span> <span class="kn">import</span> <span class="n">plot_convergence</span><span class="p">,</span> <span class="n">plot_objective</span>
+
+
+<div class="viewcode-block" id="iHO_a_3d">
+<a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.iHO_a_3d">[docs]</a>
+<span class="k">def</span> <span class="nf">iHO_a_3d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">omega_H</span><span class="p">,</span> <span class="n">omega_L</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the acceleration components in the iHO frame for a given position and frequencies.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : float</span>
+<span class="sd">        x-coordinate in the iHO frame.</span>
+<span class="sd">    y : float</span>
+<span class="sd">        y-coordinate in the iHO frame.</span>
+<span class="sd">    z : float</span>
+<span class="sd">        z-coordinate in the iHO frame.</span>
+<span class="sd">    omega_H : float</span>
+<span class="sd">        radial trap angular frequency</span>
+<span class="sd">    omega_L : float</span>
+<span class="sd">        longitudinal trap angular frequency</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ax : float</span>
+<span class="sd">        x-component of the acceleration in the iHO frame.</span>
+<span class="sd">    ay : float</span>
+<span class="sd">        y-component of the acceleration in the iHO frame.</span>
+<span class="sd">    az : float</span>
+<span class="sd">        z-component of the acceleration in the iHO frame.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="p">(</span><span class="n">omega_H</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span>
+    <span class="n">ay</span> <span class="o">=</span> <span class="p">(</span><span class="n">omega_H</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">y</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="mf">9.8</span>  <span class="c1"># m/s^2 gravity</span>
+    <span class="n">az</span> <span class="o">=</span> <span class="p">(</span><span class="n">omega_L</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">z</span> <span class="o">-</span> <span class="n">g</span>
+    <span class="k">return</span> <span class="n">ax</span><span class="p">,</span> <span class="n">ay</span><span class="p">,</span> <span class="n">az</span></div>
+
+
+
+<div class="viewcode-block" id="newton_3d">
+<a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.newton_3d">[docs]</a>
+<span class="k">def</span> <span class="nf">newton_3d</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">omega_H</span><span class="p">,</span> <span class="n">omega_L</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the next position and velocity of a particle in 3D space</span>
+<span class="sd">    using Newton&#39;s second law of motion.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f : list</span>
+<span class="sd">        List containing the current position and velocity components of the particle.</span>
+<span class="sd">        [x, vx, y, vy, z, vz]</span>
+<span class="sd">    omega_H : float</span>
+<span class="sd">        Radial trap angular frequency</span>
+<span class="sd">    omega_L : float</span>
+<span class="sd">        Longitudinal trap angular frequency</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dfdt : list</span>
+<span class="sd">        List containing the next position and velocity components of the particle.</span>
+<span class="sd">        [vx, vy, vz, ax, ay, az]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">vx</span><span class="p">,</span> <span class="n">vy</span><span class="p">,</span> <span class="n">vz</span> <span class="o">=</span> <span class="n">f</span>
+    <span class="n">ax</span><span class="p">,</span> <span class="n">ay</span><span class="p">,</span> <span class="n">az</span> <span class="o">=</span> <span class="n">iHO_a_3d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">omega_H</span><span class="p">,</span> <span class="n">omega_L</span><span class="p">)</span>
+    <span class="n">dfdt</span> <span class="o">=</span> <span class="p">[</span><span class="n">vx</span><span class="p">,</span> <span class="n">vy</span><span class="p">,</span> <span class="n">vz</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">ay</span><span class="p">,</span> <span class="n">az</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">dfdt</span></div>
+
+
+
+<div class="viewcode-block" id="get_trap_depth">
+<a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.get_trap_depth">[docs]</a>
+<span class="k">def</span> <span class="nf">get_trap_depth</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="n">Caesium</span><span class="p">()</span><span class="o">.</span><span class="n">getStateLifetime</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">l</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the depth of a trap given the power and laser waist.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    power : float</span>
+<span class="sd">        Power of the laser in mW.</span>
+<span class="sd">    waist : float</span>
+<span class="sd">        Laser waist in meters.</span>
+<span class="sd">    gamma : float, optional</span>
+<span class="sd">        Linewidth of the excited state. The default is</span>
+<span class="sd">        1 / Caesium().getStateLifetime(n=6, l=1, j=1.5).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Depth of the trap in Joules.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">angular_detuning</span> <span class="o">=</span> <span class="p">(</span><span class="n">wavelength2angularfreq</span><span class="p">(</span><span class="mf">1070e-9</span><span class="p">)</span> <span class="o">-</span>
+                        <span class="n">wavelength2angularfreq</span><span class="p">(</span><span class="mf">852e-9</span><span class="p">))</span>
+    <span class="n">intensity</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">power</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">waist</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">I_sat</span> <span class="o">=</span> <span class="mf">1.6536e1</span>  <span class="c1"># 1.6536(15) mW/cm2</span>
+    <span class="n">U0</span> <span class="o">=</span> <span class="o">-</span><span class="n">const</span><span class="o">.</span><span class="n">hbar</span> <span class="o">*</span> <span class="n">gamma</span> <span class="o">/</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">gamma</span> <span class="o">/</span> <span class="n">angular_detuning</span> <span class="o">*</span> <span class="n">intensity</span> <span class="o">/</span> <span class="n">I_sat</span>
+
+    <span class="k">return</span> <span class="n">U0</span></div>
+
+
+
+<div class="viewcode-block" id="get_trap_freqs">
+<a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.get_trap_freqs">[docs]</a>
+<span class="k">def</span> <span class="nf">get_trap_freqs</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="o">=</span><span class="mf">1.15e-6</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="n">Caesium</span><span class="p">()</span><span class="o">.</span><span class="n">mass</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the trap frequencies based on the trap parameters.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    power : float</span>
+<span class="sd">        Power of the trap in mW.</span>
+<span class="sd">    waist : float, optional</span>
+<span class="sd">        Waist of the laser beam in m. Default is 1.2 microns.</span>
+<span class="sd">    gamma : float, optional</span>
+<span class="sd">        Laser-atom interaction parameter in s^-1. Default is calculated from the</span>
+<span class="sd">        6s-1/2 state of caesium.</span>
+<span class="sd">    mass : float, optional</span>
+<span class="sd">        Mass of the trap particles in kg. Default is the mass of caesium.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    omega_H : float</span>
+<span class="sd">        Radial trap angular frequency in rad/s.</span>
+<span class="sd">    omega_L : float</span>
+<span class="sd">        Longitudinal trap angular frequency in rad/s.</span>
+<span class="sd">    trap_temperature : float</span>
+<span class="sd">        Trap temperature in K.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">U0</span> <span class="o">=</span> <span class="n">get_trap_depth</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="p">)</span>
+
+    <span class="c1"># trap temperature</span>
+    <span class="n">trap_temperature</span> <span class="o">=</span> <span class="n">U0</span> <span class="o">/</span> <span class="n">const</span><span class="o">.</span><span class="n">k</span>
+
+    <span class="c1"># radial trap frequency</span>
+    <span class="n">omega_H</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">U0</span> <span class="o">/</span> <span class="p">(</span><span class="n">mass</span> <span class="o">*</span> <span class="n">waist</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+
+    <span class="c1"># longitudinal trap frequency</span>
+    <span class="n">zR</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">waist</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="mf">1070e-9</span>
+    <span class="n">omega_L</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">U0</span> <span class="o">/</span> <span class="p">(</span><span class="n">mass</span> <span class="o">*</span> <span class="n">zR</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">omega_H</span><span class="p">,</span> <span class="n">omega_L</span><span class="p">,</span> <span class="n">trap_temperature</span></div>
+
+
+
+<div class="viewcode-block" id="get_tau">
+<a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.get_tau">[docs]</a>
+<span class="k">def</span> <span class="nf">get_tau</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">T_ensemble</span><span class="p">,</span> <span class="n">waist</span><span class="o">=</span><span class="mf">1.15e-6</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the energy to trap depth ratio of the 3D system of atoms.</span>
+<span class="sd">    This parameter is used by the radial recapture model.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    power : float</span>
+<span class="sd">        Power of the trap in mW.</span>
+<span class="sd">    T_ensemble : float</span>
+<span class="sd">        Ensemble temperature in K.</span>
+<span class="sd">    waist : float, optional</span>
+<span class="sd">        Waist of the laser beam in m. Default is 1.2 microns.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tau : float</span>
+<span class="sd">        Characteristic energy ratio of the system.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">U0</span> <span class="o">=</span> <span class="n">get_trap_depth</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="p">)</span>
+    <span class="n">tau</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="n">T_ensemble</span> <span class="o">/</span> <span class="n">U0</span>
+
+    <span class="k">return</span> <span class="n">tau</span></div>
+
+
+
+<div class="viewcode-block" id="radial_recapture_rate">
+<a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.radial_recapture_rate">[docs]</a>
+<span class="k">def</span> <span class="nf">radial_recapture_rate</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">power</span><span class="p">,</span> <span class="n">T_ensemble</span><span class="p">,</span> <span class="n">waist</span><span class="o">=</span><span class="mf">1.15e-6</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the radial recapture rate of a 3D system of atoms.</span>
+<span class="sd">    This model assumes that the atoms are mainly lost in the radial axis of the</span>
+<span class="sd">    trap. Additionally, small velocity losses near the edge are neglected.</span>
+<span class="sd">    Agrees reasonably well with the full Monte Carlo model. See derivation</span>
+<span class="sd">    courtesy of Monika Schleier-Smith.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    t : array-like</span>
+<span class="sd">        Array of times in seconds.</span>
+<span class="sd">    power : float</span>
+<span class="sd">        Power of the laser beam in W.</span>
+<span class="sd">    T_ensemble : float</span>
+<span class="sd">        Ensemble temperature in Kelvin.</span>
+<span class="sd">    waist : float, optional</span>
+<span class="sd">        Waist of the laser beam in m. Default is 1.15e-6.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    probability : array-like</span>
+<span class="sd">        1D array of the probability of recapture during each time in t.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tau</span> <span class="o">=</span> <span class="n">get_tau</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">T_ensemble</span><span class="p">,</span> <span class="n">waist</span><span class="p">)</span>
+    <span class="n">omega_H</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">get_trap_freqs</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="p">)</span>
+
+    <span class="n">probability</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">tau</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">tau</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">omega_H</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">t</span><span class="o">**</span><span class="mi">2</span><span class="p">)))</span>
+
+    <span class="k">return</span> <span class="n">probability</span></div>
+
+
+
+<div class="viewcode-block" id="monte_carlo_3d">
+<a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.monte_carlo_3d">[docs]</a>
+<span class="k">def</span> <span class="nf">monte_carlo_3d</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">omega_H</span><span class="p">,</span> <span class="n">omega_L</span><span class="p">,</span> <span class="n">T_ensemble</span><span class="p">,</span> <span class="n">N_ensemble</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+                   <span class="n">mass</span><span class="o">=</span><span class="n">Caesium</span><span class="p">()</span><span class="o">.</span><span class="n">mass</span><span class="p">,</span> <span class="n">do_iHO</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate ensembles of 3D positions and velocities using a Monte Carlo method.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    t : array-like</span>
+<span class="sd">        Time points at which to generate ensembles.</span>
+<span class="sd">    omega_H : float</span>
+<span class="sd">        Radial trap angular frequency in rad/s.</span>
+<span class="sd">    omega_L : float</span>
+<span class="sd">        Longitudinal trap angular frequency in rad/s.</span>
+<span class="sd">    T_ensemble : float</span>
+<span class="sd">        Ensemble temperature in K.</span>
+<span class="sd">    N_ensemble : int, optional</span>
+<span class="sd">        Number of atoms in ensemble to generate. Default is 50.</span>
+<span class="sd">    mass : float, optional</span>
+<span class="sd">        Mass of the trap particles in kg. Default is the mass of caesium.</span>
+<span class="sd">    do_iHO : bool, optional</span>
+<span class="sd">        If True, generate ensembles for the iHO instead of free space.</span>
+<span class="sd">        Default is False.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    x_ensemble : ndarray</span>
+<span class="sd">        Array of shape (N_ensemble, len(t)) containing ensembles of x positions.</span>
+<span class="sd">    vx_ensemble : ndarray</span>
+<span class="sd">        Array of shape (N_ensemble, len(t)) containing ensembles of x velocities.</span>
+<span class="sd">    y_ensemble : ndarray</span>
+<span class="sd">        Array of shape (N_ensemble, len(t)) containing ensembles of y positions.</span>
+<span class="sd">    vy_ensemble : ndarray</span>
+<span class="sd">        Array of shape (N_ensemble, len(t)) containing ensembles of y velocities.</span>
+<span class="sd">    z_ensemble : ndarray</span>
+<span class="sd">        Array of shape (N_ensemble, len(t)) containing ensembles of z positions.</span>
+<span class="sd">    vz_ensemble : ndarray</span>
+<span class="sd">        Array of shape (N_ensemble, len(t)) containing ensembles of z velocities.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">delta_r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="n">T_ensemble</span> <span class="o">/</span> <span class="p">(</span><span class="n">mass</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">omega_H</span><span class="p">,</span> <span class="n">omega_H</span><span class="p">,</span> <span class="n">omega_L</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">delta_v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="n">T_ensemble</span> <span class="o">/</span> <span class="n">mass</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">x_ensemble</span><span class="p">,</span> <span class="n">y_ensemble</span><span class="p">,</span> <span class="n">z_ensemble</span> <span class="o">=</span> <span class="p">(</span><span class="n">delta_r</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">N_ensemble</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">vx_ensemble</span><span class="p">,</span> <span class="n">vy_ensemble</span><span class="p">,</span> <span class="n">vz_ensemble</span> <span class="o">=</span> <span class="p">(</span><span class="n">delta_v</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">N_ensemble</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="n">f</span> <span class="o">=</span> <span class="n">wavelength2freq</span><span class="p">(</span><span class="mf">1070e-9</span><span class="p">)</span>
+    <span class="n">f0</span> <span class="o">=</span> <span class="n">wavelength2freq</span><span class="p">(</span><span class="mf">852e-9</span><span class="p">)</span>
+    <span class="c1"># see https://journals.aps.org/pra/abstract/10.1103/PhysRevA.97.053803</span>
+    <span class="c1"># for definition of alpha</span>
+    <span class="n">alpha</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">((</span><span class="n">f</span> <span class="o">+</span> <span class="n">f0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">f</span> <span class="o">-</span> <span class="n">f0</span><span class="p">)</span> <span class="o">/</span> <span class="n">f</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">omega_iHO_H</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span> <span class="o">*</span> <span class="n">omega_H</span>
+    <span class="n">omega_iHO_L</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span> <span class="o">*</span> <span class="n">omega_L</span>
+
+    <span class="n">x_ensemble_t</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">y_ensemble_t</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">z_ensemble_t</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">vx_ensemble_t</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">vy_ensemble_t</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">vz_ensemble_t</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">f0</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x_ensemble</span><span class="p">,</span> <span class="n">y_ensemble</span><span class="p">,</span> <span class="n">z_ensemble</span><span class="p">,</span> <span class="n">vx_ensemble</span><span class="p">,</span> <span class="n">vy_ensemble</span><span class="p">,</span> <span class="n">vz_ensemble</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">do_iHO</span><span class="p">:</span>
+            <span class="n">sol</span> <span class="o">=</span> <span class="n">odeint</span><span class="p">(</span><span class="n">newton_3d</span><span class="p">,</span> <span class="n">f0</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">omega_iHO_H</span><span class="p">,</span> <span class="n">omega_iHO_L</span><span class="p">,))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sol</span> <span class="o">=</span> <span class="n">odeint</span><span class="p">(</span><span class="n">newton_3d</span><span class="p">,</span> <span class="n">f0</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,))</span>
+        <span class="n">x_ensemble_t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sol</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">y_ensemble_t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sol</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">z_ensemble_t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sol</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="n">vx_ensemble_t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sol</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">])</span>
+        <span class="n">vy_ensemble_t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sol</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">])</span>
+        <span class="n">vz_ensemble_t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sol</span><span class="p">[:,</span> <span class="mi">5</span><span class="p">])</span>
+
+    <span class="n">x_ensemble_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x_ensemble_t</span><span class="p">)</span>
+    <span class="n">y_ensemble_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y_ensemble_t</span><span class="p">)</span>
+    <span class="n">z_ensemble_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">z_ensemble_t</span><span class="p">)</span>
+    <span class="n">vx_ensemble_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vx_ensemble_t</span><span class="p">)</span>
+    <span class="n">vy_ensemble_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vy_ensemble_t</span><span class="p">)</span>
+    <span class="n">vz_ensemble_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vz_ensemble_t</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">x_ensemble_t</span><span class="p">,</span> <span class="n">vx_ensemble_t</span><span class="p">,</span> <span class="n">y_ensemble_t</span><span class="p">,</span> <span class="n">vy_ensemble_t</span><span class="p">,</span> <span class="n">z_ensemble_t</span><span class="p">,</span> <span class="n">vz_ensemble_t</span></div>
+
+
+
+<div class="viewcode-block" id="energy_3d">
+<a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.energy_3d">[docs]</a>
+<span class="k">def</span> <span class="nf">energy_3d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">vx</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">vy</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">vz</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the energy of a 3D system of atoms.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : array-like</span>
+<span class="sd">        Array of x positions of atoms.</span>
+<span class="sd">    vx : array-like</span>
+<span class="sd">        Array of x velocities of atoms.</span>
+<span class="sd">    y : array-like</span>
+<span class="sd">        Array of y positions of atoms.</span>
+<span class="sd">    vy : array-like</span>
+<span class="sd">        Array of y velocities of atoms.</span>
+<span class="sd">    z : array-like</span>
+<span class="sd">        Array of z positions of atoms.</span>
+<span class="sd">    vz : array-like</span>
+<span class="sd">        Array of z velocities of atoms.</span>
+<span class="sd">    mass : float</span>
+<span class="sd">        Mass of atoms in kg.</span>
+<span class="sd">    power : float</span>
+<span class="sd">        Power of the trap in W.</span>
+<span class="sd">    waist : float</span>
+<span class="sd">        Waist of the trap in m.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    E : float</span>
+<span class="sd">        Total energy of the system in J.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">omega_H</span><span class="p">,</span> <span class="n">omega_L</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">get_trap_freqs</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="p">)</span>
+
+    <span class="c1"># calculate energy of system</span>
+    <span class="n">E</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">mass</span> <span class="o">*</span> <span class="p">(</span><span class="n">vx</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">vy</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">vz</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">mass</span> <span class="o">*</span> <span class="p">(</span><span class="n">omega_H</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span>
+        <span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">y</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">omega_L</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">z</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">E</span></div>
+
+
+
+<div class="viewcode-block" id="total_energy">
+<a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.total_energy">[docs]</a>
+<span class="k">def</span> <span class="nf">total_energy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">vx</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">vy</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">vz</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the total energy of a 3D system of atoms.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : array-like</span>
+<span class="sd">        Array of x positions of atoms.</span>
+<span class="sd">    vx : array-like</span>
+<span class="sd">        Array of x velocities of atoms.</span>
+<span class="sd">    y : array-like</span>
+<span class="sd">        Array of y positions of atoms.</span>
+<span class="sd">    vy : array-like</span>
+<span class="sd">        Array of y velocities of atoms.</span>
+<span class="sd">    z : array-like</span>
+<span class="sd">        Array of z positions of atoms.</span>
+<span class="sd">    vz : array-like</span>
+<span class="sd">        Array of z velocities of atoms.</span>
+<span class="sd">    mass : float</span>
+<span class="sd">        Mass of atoms in kg.</span>
+<span class="sd">    power : float</span>
+<span class="sd">        Power of the laser beam in W.</span>
+<span class="sd">    waist : float</span>
+<span class="sd">        Waist of the laser beam in m.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    E : float</span>
+<span class="sd">        Total energy of the system in J.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">zR</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">waist</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="mf">1070e-9</span>
+    <span class="n">U0</span> <span class="o">=</span> <span class="n">get_trap_depth</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="p">)</span>
+    <span class="c1"># radial trap frequency</span>
+    <span class="n">omega_H</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">U0</span> <span class="o">/</span> <span class="p">(</span><span class="n">mass</span> <span class="o">*</span> <span class="n">waist</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+
+    <span class="n">potential</span> <span class="o">=</span> <span class="o">-</span><span class="n">U0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">y</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">waist</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">z</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">zR</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># calculate energy of system</span>
+    <span class="n">E</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">mass</span> <span class="o">*</span> <span class="p">(</span><span class="n">vx</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">vy</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">vz</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">potential</span>
+    <span class="k">return</span> <span class="n">E</span></div>
+
+
+
+<div class="viewcode-block" id="recapture_rate_3d">
+<a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.recapture_rate_3d">[docs]</a>
+<span class="k">def</span> <span class="nf">recapture_rate_3d</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="p">,</span> <span class="n">T_ensemble</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="n">Caesium</span><span class="p">()</span><span class="o">.</span><span class="n">mass</span><span class="p">,</span>
+                      <span class="n">do_iHO</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the recapture rate of a 3D system of atoms.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    t : array-like</span>
+<span class="sd">        Array of times in seconds.</span>
+<span class="sd">    power : float</span>
+<span class="sd">        Power of the laser beam in W.</span>
+<span class="sd">    waist : float</span>
+<span class="sd">        Waist of the laser beam in m.</span>
+<span class="sd">    T_ensemble : array-like</span>
+<span class="sd">        3D array of x, y, z positions and velocities of atoms.</span>
+<span class="sd">    mass : float, optional</span>
+<span class="sd">        Mass of atoms in kg.</span>
+<span class="sd">    do_iHO : bool, optional</span>
+<span class="sd">        Flag to apply iHO conditions, by default False.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    t : array-like</span>
+<span class="sd">        Array of times in seconds.</span>
+<span class="sd">    recapture_rate : array-like</span>
+<span class="sd">        1D array of recapture rates for each time in t.</span>
+<span class="sd">    std_recapture_rate : array-like</span>
+<span class="sd">        1D array of standard deviation of recapture rates for each time in t.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">omega_H</span><span class="p">,</span> <span class="n">omega_L</span><span class="p">,</span> <span class="n">trap_temperature</span> <span class="o">=</span> <span class="n">get_trap_freqs</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="p">)</span>
+
+    <span class="n">effective_trap_depth</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="n">trap_temperature</span>
+    <span class="n">num_shots</span> <span class="o">=</span> <span class="mi">50</span>
+    <span class="n">recapture_rate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_shots</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)))</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_shots</span><span class="p">):</span>
+        <span class="p">(</span><span class="n">x_ensemble_t</span><span class="p">,</span>
+         <span class="n">vx_ensemble_t</span><span class="p">,</span>
+         <span class="n">y_ensemble</span><span class="p">,</span>
+         <span class="n">vy_ensemble</span><span class="p">,</span>
+         <span class="n">z_ensemble</span><span class="p">,</span>
+         <span class="n">vz_ensemble</span><span class="p">)</span> <span class="o">=</span> <span class="n">monte_carlo_3d</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">omega_H</span><span class="p">,</span> <span class="n">omega_L</span><span class="p">,</span>
+                                       <span class="n">T_ensemble</span><span class="o">=</span><span class="n">T_ensemble</span><span class="p">,</span> <span class="n">do_iHO</span><span class="o">=</span><span class="n">do_iHO</span><span class="p">)</span>
+
+        <span class="c1"># calculate energy</span>
+        <span class="n">energy_ind</span> <span class="o">=</span> <span class="n">total_energy</span><span class="p">(</span><span class="n">x_ensemble_t</span><span class="p">,</span> <span class="n">vx_ensemble_t</span><span class="p">,</span> <span class="n">y_ensemble</span><span class="p">,</span>
+                                  <span class="n">vy_ensemble</span><span class="p">,</span> <span class="n">z_ensemble</span><span class="p">,</span> <span class="n">vz_ensemble</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span>
+                                  <span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="p">)</span>
+
+        <span class="n">recaptured</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">energy_ind</span><span class="p">)</span>
+        <span class="n">recaptured</span><span class="p">[</span><span class="n">energy_ind</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">recapture_number</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">recaptured</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">recapture_rate</span><span class="p">[</span><span class="n">n</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">recapture_number</span> <span class="o">/</span> <span class="n">x_ensemble_t</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">avg_recapture_rate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">recapture_rate</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">std_recapture_rate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">recapture_rate</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">avg_recapture_rate</span><span class="p">,</span> <span class="n">std_recapture_rate</span></div>
+
+
+
+<div class="viewcode-block" id="get_simulated_recapture_data">
+<a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.get_simulated_recapture_data">[docs]</a>
+<span class="k">def</span> <span class="nf">get_simulated_recapture_data</span><span class="p">(</span><span class="n">max_us</span><span class="p">,</span> <span class="n">num_recap_times</span><span class="p">,</span> <span class="n">T_ensemble</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate simulated recapture data for a given duration and number of time steps.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    max_us : float, optional</span>
+<span class="sd">        Maximum time in microseconds. Default is 100e-6.</span>
+<span class="sd">    num_recap_times : int, optional</span>
+<span class="sd">        Number of time steps. Default is 20.</span>
+<span class="sd">    T_ensemble : float, optional</span>
+<span class="sd">        Ensemble temperature in Kelvin. Default is 20e-6.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    t : ndarray</span>
+<span class="sd">        Array of times in seconds.</span>
+<span class="sd">    recapture_rate : ndarray</span>
+<span class="sd">        2D array of recapture rates for each time and ensemble shot.</span>
+<span class="sd">    tweezer_power : ndarray</span>
+<span class="sd">        Array of tweezer powers used to generate the data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_us</span><span class="p">,</span> <span class="n">num_recap_times</span><span class="p">)</span>
+    <span class="n">tweezer_power</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mf">10e-3</span>
+    <span class="n">recapture_rate</span><span class="p">,</span> <span class="n">recapture_std</span> <span class="o">=</span> <span class="n">recapture_rate_3d</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tweezer_power</span><span class="p">,</span>
+                                                      <span class="mf">1.15e-6</span><span class="p">,</span> <span class="n">T_ensemble</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">recapture_rate</span><span class="p">,</span> <span class="n">recapture_std</span><span class="p">,</span> <span class="n">tweezer_power</span></div>
+
+
+
+<div class="viewcode-block" id="plot_recapture_rate">
+<a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.plot_recapture_rate">[docs]</a>
+<span class="k">def</span> <span class="nf">plot_recapture_rate</span><span class="p">():</span>
+    <span class="n">omega_H</span> <span class="o">=</span> <span class="mf">0.8e6</span>  <span class="c1"># Hz</span>
+    <span class="n">omega_L</span> <span class="o">=</span> <span class="mf">0.19e6</span>  <span class="c1"># Hz</span>
+    <span class="n">T_ensemble</span> <span class="o">=</span> <span class="mf">20e-6</span>  <span class="c1"># 168e-6 #K</span>
+    <span class="n">trap_temp</span> <span class="o">=</span> <span class="mf">2.63e-3</span>  <span class="c1"># K</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-6</span>
+
+    <span class="n">power</span> <span class="o">=</span> <span class="mf">2.5e-3</span>  <span class="c1"># W</span>
+    <span class="n">waist</span> <span class="o">=</span> <span class="mf">1.15e-6</span>  <span class="c1"># m</span>
+
+    <span class="n">recapture_rate_iHO</span><span class="p">,</span> <span class="n">std_rate_iHO</span> <span class="o">=</span> <span class="n">recapture_rate_3d</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">power</span><span class="p">,</span>
+                                                         <span class="n">waist</span><span class="p">,</span> <span class="n">T_ensemble</span><span class="p">,</span>
+                                                         <span class="n">do_iHO</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">recapture_rate_free</span><span class="p">,</span> <span class="n">std_rate_free</span> <span class="o">=</span> <span class="n">recapture_rate_3d</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="p">,</span>
+                                                           <span class="n">T_ensemble</span><span class="p">,</span>
+                                                           <span class="n">do_iHO</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">t</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">,</span> <span class="n">recapture_rate_iHO</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="n">std_rate_iHO</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;iHO&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">t</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">,</span> <span class="n">recapture_rate_free</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="n">std_rate_free</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;free&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;t (us)&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;recapture number&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Trap depth = </span><span class="si">{</span><span class="n">trap_temp</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e3</span><span class="si">}</span><span class="s1"> mK&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="plot_loss_landscape">
+<a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.plot_loss_landscape">[docs]</a>
+<span class="k">def</span> <span class="nf">plot_loss_landscape</span><span class="p">(</span><span class="n">recapture_time</span><span class="p">,</span> <span class="n">recapture_rate</span><span class="p">,</span>
+                        <span class="n">tweezer_power</span><span class="p">,</span> <span class="n">tweezer_waist</span><span class="o">=</span><span class="mf">1.15e-6</span><span class="p">):</span>
+    <span class="n">temperatures</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">1e-6</span><span class="p">,</span> <span class="mf">20e-6</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+    <span class="n">losses</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">T</span> <span class="ow">in</span> <span class="n">temperatures</span><span class="p">:</span>
+        <span class="n">rate</span> <span class="o">=</span> <span class="n">radial_recapture_rate</span><span class="p">(</span><span class="n">recapture_time</span><span class="p">,</span> <span class="n">tweezer_power</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">rate</span> <span class="o">-</span> <span class="n">recapture_rate</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">temperatures</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">losses</span><span class="p">))</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;T (K)&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;losses&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="tweezer_temperature_regress">
+<a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.tweezer_temperature_regress">[docs]</a>
+<span class="k">def</span> <span class="nf">tweezer_temperature_regress</span><span class="p">(</span><span class="n">recapture_time</span><span class="p">,</span> <span class="n">recapture_rate</span><span class="p">,</span>
+                                <span class="n">tweezer_power</span><span class="p">,</span> <span class="n">recapture_std</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                <span class="n">tweezer_waist</span><span class="o">=</span><span class="mf">1.15e-6</span><span class="p">,</span>
+                                <span class="n">plot_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">quantify_error</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the ensemble temperature that best fits the given recapture rate</span>
+<span class="sd">    data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    recapture_time : ndarray</span>
+<span class="sd">        Array of times in seconds.</span>
+<span class="sd">    recapture_rate : ndarray</span>
+<span class="sd">        Array of recapture rates for each time.</span>
+<span class="sd">    recapture_std : ndarray</span>
+<span class="sd">        Array of standard deviations of recapture rates for each time.</span>
+<span class="sd">    tweezer_power : float</span>
+<span class="sd">        Tweezer power used to generate the data in W.</span>
+<span class="sd">    tweezer_waist : float, optional</span>
+<span class="sd">        Tweezer waist size in meters. Default is 1.15e-6.</span>
+<span class="sd">    plot_results : bool, optional</span>
+<span class="sd">        If True, plots the data and the best fit. Default is False.</span>
+<span class="sd">    quantify_error : bool, optional</span>
+<span class="sd">        If True, randomly initializes regression. Default is False.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    T_ensemble : float</span>
+<span class="sd">        Ensemble temperature in Kelvin.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">space</span> <span class="o">=</span> <span class="p">[</span><span class="n">Real</span><span class="p">(</span><span class="mf">1e-6</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;T_ensemble&quot;</span><span class="p">)]</span>
+
+    <span class="nd">@use_named_args</span><span class="p">(</span><span class="n">space</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">objective_func</span><span class="p">(</span><span class="n">T_ensemble</span><span class="p">):</span>
+        <span class="n">predicted_rate</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">recapture_rate_3d</span><span class="p">(</span><span class="n">recapture_time</span><span class="p">,</span>
+                                              <span class="n">tweezer_power</span><span class="p">,</span> <span class="n">tweezer_waist</span><span class="p">,</span> <span class="n">T_ensemble</span><span class="p">,</span> <span class="n">do_iHO</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">recapture_rate</span> <span class="o">-</span> <span class="n">predicted_rate</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">loss</span>
+
+    <span class="k">if</span> <span class="n">quantify_error</span><span class="p">:</span>
+        <span class="n">random_state</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">random_state</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># use skopt GPR to fit 3d recapture model</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">gp_minimize</span><span class="p">(</span><span class="n">objective_func</span><span class="p">,</span> <span class="n">space</span><span class="p">,</span> <span class="n">n_calls</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+                         <span class="n">acq_func</span><span class="o">=</span><span class="s2">&quot;gp_hedge&quot;</span><span class="p">,</span>
+                         <span class="n">n_random_starts</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
+
+    <span class="c1"># use lmfit to fit radial recapture model</span>
+    <span class="kn">from</span> <span class="nn">lmfit</span> <span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">Parameters</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">Parameters</span><span class="p">()</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;T_ensemble&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">12e-6</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">)</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;power&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">tweezer_power</span><span class="p">,</span> <span class="n">vary</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;waist&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">1.15e-6</span><span class="p">,</span> <span class="n">vary</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">radial_model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">radial_recapture_rate</span><span class="p">,</span> <span class="n">independent_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;t&quot;</span><span class="p">])</span>
+
+    <span class="n">radial_result</span> <span class="o">=</span> <span class="n">radial_model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">recapture_rate</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span>
+                                     <span class="n">t</span><span class="o">=</span><span class="n">recapture_time</span><span class="p">)</span>
+
+    <span class="c1"># result = forest_minimize(objective_func, space, n_calls=200,</span>
+    <span class="c1">#                          base_estimator=&quot;ET&quot;, random_state=0)</span>
+
+    <span class="c1"># print(&quot;Best score: &quot;, result.fun)</span>
+    <span class="c1"># print(&quot;Best parameters: &quot;, result.x)</span>
+
+    <span class="c1"># plot_convergence(result, yscale=&quot;log&quot;)</span>
+    <span class="c1"># plt.show()</span>
+
+    <span class="c1"># plot_objective(result, n_points=10)</span>
+    <span class="c1"># plt.show()</span>
+
+    <span class="k">if</span> <span class="n">plot_results</span><span class="p">:</span>
+        <span class="n">fine_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">recapture_time</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">recapture_time</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1000</span><span class="p">)</span>
+        <span class="n">best_fit</span><span class="p">,</span> <span class="n">error</span> <span class="o">=</span> <span class="p">(</span><span class="n">recapture_rate_3d</span><span class="p">(</span><span class="n">fine_grid</span><span class="p">,</span> <span class="n">tweezer_power</span><span class="p">,</span>
+                                             <span class="n">tweezer_waist</span><span class="p">,</span>
+                                             <span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                             <span class="n">do_iHO</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">recapture_std</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">recapture_time</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">,</span> <span class="n">recapture_rate</span><span class="p">,</span>
+                         <span class="n">yerr</span><span class="o">=</span><span class="n">recapture_std</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">recapture_time</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">,</span> <span class="n">recapture_rate</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">,</span>
+                        <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+
+        <span class="c1"># GPR model result</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fine_grid</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">,</span> <span class="n">best_fit</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;GPR fit, T = </span><span class="si">{:.1f}</span><span class="s1"> uK&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">fine_grid</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">,</span> <span class="n">best_fit</span> <span class="o">-</span> <span class="n">error</span><span class="p">,</span> <span class="n">best_fit</span> <span class="o">+</span> <span class="n">error</span><span class="p">,</span>
+                         <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">)</span>
+
+        <span class="c1"># radial model result</span>
+        <span class="n">best_radial_fit</span> <span class="o">=</span> <span class="n">radial_recapture_rate</span><span class="p">(</span><span class="n">fine_grid</span><span class="p">,</span> <span class="n">tweezer_power</span><span class="p">,</span>
+                                                <span class="n">radial_result</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;T_ensemble&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">radial_result</span><span class="o">.</span><span class="n">covar</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">upper_sigma</span> <span class="o">=</span> <span class="n">radial_recapture_rate</span><span class="p">(</span><span class="n">fine_grid</span><span class="p">,</span> <span class="n">tweezer_power</span><span class="p">,</span>
+                                            <span class="n">radial_result</span><span class="o">.</span><span class="n">params</span><span class="p">[</span>
+                                                <span class="s2">&quot;T_ensemble&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">+</span> <span class="n">sigma</span><span class="p">)</span>
+        <span class="n">lower_sigma</span> <span class="o">=</span> <span class="n">radial_recapture_rate</span><span class="p">(</span><span class="n">fine_grid</span><span class="p">,</span> <span class="n">tweezer_power</span><span class="p">,</span>
+                                            <span class="n">radial_result</span><span class="o">.</span><span class="n">params</span><span class="p">[</span>
+                                                <span class="s2">&quot;T_ensemble&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="n">sigma</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">fine_grid</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">,</span>
+            <span class="n">best_radial_fit</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;radial fit, T = </span><span class="si">{:.1f}</span><span class="s1"> uK&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">radial_result</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;T_ensemble&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">),</span>
+            <span class="n">color</span><span class="o">=</span><span class="s1">&#39;orange&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">fine_grid</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">,</span> <span class="n">lower_sigma</span><span class="p">,</span> <span class="n">upper_sigma</span><span class="p">,</span>
+                         <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;orange&#39;</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;t [us]&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;recapture rate&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">)</span>
+        <span class="n">omega_H</span><span class="p">,</span> <span class="n">omega_L</span><span class="p">,</span> <span class="n">trap_temperature</span> <span class="o">=</span> <span class="n">get_trap_freqs</span><span class="p">(</span><span class="n">tweezer_power</span><span class="p">,</span>
+                                                            <span class="n">tweezer_waist</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Trap depth = </span><span class="si">{</span><span class="n">trap_temperature</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e3</span><span class="si">}</span><span class="s1"> mK, Tweezer power = </span><span class="si">{</span><span class="n">tweezer_power</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e3</span><span class="si">}</span><span class="s1"> mW&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="n">T_ensemble</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">T_ensemble</span></div>
+
+
+
+<div class="viewcode-block" id="run_model">
+<a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.run_model">[docs]</a>
+<span class="k">def</span> <span class="nf">run_model</span><span class="p">(</span><span class="n">recapture_time</span><span class="p">,</span> <span class="n">recapture_rate</span><span class="p">,</span> <span class="n">tweezer_power</span><span class="p">,</span> <span class="n">recapture_std</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">quantify_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">true_T_ensemble</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Runs the model to estimate the ensemble temperature.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    recapture_time : ndarray</span>
+<span class="sd">        Array of times in seconds.</span>
+<span class="sd">    recapture_rate : ndarray</span>
+<span class="sd">        Array of recapture rates for each time and ensemble shot.</span>
+<span class="sd">    tweezer_power : float</span>
+<span class="sd">        Tweezer power used to generate the data in W.</span>
+<span class="sd">    recapture_std : ndarray, optional</span>
+<span class="sd">        Array of standard deviations of the recapture rates.</span>
+<span class="sd">    quantify_error : bool, optional</span>
+<span class="sd">        If True, randomly initializes regression. Default is False.</span>
+<span class="sd">    true_T_ensemble : float, optional</span>
+<span class="sd">        True ensemble temperature in Kelvin, if known.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">quantify_error</span><span class="p">:</span>
+        <span class="n">num_shots</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="n">temperatures</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_shots</span><span class="p">):</span>
+            <span class="n">T_ensemble</span> <span class="o">=</span> <span class="n">tweezer_temperature_regress</span><span class="p">(</span><span class="n">recapture_time</span><span class="p">,</span>
+                                                     <span class="n">recapture_rate</span><span class="p">,</span>
+                                                     <span class="n">tweezer_power</span><span class="p">,</span>
+                                                     <span class="n">quantify_error</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">temperatures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">T_ensemble</span><span class="p">)</span>
+        <span class="n">temperatures</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">temperatures</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;T_ensemble [uK]= &quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">temperatures</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">),</span> <span class="s2">&quot;+/-&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span>
+            <span class="n">temperatures</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">))</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">temperatures</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Temperature [uK]&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Number of shots&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">true_T_ensemble</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">true_T_ensemble</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span>
+                        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;True T_ensemble&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">T_ensemble</span> <span class="o">=</span> <span class="n">tweezer_temperature_regress</span><span class="p">(</span><span class="n">recapture_time</span><span class="p">,</span> <span class="n">recapture_rate</span><span class="p">,</span>
+                                                 <span class="n">tweezer_power</span><span class="p">,</span>
+                                                 <span class="n">recapture_std</span><span class="o">=</span><span class="n">recapture_std</span><span class="p">,</span>
+                                                 <span class="n">plot_results</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;T_ensemble [uK] = &quot;</span><span class="p">,</span> <span class="n">T_ensemble</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c1"># plot_recapture_rate()</span>
+
+    <span class="n">recap_times</span><span class="p">,</span> <span class="n">recap_rate</span><span class="p">,</span> <span class="n">recap_std</span><span class="p">,</span> <span class="n">tweezer_power</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">get_simulated_recapture_data</span><span class="p">(</span><span class="mf">50e-6</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mf">5e-6</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;tweezer power = &quot;</span><span class="p">,</span> <span class="n">tweezer_power</span><span class="p">)</span>
+    <span class="n">run_model</span><span class="p">(</span><span class="n">recap_times</span><span class="p">,</span> <span class="n">recap_rate</span><span class="p">,</span> <span class="n">tweezer_power</span><span class="p">,</span> <span class="n">recapture_std</span><span class="o">=</span><span class="n">recap_std</span><span class="p">,</span>
+              <span class="n">quantify_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+              <span class="n">true_T_ensemble</span><span class="o">=</span><span class="mf">5e-6</span><span class="p">)</span>
+
+    <span class="c1"># plot_loss_landscape(recap_times, recap_rate, tweezer_power)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Nolan Peard, Lin Xin, Sam Cohen, Tony Zhang, Michelle Wu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

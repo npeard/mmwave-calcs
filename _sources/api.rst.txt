@@ -11,6 +11,26 @@ API Documentation
    :undoc-members:
    :show-inheritance:
 
+.. automodule:: models.gatefidelity
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: models.pulse_calcs
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: models.recapture_monte_carlo
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: models.ac_stark
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 Utility Functions
 ------------------

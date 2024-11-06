@@ -67,6 +67,31 @@
 <li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition.print_saturation_powers"><code class="docutils literal notranslate"><span class="pre">RydbergTransition.print_saturation_powers()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#models.gatefidelity.intensity_gate_error"><code class="docutils literal notranslate"><span class="pre">intensity_gate_error()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.gatefidelity.servo_gate_error"><code class="docutils literal notranslate"><span class="pre">servo_gate_error()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.gatefidelity.white_gate_error"><code class="docutils literal notranslate"><span class="pre">white_gate_error()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.pulse_calcs.get_blackman_pulse"><code class="docutils literal notranslate"><span class="pre">get_blackman_pulse()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.pulse_calcs.get_vectorized_blackman_pulse"><code class="docutils literal notranslate"><span class="pre">get_vectorized_blackman_pulse()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.recapture_monte_carlo.energy_3d"><code class="docutils literal notranslate"><span class="pre">energy_3d()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.recapture_monte_carlo.get_simulated_recapture_data"><code class="docutils literal notranslate"><span class="pre">get_simulated_recapture_data()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.recapture_monte_carlo.get_tau"><code class="docutils literal notranslate"><span class="pre">get_tau()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.recapture_monte_carlo.get_trap_depth"><code class="docutils literal notranslate"><span class="pre">get_trap_depth()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.recapture_monte_carlo.get_trap_freqs"><code class="docutils literal notranslate"><span class="pre">get_trap_freqs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.recapture_monte_carlo.iHO_a_3d"><code class="docutils literal notranslate"><span class="pre">iHO_a_3d()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.recapture_monte_carlo.monte_carlo_3d"><code class="docutils literal notranslate"><span class="pre">monte_carlo_3d()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.recapture_monte_carlo.newton_3d"><code class="docutils literal notranslate"><span class="pre">newton_3d()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.recapture_monte_carlo.plot_loss_landscape"><code class="docutils literal notranslate"><span class="pre">plot_loss_landscape()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.recapture_monte_carlo.plot_recapture_rate"><code class="docutils literal notranslate"><span class="pre">plot_recapture_rate()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.recapture_monte_carlo.radial_recapture_rate"><code class="docutils literal notranslate"><span class="pre">radial_recapture_rate()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.recapture_monte_carlo.recapture_rate_3d"><code class="docutils literal notranslate"><span class="pre">recapture_rate_3d()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.recapture_monte_carlo.run_model"><code class="docutils literal notranslate"><span class="pre">run_model()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.recapture_monte_carlo.total_energy"><code class="docutils literal notranslate"><span class="pre">total_energy()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.recapture_monte_carlo.tweezer_temperature_regress"><code class="docutils literal notranslate"><span class="pre">tweezer_temperature_regress()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.ac_stark.ACStarkShift"><code class="docutils literal notranslate"><span class="pre">ACStarkShift</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#models.ac_stark.ACStarkShift.ac_stark_shift_polarizability"><code class="docutils literal notranslate"><span class="pre">ACStarkShift.ac_stark_shift_polarizability()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.ac_stark.ACStarkShift.ac_stark_shift_shirley"><code class="docutils literal notranslate"><span class="pre">ACStarkShift.ac_stark_shift_shirley()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#module-models.utility">Utility Functions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#models.utility.freq2wavelength"><code class="docutils literal notranslate"><span class="pre">freq2wavelength()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#models.utility.power2field"><code class="docutils literal notranslate"><span class="pre">power2field()</span></code></a></li>
@@ -451,6 +476,507 @@ Rydberg transitions and prints them in milliwatts (mW).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function" id="module-models.gatefidelity">
+<dt class="sig sig-object py" id="models.gatefidelity.intensity_gate_error">
+<span class="sig-prename descclassname"><span class="pre">models.gatefidelity.</span></span><span class="sig-name descname"><span class="pre">intensity_gate_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/gatefidelity.html#intensity_gate_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.gatefidelity.intensity_gate_error" title="Link to this definition"></a></dt>
+<dd><p>Calculate the gate error due to relative intensity noise in a two-photon
+excitation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sigma1</strong> (<em>float</em>) – The relative intensity variance of the first laser, in Hz^2/Hz.</p></li>
+<li><p><strong>sigma2</strong> (<em>float</em>) – The relative intensity variance of the second laser, in Hz^2/Hz.</p></li>
+<li><p><strong>N</strong> (<em>float</em><em>, </em><em>optional</em>) – The number of pi rotations, defaults to 1/2.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>epsilon</strong> – The gate error due to relative intensity noise, in the limit that the
+noise is confined to a narrow frequency band near the two-photon Rabi
+frequency.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.gatefidelity.servo_gate_error">
+<span class="sig-prename descclassname"><span class="pre">models.gatefidelity.</span></span><span class="sig-name descname"><span class="pre">servo_gate_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rabiFreq12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rabiFreq23</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/gatefidelity.html#servo_gate_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.gatefidelity.servo_gate_error" title="Link to this definition"></a></dt>
+<dd><p>Calculate the gate error due to a servo bump at the specified integrated
+noise power sg and center frequency fg.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sg</strong> (<em>float</em>) – The integrated noise power of the servo bump, in Hz^2/Hz.</p></li>
+<li><p><strong>fg</strong> (<em>float</em>) – The center frequency of the servo bump, in Hz.</p></li>
+<li><p><strong>rabiFreq12</strong> (<em>float</em>) – The Rabi frequency of the first laser, in 2pi*Hz.</p></li>
+<li><p><strong>rabiFreq23</strong> (<em>float</em>) – The Rabi frequency of the second laser, in 2pi*Hz.</p></li>
+<li><p><strong>N</strong> (<em>float</em><em>, </em><em>optional</em>) – The number of pi rotations, defaults to 1/2.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>epsilon</strong> – The gate error due to the servo bump, in the limit that the noise is
+confined to a narrow frequency band near the servo bump center
+frequency.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.gatefidelity.white_gate_error">
+<span class="sig-prename descclassname"><span class="pre">models.gatefidelity.</span></span><span class="sig-name descname"><span class="pre">white_gate_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">FWHM1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">FWHM2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Pp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Pc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/gatefidelity.html#white_gate_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.gatefidelity.white_gate_error" title="Link to this definition"></a></dt>
+<dd><p>Calculate the gate error for a pi*N gate due to laser phase noise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>FWHM1</strong> (<em>float</em>) – The full width at half maximum of the phase noise power spectrum of the
+first laser, in Hz.</p></li>
+<li><p><strong>FWHM2</strong> (<em>float</em>) – The full width at half maximum of the phase noise power spectrum of the
+second laser, in Hz.</p></li>
+<li><p><strong>Pp</strong> (<em>float</em>) – The power of the probe laser, in Watts.</p></li>
+<li><p><strong>Pc</strong> (<em>float</em>) – The power of the control laser, in Watts.</p></li>
+<li><p><strong>N</strong> (<em>float</em><em>, </em><em>optional</em>) – The number of pi rotations, defaults to 1/2.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>epsilon</strong> – The gate error due to phase noise in the two lasers, in the limit that
+the noise is “white” (i.e. the power spectrum is flat).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-models.pulse_calcs">
+<dt class="sig sig-object py" id="models.pulse_calcs.get_blackman_pulse">
+<span class="sig-prename descclassname"><span class="pre">models.pulse_calcs.</span></span><span class="sig-name descname"><span class="pre">get_blackman_pulse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/pulse_calcs.html#get_blackman_pulse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.pulse_calcs.get_blackman_pulse" title="Link to this definition"></a></dt>
+<dd><p>Returns the value of a Blackman-Harris window function at time t.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>float</em>) – The time at which to evaluate the pulse</p></li>
+<li><p><strong>duration</strong> (<em>float</em>) – The duration of the pulse</p></li>
+<li><p><strong>delay</strong> (<em>float</em>) – The delay before the pulse starts</p></li>
+<li><p><strong>hold</strong> (<em>float</em><em>, </em><em>optional</em>) – The duration of the flat top of the pulse. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>pulse</strong> – The value of the pulse at time t</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.pulse_calcs.get_vectorized_blackman_pulse">
+<span class="sig-prename descclassname"><span class="pre">models.pulse_calcs.</span></span><span class="sig-name descname"><span class="pre">get_vectorized_blackman_pulse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/pulse_calcs.html#get_vectorized_blackman_pulse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.pulse_calcs.get_vectorized_blackman_pulse" title="Link to this definition"></a></dt>
+<dd><p>Compute the values of a Blackman-Harris window function for a vector of time
+points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>array_like</em>) – An array of time points at which to evaluate the pulse.</p></li>
+<li><p><strong>duration</strong> (<em>float</em>) – The duration of the pulse.</p></li>
+<li><p><strong>delay</strong> (<em>float</em>) – The delay before the pulse starts.</p></li>
+<li><p><strong>hold</strong> (<em>float</em><em>, </em><em>optional</em>) – The duration of the flat top of the pulse. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>pulse_pts</strong> – An array containing the values of the pulse at each time point in <cite>t</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-models.recapture_monte_carlo">
+<dt class="sig sig-object py" id="models.recapture_monte_carlo.energy_3d">
+<span class="sig-prename descclassname"><span class="pre">models.recapture_monte_carlo.</span></span><span class="sig-name descname"><span class="pre">energy_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">waist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/recapture_monte_carlo.html#energy_3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.recapture_monte_carlo.energy_3d" title="Link to this definition"></a></dt>
+<dd><p>Calculate the energy of a 3D system of atoms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array-like</em>) – Array of x positions of atoms.</p></li>
+<li><p><strong>vx</strong> (<em>array-like</em>) – Array of x velocities of atoms.</p></li>
+<li><p><strong>y</strong> (<em>array-like</em>) – Array of y positions of atoms.</p></li>
+<li><p><strong>vy</strong> (<em>array-like</em>) – Array of y velocities of atoms.</p></li>
+<li><p><strong>z</strong> (<em>array-like</em>) – Array of z positions of atoms.</p></li>
+<li><p><strong>vz</strong> (<em>array-like</em>) – Array of z velocities of atoms.</p></li>
+<li><p><strong>mass</strong> (<em>float</em>) – Mass of atoms in kg.</p></li>
+<li><p><strong>power</strong> (<em>float</em>) – Power of the trap in W.</p></li>
+<li><p><strong>waist</strong> (<em>float</em>) – Waist of the trap in m.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>E</strong> – Total energy of the system in J.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.recapture_monte_carlo.get_simulated_recapture_data">
+<span class="sig-prename descclassname"><span class="pre">models.recapture_monte_carlo.</span></span><span class="sig-name descname"><span class="pre">get_simulated_recapture_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_us</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_recap_times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T_ensemble</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/recapture_monte_carlo.html#get_simulated_recapture_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.recapture_monte_carlo.get_simulated_recapture_data" title="Link to this definition"></a></dt>
+<dd><p>Generate simulated recapture data for a given duration and number of time steps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>max_us</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum time in microseconds. Default is 100e-6.</p></li>
+<li><p><strong>num_recap_times</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of time steps. Default is 20.</p></li>
+<li><p><strong>T_ensemble</strong> (<em>float</em><em>, </em><em>optional</em>) – Ensemble temperature in Kelvin. Default is 20e-6.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>t</strong> (<em>ndarray</em>) – Array of times in seconds.</p></li>
+<li><p><strong>recapture_rate</strong> (<em>ndarray</em>) – 2D array of recapture rates for each time and ensemble shot.</p></li>
+<li><p><strong>tweezer_power</strong> (<em>ndarray</em>) – Array of tweezer powers used to generate the data.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.recapture_monte_carlo.get_tau">
+<span class="sig-prename descclassname"><span class="pre">models.recapture_monte_carlo.</span></span><span class="sig-name descname"><span class="pre">get_tau</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T_ensemble</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">waist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.15e-06</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/recapture_monte_carlo.html#get_tau"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.recapture_monte_carlo.get_tau" title="Link to this definition"></a></dt>
+<dd><p>Calculate the energy to trap depth ratio of the 3D system of atoms.
+This parameter is used by the radial recapture model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>power</strong> (<em>float</em>) – Power of the trap in mW.</p></li>
+<li><p><strong>T_ensemble</strong> (<em>float</em>) – Ensemble temperature in K.</p></li>
+<li><p><strong>waist</strong> (<em>float</em><em>, </em><em>optional</em>) – Waist of the laser beam in m. Default is 1.2 microns.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>tau</strong> – Characteristic energy ratio of the system.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.recapture_monte_carlo.get_trap_depth">
+<span class="sig-prename descclassname"><span class="pre">models.recapture_monte_carlo.</span></span><span class="sig-name descname"><span class="pre">get_trap_depth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">waist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">np.float64(32814961.122769702)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/recapture_monte_carlo.html#get_trap_depth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.recapture_monte_carlo.get_trap_depth" title="Link to this definition"></a></dt>
+<dd><p>Calculate the depth of a trap given the power and laser waist.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>power</strong> (<em>float</em>) – Power of the laser in mW.</p></li>
+<li><p><strong>waist</strong> (<em>float</em>) – Laser waist in meters.</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – Linewidth of the excited state. The default is
+1 / Caesium().getStateLifetime(n=6, l=1, j=1.5).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Depth of the trap in Joules.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.recapture_monte_carlo.get_trap_freqs">
+<span class="sig-prename descclassname"><span class="pre">models.recapture_monte_carlo.</span></span><span class="sig-name descname"><span class="pre">get_trap_freqs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">waist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.15e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.206946951453701e-25</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/recapture_monte_carlo.html#get_trap_freqs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.recapture_monte_carlo.get_trap_freqs" title="Link to this definition"></a></dt>
+<dd><p>Calculate the trap frequencies based on the trap parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>power</strong> (<em>float</em>) – Power of the trap in mW.</p></li>
+<li><p><strong>waist</strong> (<em>float</em><em>, </em><em>optional</em>) – Waist of the laser beam in m. Default is 1.2 microns.</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – Laser-atom interaction parameter in s^-1. Default is calculated from the
+6s-1/2 state of caesium.</p></li>
+<li><p><strong>mass</strong> (<em>float</em><em>, </em><em>optional</em>) – Mass of the trap particles in kg. Default is the mass of caesium.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>omega_H</strong> (<em>float</em>) – Radial trap angular frequency in rad/s.</p></li>
+<li><p><strong>omega_L</strong> (<em>float</em>) – Longitudinal trap angular frequency in rad/s.</p></li>
+<li><p><strong>trap_temperature</strong> (<em>float</em>) – Trap temperature in K.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.recapture_monte_carlo.iHO_a_3d">
+<span class="sig-prename descclassname"><span class="pre">models.recapture_monte_carlo.</span></span><span class="sig-name descname"><span class="pre">iHO_a_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega_H</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega_L</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/recapture_monte_carlo.html#iHO_a_3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.recapture_monte_carlo.iHO_a_3d" title="Link to this definition"></a></dt>
+<dd><p>Calculate the acceleration components in the iHO frame for a given position and frequencies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – x-coordinate in the iHO frame.</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – y-coordinate in the iHO frame.</p></li>
+<li><p><strong>z</strong> (<em>float</em>) – z-coordinate in the iHO frame.</p></li>
+<li><p><strong>omega_H</strong> (<em>float</em>) – radial trap angular frequency</p></li>
+<li><p><strong>omega_L</strong> (<em>float</em>) – longitudinal trap angular frequency</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>ax</strong> (<em>float</em>) – x-component of the acceleration in the iHO frame.</p></li>
+<li><p><strong>ay</strong> (<em>float</em>) – y-component of the acceleration in the iHO frame.</p></li>
+<li><p><strong>az</strong> (<em>float</em>) – z-component of the acceleration in the iHO frame.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.recapture_monte_carlo.monte_carlo_3d">
+<span class="sig-prename descclassname"><span class="pre">models.recapture_monte_carlo.</span></span><span class="sig-name descname"><span class="pre">monte_carlo_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega_H</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega_L</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T_ensemble</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_ensemble</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.206946951453701e-25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_iHO</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/recapture_monte_carlo.html#monte_carlo_3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.recapture_monte_carlo.monte_carlo_3d" title="Link to this definition"></a></dt>
+<dd><p>Generate ensembles of 3D positions and velocities using a Monte Carlo method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>array-like</em>) – Time points at which to generate ensembles.</p></li>
+<li><p><strong>omega_H</strong> (<em>float</em>) – Radial trap angular frequency in rad/s.</p></li>
+<li><p><strong>omega_L</strong> (<em>float</em>) – Longitudinal trap angular frequency in rad/s.</p></li>
+<li><p><strong>T_ensemble</strong> (<em>float</em>) – Ensemble temperature in K.</p></li>
+<li><p><strong>N_ensemble</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of atoms in ensemble to generate. Default is 50.</p></li>
+<li><p><strong>mass</strong> (<em>float</em><em>, </em><em>optional</em>) – Mass of the trap particles in kg. Default is the mass of caesium.</p></li>
+<li><p><strong>do_iHO</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, generate ensembles for the iHO instead of free space.
+Default is False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>x_ensemble</strong> (<em>ndarray</em>) – Array of shape (N_ensemble, len(t)) containing ensembles of x positions.</p></li>
+<li><p><strong>vx_ensemble</strong> (<em>ndarray</em>) – Array of shape (N_ensemble, len(t)) containing ensembles of x velocities.</p></li>
+<li><p><strong>y_ensemble</strong> (<em>ndarray</em>) – Array of shape (N_ensemble, len(t)) containing ensembles of y positions.</p></li>
+<li><p><strong>vy_ensemble</strong> (<em>ndarray</em>) – Array of shape (N_ensemble, len(t)) containing ensembles of y velocities.</p></li>
+<li><p><strong>z_ensemble</strong> (<em>ndarray</em>) – Array of shape (N_ensemble, len(t)) containing ensembles of z positions.</p></li>
+<li><p><strong>vz_ensemble</strong> (<em>ndarray</em>) – Array of shape (N_ensemble, len(t)) containing ensembles of z velocities.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.recapture_monte_carlo.newton_3d">
+<span class="sig-prename descclassname"><span class="pre">models.recapture_monte_carlo.</span></span><span class="sig-name descname"><span class="pre">newton_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega_H</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega_L</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/recapture_monte_carlo.html#newton_3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.recapture_monte_carlo.newton_3d" title="Link to this definition"></a></dt>
+<dd><p>Calculate the next position and velocity of a particle in 3D space
+using Newton’s second law of motion.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>list</em>) – List containing the current position and velocity components of the particle.
+[x, vx, y, vy, z, vz]</p></li>
+<li><p><strong>omega_H</strong> (<em>float</em>) – Radial trap angular frequency</p></li>
+<li><p><strong>omega_L</strong> (<em>float</em>) – Longitudinal trap angular frequency</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>dfdt</strong> – List containing the next position and velocity components of the particle.
+[vx, vy, vz, ax, ay, az]</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.recapture_monte_carlo.plot_loss_landscape">
+<span class="sig-prename descclassname"><span class="pre">models.recapture_monte_carlo.</span></span><span class="sig-name descname"><span class="pre">plot_loss_landscape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">recapture_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recapture_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tweezer_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tweezer_waist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.15e-06</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/recapture_monte_carlo.html#plot_loss_landscape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.recapture_monte_carlo.plot_loss_landscape" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.recapture_monte_carlo.plot_recapture_rate">
+<span class="sig-prename descclassname"><span class="pre">models.recapture_monte_carlo.</span></span><span class="sig-name descname"><span class="pre">plot_recapture_rate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/recapture_monte_carlo.html#plot_recapture_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.recapture_monte_carlo.plot_recapture_rate" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.recapture_monte_carlo.radial_recapture_rate">
+<span class="sig-prename descclassname"><span class="pre">models.recapture_monte_carlo.</span></span><span class="sig-name descname"><span class="pre">radial_recapture_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T_ensemble</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">waist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.15e-06</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/recapture_monte_carlo.html#radial_recapture_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.recapture_monte_carlo.radial_recapture_rate" title="Link to this definition"></a></dt>
+<dd><p>Calculate the radial recapture rate of a 3D system of atoms.
+This model assumes that the atoms are mainly lost in the radial axis of the
+trap. Additionally, small velocity losses near the edge are neglected.
+Agrees reasonably well with the full Monte Carlo model. See derivation
+courtesy of Monika Schleier-Smith.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>array-like</em>) – Array of times in seconds.</p></li>
+<li><p><strong>power</strong> (<em>float</em>) – Power of the laser beam in W.</p></li>
+<li><p><strong>T_ensemble</strong> (<em>float</em>) – Ensemble temperature in Kelvin.</p></li>
+<li><p><strong>waist</strong> (<em>float</em><em>, </em><em>optional</em>) – Waist of the laser beam in m. Default is 1.15e-6.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>probability</strong> – 1D array of the probability of recapture during each time in t.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array-like</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.recapture_monte_carlo.recapture_rate_3d">
+<span class="sig-prename descclassname"><span class="pre">models.recapture_monte_carlo.</span></span><span class="sig-name descname"><span class="pre">recapture_rate_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">waist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T_ensemble</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.206946951453701e-25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_iHO</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/recapture_monte_carlo.html#recapture_rate_3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.recapture_monte_carlo.recapture_rate_3d" title="Link to this definition"></a></dt>
+<dd><p>Calculate the recapture rate of a 3D system of atoms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>array-like</em>) – Array of times in seconds.</p></li>
+<li><p><strong>power</strong> (<em>float</em>) – Power of the laser beam in W.</p></li>
+<li><p><strong>waist</strong> (<em>float</em>) – Waist of the laser beam in m.</p></li>
+<li><p><strong>T_ensemble</strong> (<em>array-like</em>) – 3D array of x, y, z positions and velocities of atoms.</p></li>
+<li><p><strong>mass</strong> (<em>float</em><em>, </em><em>optional</em>) – Mass of atoms in kg.</p></li>
+<li><p><strong>do_iHO</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag to apply iHO conditions, by default False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>t</strong> (<em>array-like</em>) – Array of times in seconds.</p></li>
+<li><p><strong>recapture_rate</strong> (<em>array-like</em>) – 1D array of recapture rates for each time in t.</p></li>
+<li><p><strong>std_recapture_rate</strong> (<em>array-like</em>) – 1D array of standard deviation of recapture rates for each time in t.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.recapture_monte_carlo.run_model">
+<span class="sig-prename descclassname"><span class="pre">models.recapture_monte_carlo.</span></span><span class="sig-name descname"><span class="pre">run_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">recapture_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recapture_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tweezer_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recapture_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantify_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_T_ensemble</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/recapture_monte_carlo.html#run_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.recapture_monte_carlo.run_model" title="Link to this definition"></a></dt>
+<dd><p>Runs the model to estimate the ensemble temperature.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>recapture_time</strong> (<em>ndarray</em>) – Array of times in seconds.</p></li>
+<li><p><strong>recapture_rate</strong> (<em>ndarray</em>) – Array of recapture rates for each time and ensemble shot.</p></li>
+<li><p><strong>tweezer_power</strong> (<em>float</em>) – Tweezer power used to generate the data in W.</p></li>
+<li><p><strong>recapture_std</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – Array of standard deviations of the recapture rates.</p></li>
+<li><p><strong>quantify_error</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, randomly initializes regression. Default is False.</p></li>
+<li><p><strong>true_T_ensemble</strong> (<em>float</em><em>, </em><em>optional</em>) – True ensemble temperature in Kelvin, if known.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.recapture_monte_carlo.total_energy">
+<span class="sig-prename descclassname"><span class="pre">models.recapture_monte_carlo.</span></span><span class="sig-name descname"><span class="pre">total_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">waist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/recapture_monte_carlo.html#total_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.recapture_monte_carlo.total_energy" title="Link to this definition"></a></dt>
+<dd><p>Calculate the total energy of a 3D system of atoms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array-like</em>) – Array of x positions of atoms.</p></li>
+<li><p><strong>vx</strong> (<em>array-like</em>) – Array of x velocities of atoms.</p></li>
+<li><p><strong>y</strong> (<em>array-like</em>) – Array of y positions of atoms.</p></li>
+<li><p><strong>vy</strong> (<em>array-like</em>) – Array of y velocities of atoms.</p></li>
+<li><p><strong>z</strong> (<em>array-like</em>) – Array of z positions of atoms.</p></li>
+<li><p><strong>vz</strong> (<em>array-like</em>) – Array of z velocities of atoms.</p></li>
+<li><p><strong>mass</strong> (<em>float</em>) – Mass of atoms in kg.</p></li>
+<li><p><strong>power</strong> (<em>float</em>) – Power of the laser beam in W.</p></li>
+<li><p><strong>waist</strong> (<em>float</em>) – Waist of the laser beam in m.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>E</strong> – Total energy of the system in J.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.recapture_monte_carlo.tweezer_temperature_regress">
+<span class="sig-prename descclassname"><span class="pre">models.recapture_monte_carlo.</span></span><span class="sig-name descname"><span class="pre">tweezer_temperature_regress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">recapture_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recapture_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tweezer_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recapture_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tweezer_waist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.15e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantify_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/recapture_monte_carlo.html#tweezer_temperature_regress"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.recapture_monte_carlo.tweezer_temperature_regress" title="Link to this definition"></a></dt>
+<dd><p>Returns the ensemble temperature that best fits the given recapture rate
+data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>recapture_time</strong> (<em>ndarray</em>) – Array of times in seconds.</p></li>
+<li><p><strong>recapture_rate</strong> (<em>ndarray</em>) – Array of recapture rates for each time.</p></li>
+<li><p><strong>recapture_std</strong> (<em>ndarray</em>) – Array of standard deviations of recapture rates for each time.</p></li>
+<li><p><strong>tweezer_power</strong> (<em>float</em>) – Tweezer power used to generate the data in W.</p></li>
+<li><p><strong>tweezer_waist</strong> (<em>float</em><em>, </em><em>optional</em>) – Tweezer waist size in meters. Default is 1.15e-6.</p></li>
+<li><p><strong>plot_results</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, plots the data and the best fit. Default is False.</p></li>
+<li><p><strong>quantify_error</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, randomly initializes regression. Default is False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>T_ensemble</strong> – Ensemble temperature in Kelvin.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class" id="module-models.ac_stark">
+<dt class="sig sig-object py" id="models.ac_stark.ACStarkShift">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">models.ac_stark.</span></span><span class="sig-name descname"><span class="pre">ACStarkShift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">laserWaist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/ac_stark.html#ACStarkShift"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.ac_stark.ACStarkShift" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="models.ac_stark.ACStarkShift.ac_stark_shift_polarizability">
+<span class="sig-name descname"><span class="pre">ac_stark_shift_polarizability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wavelengthList</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/ac_stark.html#ACStarkShift.ac_stark_shift_polarizability"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.ac_stark.ACStarkShift.ac_stark_shift_polarizability" title="Link to this definition"></a></dt>
+<dd><p>Computes the AC Stark shift via the dynamic polarizability method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>wavelengthList</strong> (<em>list</em>) – A list of wavelengths to compute the AC Stark shift at.</p></li>
+<li><p><strong>P</strong> (<em>float</em>) – The power of the laser.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>U_AC</strong> – A list of the AC Stark shifts at each of the wavelengths in
+wavelengthList.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.ac_stark.ACStarkShift.ac_stark_shift_shirley">
+<span class="sig-name descname"><span class="pre">ac_stark_shift_shirley</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wavelengths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">powers</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/ac_stark.html#ACStarkShift.ac_stark_shift_shirley"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.ac_stark.ACStarkShift.ac_stark_shift_shirley" title="Link to this definition"></a></dt>
+<dd><p>Computes the AC Stark shift using the Shirley method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>wavelengths</strong> (<em>list</em>) – A list of wavelengths to compute the AC Stark shift at.</p></li>
+<li><p><strong>powers</strong> (<em>list</em>) – A list of powers to compute the AC Stark shift at.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>U_AC_Shirley</strong> – A 2D array of the AC Stark shifts at each combination of powers and
+wavelengths.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array_like</p>
 </dd>
 </dl>
 </dd></dl>
