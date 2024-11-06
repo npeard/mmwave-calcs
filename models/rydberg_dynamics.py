@@ -537,6 +537,7 @@ class LossyRydberg(UnitaryRydberg):
         """
         # loss channel
         spLoss1 = np.asarray(
+            [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 0, 0]],
             dtype=np.complex128)  # sigma plus, since the loss channel is "above" the Rydberg state
         spLoss2 = np.asarray(
             [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 0]],
