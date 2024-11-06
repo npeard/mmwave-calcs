@@ -3,8 +3,26 @@ from numba import njit
 
 
 @njit
-def get_BlackmanPulse(t, duration, delay, hold=0):
-    # if hold is not 0, not a true Blackman pulse
+def get_blackman_pulse(t, duration, delay, hold=0):
+    """
+    Returns the value of a Blackman-Harris window function at time t.
+
+    Parameters
+    ----------
+    t : float
+        The time at which to evaluate the pulse
+    duration : float
+        The duration of the pulse
+    delay : float
+        The delay before the pulse starts
+    hold : float, optional
+        The duration of the flat top of the pulse. Defaults to 0.
+
+    Returns
+    -------
+    pulse : float
+        The value of the pulse at time t
+    """
     pulse = 0
     a0 = 0.42
     a1 = 0.5
@@ -30,11 +48,31 @@ def get_BlackmanPulse(t, duration, delay, hold=0):
 
 
 @njit
-def get_VectorizedBlackmanPulse(t, duration, delay, hold=0):
+def get_vectorized_blackman_pulse(t, duration, delay, hold=0):
+    """
+    Compute the values of a Blackman-Harris window function for a vector of time
+    points.
+
+    Parameters
+    ----------
+    t : array_like
+        An array of time points at which to evaluate the pulse.
+    duration : float
+        The duration of the pulse.
+    delay : float
+        The delay before the pulse starts.
+    hold : float, optional
+        The duration of the flat top of the pulse. Defaults to 0.
+
+    Returns
+    -------
+    pulse_pts : ndarray
+        An array containing the values of the pulse at each time point in `t`.
+    """
     pulse_pts = np.zeros_like(t)
 
     for j in range(len(pulse_pts)):
-        pulse_pts[j] = get_BlackmanPulse(t[j], duration=duration,
-                                         delay=delay, hold=hold)
+        pulse_pts[j] = get_blackman_pulse(t[j], duration=duration,
+                                          delay=delay, hold=hold)
 
     return pulse_pts

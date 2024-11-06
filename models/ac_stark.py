@@ -8,9 +8,26 @@ from scipy.constants import epsilon_0
 
 
 class ACStarkShift:
-    """Initialize a state and compute AC Stark shifts for that state"""
-
     def __init__(self, laserWaist=1e-6, n=6, l=0, j=0.5, mj=0.5, q=0):
+        """
+        Initialize the ACStarkShift object for computing AC Stark shifts given a
+        state.
+    
+        Parameters
+        ----------
+        laserWaist : float, optional
+            The waist of the laser beam in meters. Defaults to 1e-6.
+        n : int, optional
+            Principal quantum number of the state. Defaults to 6.
+        l : int, optional
+            Orbital angular momentum quantum number of the state. Defaults to 0.
+        j : float, optional
+            Total angular momentum quantum number of the state. Defaults to 0.5.
+        mj : float, optional
+            Magnetic quantum number of the state. Defaults to 0.5.
+        q : int, optional
+            Polarization of the laser. Defaults to 0.
+        """
         self.laserWaist = laserWaist
         self.n = n
         self.l = l
@@ -25,6 +42,22 @@ class ACStarkShift:
         self.n_basis = 5
 
     def ac_stark_shift_polarizability(self, wavelengthList, P):
+        """
+        Computes the AC Stark shift via the dynamic polarizability method.
+
+        Parameters
+        ----------
+        wavelengthList : list
+            A list of wavelengths to compute the AC Stark shift at.
+        P : float
+            The power of the laser.
+
+        Returns
+        -------
+        U_AC : list
+            A list of the AC Stark shifts at each of the wavelengths in
+            wavelengthList.
+        """
         calc = DynamicPolarizability(self.atom, *self.state)
         calc.defineBasis(self.atom.groundStateN, self.n_basis)
         alpha0_lst = []
@@ -40,14 +73,30 @@ class ACStarkShift:
 
     def ac_stark_shift_shirley(self, wavelengths, powers):
 
+        """
+        Computes the AC Stark shift using the Shirley method.
+
+        Parameters
+        ----------
+        wavelengths : list
+            A list of wavelengths to compute the AC Stark shift at.
+        powers : list
+            A list of powers to compute the AC Stark shift at.
+
+        Returns
+        -------
+        U_AC_Shirley : array_like
+            A 2D array of the AC Stark shifts at each combination of powers and
+            wavelengths.
+        """
         freqs = wavelength2freq(wavelengths)
 
         eFields = power2field(powers, self.laserWaist)  # 0.1*1e3  # V/m
 
         calc_full = ShirleyMethod(self.atom)
         calc_full.defineBasis(
-            *self.state, self.mj, self.q, self.state[0] - self.n_basis, self.state[0] +
-            self.n_basis,
+            *self.state, self.mj, self.q, self.state[0] - self.n_basis,
+            self.state[0] + self.n_basis,
             self.lmax,
             edN=0,
             progressOutput=False

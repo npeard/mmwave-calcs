@@ -32,7 +32,7 @@ def plot_whiteGateError():
     ax1.set_xlabel(r'FWHM$_1$ [Hz]')
     ax1.set_ylabel(r'FWHM$_2$ [Hz]')
     fig.suptitle(r'Rabi Frequency $\Omega_0 = 2\pi *$' + str(
-        transition.get_totalRabiAngularFreq(Pp, Pc) / (2 * np.pi) * 1e-6) + " "
+        transition.get_total_rabi_angular_freq(Pp, Pc) / (2 * np.pi) * 1e-6) + " "
         "MHz")
 
     plt.tight_layout()
@@ -88,8 +88,8 @@ def plot_servoGateError_Power():
 
     transition = calcs.RydbergTransition()
 
-    rabi12 = transition.get_E_RabiAngularFreq(laserPower1)
-    rabi23 = transition.get_R_RabiAngularFreq(laserPower2)
+    rabi12 = transition.get_e_rabi_angular_freq(laserPower1)
+    rabi23 = transition.get_r_rabi_angular_freq(laserPower2)
 
     xv, yv = np.meshgrid(rabi12, rabi23)
     GateError = gf.servo_gate_error(sg=1, fg=1e6, rabiFreq12=xv, rabiFreq23=yv,
