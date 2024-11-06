@@ -89,6 +89,55 @@ class OpticalTransition:
 class RydbergTransition:
     def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, q1=1,
                  n2=7, l2=1, j2=1.5, mj2=1.5, q2=1, n3=47, l3=2, j3=2.5):
+        """
+        Initialize a Rydberg transition with specified quantum numbers and laser parameters.
+
+        Parameters
+        ----------
+        laserWaist : float, optional
+            The waist of the laser in meters. Defaults to 25e-6.
+        n1 : int, optional
+            The principal quantum number of the first state. Defaults to 6.
+        l1 : int, optional
+            The orbital angular momentum quantum number of the first state. Defaults to 0.
+        j1 : float, optional
+            The total angular momentum quantum number of the first state. Defaults to 0.5.
+        mj1 : float, optional
+            The magnetic quantum number of the first state. Defaults to 0.5.
+        q1 : int, optional
+            The polarization of the laser for the first transition. Defaults to 1.
+        n2 : int, optional
+            The principal quantum number of the second state. Defaults to 7.
+        l2 : int, optional
+            The orbital angular momentum quantum number of the second state. Defaults to 1.
+        j2 : float, optional
+            The total angular momentum quantum number of the second state. Defaults to 1.5.
+        mj2 : float, optional
+            The magnetic quantum number of the second state. Defaults to 1.5.
+        q2 : int, optional
+            The polarization of the laser for the second transition. Defaults to 1.
+        n3 : int, optional
+            The principal quantum number of the third state. Defaults to 47.
+        l3 : int, optional
+            The orbital angular momentum quantum number of the third state. Defaults to 2.
+        j3 : float, optional
+            The total angular momentum quantum number of the third state. Defaults to 2.5.
+            
+        Attributes
+        ----------
+        RabiAngularFreq_1_from_Power : callable
+            A function that takes a power in W and returns the corresponding
+            Rabi angular frequency for the E transition.
+        Power_from_RabiAngularFreq_1 : callable
+            A function that takes a Rabi angular frequency for the E transition
+            and returns the corresponding power in W.
+        RabiAngularFreq_2_from_Power : callable
+            A function that takes a power in W and returns the corresponding
+            Rabi angular frequency for the R transition.
+        Power_from_RabiAngularFreq_2 : callable
+            A function that takes a Rabi angular frequency for the R
+            transition and returns the corresponding power in W.
+        """
         self.laserWaist = laserWaist
         self.n1 = n1
         self.l1 = l1
@@ -111,6 +160,29 @@ class RydbergTransition:
         self.init_fast_lookup()
 
     def init_fast_lookup(self):
+        """
+        Initialize fast lookup functions for Rabi angular frequencies vs. power.
+
+        Fast lookup functions are generated using cubic interpolation of the
+        Rabi angular frequencies vs. power for the excited state and Rydberg
+        state transitions. The points used for interpolation are spaced
+        logarithmically between 0 and 100 mW for the excited state transition
+        and linearly between 0 and 10 mW for the Rydberg state transition.
+
+        The generated functions are stored as instance variables and can be
+        used to quickly look up the Rabi angular frequency for a given power.
+        This is useful when we want to do a long series of calculations that
+        require us to compute the Rabi frequency many times and would
+        otherwise be very slow in ARC.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
         Pp = np.linspace(0, 100e-3, 100)
         Pp_RabiAngularFreq = []
         for p in Pp:
@@ -465,6 +537,30 @@ class RydbergTransition:
         return detuning
 
     def print_laser_frequencies(self, Pp, Pc, AOM456=-220e6, AOM1064=-110e6):
+        """
+        Print out the relevant laser frequencies and power broadenings for
+        a given Rydberg transition. Mainly used for tuning parameters in the
+        lab and accessed via the RydbergTuning.ipynb notebook.
+
+        Parameters
+        ----------
+        Pp : float
+            The power of the probe laser, in W.
+        Pc : float
+            The power of the coupling laser, in W.
+        AOM456 : float, optional
+            The frequency shift of the probe laser due to the AOM, in Hz.
+            Defaults to -220e6.
+        AOM1064 : float, optional
+            The frequency shift of the coupling laser due to the AOM, in Hz.
+            Defaults to -110e6.
+
+        Notes
+        -----
+        The frequencies are given in GHz, and the power broadenings are given
+        in MHz. The optimal detuning is given in GHz. The expected Rabi
+        frequency is given in MHz. The pi pulse duration is given in ns.
+        """
         trans1 = self.get_e_transition_freq()
         line1 = self.get_e_linewidth()
         trans2 = self.get_r_transition_freq()
@@ -497,42 +593,23 @@ class RydbergTransition:
         print("\nExpected Rabi Frequency = 2*pi",
               self.get_total_rabi_angular_freq(Pp, Pc) * 1e-6 / (2 * np.pi), "MHz")
         print("Pi Pulse Duration", self.get_pi_pulse_duration(Pp, Pc) * 1e9, "ns")
-
-    def print_tweezer_stark_shift(self, tweezer_power):
-        # TODO: update this function to use the calculators from ac_stark.py
-        # Two state approximation here is not very accurate
-        rabiFreq_2 = cs().getRabiFrequency(n1=self.n2, l1=self.l2, j1=self.j2,
-                                           mj1=self.mj2, n2=self.n3,
-                                           l2=self.l3,
-                                           j2=self.j3, q=self.q2,
-                                           laserPower=tweezer_power,
-                                           laserWaist=1e-6)
-
-        transition_frequency = self.get_r_transition_freq()
-        print("Transition Frequency (GHz)", transition_frequency * 1e-9)
-        tweezer_frequency = 2.99792e8 / (1069.79e-9)
-        print("Tweezer Frequency (GHz)", tweezer_frequency * 1e-9)
-        tweezer_detuning = transition_frequency - tweezer_frequency
-        print("Tweezer Detuning (GHz)", tweezer_detuning * 1e-9)
-        stark_shift = rabiFreq_2**2 / 4 / (2 * np.pi * tweezer_detuning)
-        print("Tweezer Stark Shift (MHz)", stark_shift / (2 * np.pi) * 1e-6)
-
-    def print_ac_stark_shift(self, Pp, Pc):
-        # TODO: update this function to use the calculators from ac_stark.py
-        diff_Stark = self.get_diff_ryd_ac_stark(Pp, Pc)
-        print("Differential Stark Shift (MHz)", diff_Stark / (2 * np.pi) * 1e-6)
-
-        rabiFreq_1 = self.get_e_rabi_angular_freq(laserPower=Pp)
-        rabiFreq_2 = self.get_r_rabi_angular_freq(laserPower=Pc)
-        Delta0 = self.get_optimal_detuning(rabiFreq1=rabiFreq_1, rabiFreq2=rabiFreq_2)
-
-        Stark_1 = rabiFreq_1**2 / 4 / Delta0
-        Stark_2 = rabiFreq_2**2 / 4 / Delta0
-        print("Stark Shift 1 (MHz)", Stark_1 / (2 * np.pi) * 1e-6)
-        print("Stark Shift 2 (MHz)", Stark_2 / (2 * np.pi) * 1e-6)
         
     def print_saturation_powers(self):
-        # get the saturation powers for the probe and coupling transitions
+        """
+        Print the saturation powers for the probe and coupling transitions.
+
+        This function retrieves the saturation powers for the electronic and
+        Rydberg transitions and prints them in milliwatts (mW).
+        
+        Returns
+        -------
+        None
+        """
+        satPower_E = self.get_e_saturation_power()
+        satPower_R = self.get_r_saturation_power()
+        
+        print("Saturation Power E (mW)", satPower_E * 1e3)
+        print("Saturation Power R (mW)", satPower_R * 1e3)
         satPower_E = self.get_e_saturation_power()
         satPower_R = self.get_r_saturation_power()
         
@@ -546,5 +623,3 @@ if __name__ == '__main__':
                                      q2=-1, n3=40, l3=0, j3=0.5)
 
     transition40.print_laser_frequencies(Pp=0.010, Pc=2)
-    transition40.print_tweezer_stark_shift(tweezer_power=0.010)
-    transition40.print_ac_stark_shift(Pp=0.010, Pc=2)
