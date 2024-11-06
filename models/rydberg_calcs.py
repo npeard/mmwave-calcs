@@ -2,8 +2,55 @@ from arc import Cesium as cs
 import numpy as np
 from scipy.interpolate import interp1d
 
+class OpticalTransition:
+    def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5,
+                 n2=7, l2=1, j2=1.5, mj2=1.5, q=0):
+        self.laserWaist = laserWaist
+        self.n1 = n1
+        self.l1 = l1
+        self.j1 = j1
+        self.mj1 = mj1
+        self.n2 = n2
+        self.l2 = l2
+        self.j2 = j2
+        self.mj2 = mj2
+        self.q = q
+        
+        self.RabiAngularFreq_from_Power = None
+        self.Power_from_RabiAngularFreq = None
+        
+        #self.init_fast_lookup()
+        
+    def get_rabi_angular_freq(self, laserPower):
+        """
+        Compute the Rabi angular frequency for the transition.
 
-# TODO: refactor this class to be inherited from a 2-level transition
+        Parameters
+        ----------
+        laserPower : float
+            The power of the laser, in W.
+
+        Returns
+        -------
+        rabiFreq : float
+            The Rabi angular frequency
+        """
+        if self.RabiAngularFreq_from_Power is None:
+            rabiFreq = cs().getRabiFrequency(n1=self.n1, l1=self.l1,
+                                               j1=self.j1,
+                                               mj1=self.mj1,
+                                               n2=self.n2,
+                                               l2=self.l2,
+                                               j2=self.j2, q=self.q,
+                                               laserPower=laserPower,
+                                               laserWaist=self.laserWaist)
+        else:
+            rabiFreq = self.RabiAngularFreq_from_Power(laserPower)
+
+        return rabiFreq
+
+# TODO: refactor this class to use two 2-level transitions for maximum code
+#  reuse
 class RydbergTransition:
     def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, q1=1,
                  n2=7, l2=1, j2=1.5, mj2=1.5, q2=1, n3=47, l3=2, j3=2.5):
