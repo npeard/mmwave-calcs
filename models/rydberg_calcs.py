@@ -5,6 +5,41 @@ from scipy.interpolate import interp1d
 class OpticalTransition:
     def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5,
                  n2=7, l2=1, j2=1.5, mj2=1.5, q=0):
+        """
+        Initialize a transition between two energy levels in Cesium.
+        
+        Parameters
+        ----------
+        laserWaist : float, optional
+            The waist of the laser in meters. Defaults to 25e-6.
+        n1 : int, optional
+            The principal quantum number of the lower energy level. Defaults to 6.
+        l1 : int, optional
+            The orbital angular momentum of the lower energy level. Defaults to 0.
+        j1 : float, optional
+            The total angular momentum of the lower energy level. Defaults to 0.5.
+        mj1 : float, optional
+            The magnetic quantum number of the lower energy level. Defaults to 0.5.
+        n2 : int, optional
+            The principal quantum number of the upper energy level. Defaults to 7.
+        l2 : int, optional
+            The orbital angular momentum of the upper energy level. Defaults to 1.
+        j2 : float, optional
+            The total angular momentum of the upper energy level. Defaults to 1.5.
+        mj2 : float, optional
+            The magnetic quantum number of the upper energy level. Defaults to 1.5.
+        q : int, optional
+            The polarization of the laser. Defaults to 0.
+        
+        Attributes
+        ----------
+        RabiAngularFreq_from_Power : callable
+            A function that takes a power in W and returns the corresponding
+            Rabi angular frequency.
+        Power_from_RabiAngularFreq : callable
+            A function that takes a Rabi angular frequency and returns
+            the corresponding power in W.
+        """
         self.laserWaist = laserWaist
         self.n1 = n1
         self.l1 = l1
@@ -100,8 +135,7 @@ class RydbergTransition:
 
     def get_e_rabi_angular_freq(self, laserPower):
         """
-        Compute the Rabi angular frequency for the 6S1/2 -> 7P3/2
-        excited state transition.
+        Compute the Rabi angular frequency for the excited state transition.
 
         Parameters
         ----------
@@ -111,10 +145,8 @@ class RydbergTransition:
         Returns
         -------
         rabiFreq_1 : float
-            The Rabi angular frequency, in 2pi*Hz.
+            The Rabi angular frequency
         """
-        # laserPower is in W
-        # laserWaist is in m
         if self.RabiAngularFreq_1_from_Power is None:
             rabiFreq_1 = cs().getRabiFrequency(n1=self.n1, l1=self.l1, j1=self.j1,
                                                mj1=self.mj1,
@@ -122,27 +154,56 @@ class RydbergTransition:
                                                l2=self.l2,
                                                j2=self.j2, q=self.q1,
                                                laserPower=laserPower,
-                                               laserWaist=self.laserWaist)  # in 2pi*Hz
+                                               laserWaist=self.laserWaist)
         else:
             rabiFreq_1 = self.RabiAngularFreq_1_from_Power(laserPower)
 
-        return rabiFreq_1  # in 2pi*Hz
+        return rabiFreq_1
 
     def get_r_rabi_angular_freq(self, laserPower):
-        # laserPower is in W
-        # laserWaist is in m
+        """
+        Compute the Rabi angular frequency for the Rydberg state transition.
+
+        Parameters
+        ----------
+        laserPower : float
+            The power of the laser, in W.
+
+        Returns
+        -------
+        rabiFreq_2 : float
+            The Rabi angular frequency
+        """
         if self.RabiAngularFreq_2_from_Power is None:
             rabiFreq_2 = cs().getRabiFrequency(n1=self.n2, l1=self.l2, j1=self.j2, mj1=self.mj2, n2=self.n3,
                                                l2=self.l3,
                                                j2=self.j3, q=self.q2,
                                                laserPower=laserPower,
-                                               laserWaist=self.laserWaist)  # in 2pi*Hz
+                                               laserWaist=self.laserWaist)
         else:
             rabiFreq_2 = self.RabiAngularFreq_2_from_Power(laserPower)
 
-        return rabiFreq_2  # in 2pi*Hz
+        return rabiFreq_2
     
     def get_balanced_laser_power(self, probe_power=None, couple_power=None):
+        """
+        Compute the balanced laser power for the probe and couple lasers. This is
+        the laser power that results in the same Rabi frequency for both lasers.
+    
+        Parameters
+        ----------
+        probe_power : float, optional
+            The power of the probe laser, in W.
+        couple_power : float, optional
+            The power of the couple laser, in W.
+    
+        Returns
+        -------
+        probe_power : float, optional
+            The power of the probe laser, in W.
+        couple_power : float, optional
+            The power of the couple laser, in W.
+        """
         if probe_power is None:
             couple_rabi = self.RabiAngularFreq_2_from_Power(couple_power)
             probe_power = self.Power_from_RabiAngularFreq_1(couple_rabi)
@@ -156,29 +217,72 @@ class RydbergTransition:
             pass
 
     def get_e_linewidth(self):
-        gamma2 = 1 / cs().getStateLifetime(self.n2, self.l2, self.j2, temperature=300.0,
+        """
+        This function computes the linewidth of the excited state, given by the
+        inverse of the lifetime of the state.
+    
+        Returns
+        -------
+        gamma2 : float
+            The linewidth of the excited state, in Hz.
+        """
+        gamma2 = 1 / cs().getStateLifetime(self.n2, self.l2, self.j2,
+                                           temperature=300.0,
                                            includeLevelsUpTo=self.n2 + 5)
         return gamma2  # in Hz
 
     def get_r_linewidth(self):
-        gamma3 = 1 / cs().getStateLifetime(self.n3, self.l3, self.j3, temperature=300.0,
+        """
+        This function computes the linewidth of the Rydberg state, given by the
+        inverse of the lifetime of the state.
+
+        Returns
+        -------
+        gamma3 : float
+            The linewidth of the Rydberg state, in Hz.
+        """
+        gamma3 = 1 / cs().getStateLifetime(self.n3, self.l3, self.j3,
+                                           temperature=300.0,
                                            includeLevelsUpTo=self.n3 + 5)
         return gamma3  # in Hz
 
     def get_e_transition_freq(self):
-        # Returned values is given relative to the centre of gravity of the hyperfine-split states.
-        freq_1 = cs().getTransitionFrequency(n1=self.n1, l1=self.l1, j1=self.j1, n2=self.n2, l2=self.l2,
+        """
+        Compute the transition frequency for the excitation laser, taking into
+        account the hyperfine structure of the ground and excited states.
+        Returned values is given relative to the centre of gravity of the
+        hyperfine-split states.
+
+        Returns
+        -------
+        float
+            The transition frequency, in Hz.
+        """
+        freq_1 = cs().getTransitionFrequency(n1=self.n1, l1=self.l1, j1=self.j1,
+                                             n2=self.n2, l2=self.l2,
                                              j2=self.j2)
         HFS_g = cs().getHFSEnergyShift(j=self.j1, f=4,
                                        A=cs().getHFSCoefficients(n=self.n1,
-                                                                 l=self.l1, j=self.j1)[0])
+                                                                 l=self.l1,
+                                                                 j=self.j1)[0])
         HFS_e = cs().getHFSEnergyShift(j=self.j2, f=5,
                                        A=cs().getHFSCoefficients(n=self.n2,
-                                                                 l=self.l2, j=self.j2)[0])
+                                                                 l=self.l2,
+                                                                 j=self.j2)[0])
         return freq_1 - HFS_g + HFS_e  # in Hz
 
     def get_r_transition_freq(self):
-        # Returned values is given relative to the centre of gravity of the hyperfine-split states.
+        """
+        Compute the transition frequency for the Rydberg laser, taking into
+        account the hyperfine structure of the ground and excited states.
+        Returned values is given relative to the centre of gravity of the
+        hyperfine-split states.
+
+        Returns
+        -------
+        float
+            The transition frequency, in Hz.
+        """
         freq_2 = cs().getTransitionFrequency(n1=self.n2, l1=self.l2, j1=self.j2, n2=self.n3, l2=self.l3,
                                              j2=self.j3)
         HFS_e = cs().getHFSEnergyShift(j=self.j2, f=5,
@@ -188,12 +292,34 @@ class RydbergTransition:
         return freq_2 - HFS_e  # in Hz
 
     def get_e_saturation_power(self):
+        """
+        Compute the saturation power for the E transition.
+    
+        The saturation power is given by the intensity required to saturate the
+        transition, multiplied by the area of the beam.
+    
+        Returns
+        -------
+        float
+            The saturation power of the excitation laser, in W.
+        """
         sat_1 = cs().getSaturationIntensityIsotropic(ng=self.n1, lg=self.l1, jg=self.j1, fg=4,
                                                      ne=self.n2, le=self.l2,
                                                      je=self.j2, fe=5)
         return sat_1 * np.pi * self.laserWaist**2  # in Watts
 
     def get_r_saturation_power(self):
+        """
+        Compute the saturation power for the E transition.
+
+        The saturation power is given by the intensity required to saturate the
+        transition, multiplied by the area of the beam.
+
+        Returns
+        -------
+        float
+            The saturation power of the excitation laser, in W.
+        """
         sat_2 = cs().getSaturationIntensityIsotropic(ng=self.n2, lg=self.l2, jg=self.j2, fg=5,
                                                      ne=self.n3, le=self.l3,
                                                      je=self.j3, fe=6)
@@ -201,9 +327,35 @@ class RydbergTransition:
 
     def get_optimal_detuning(self, P1=None, P2=None, rabiFreq1=None,
                              rabiFreq2=None, gamma2=None, gamma3=None):
-        # Calculate the optimal detuning, see Rydberg parameters notebook
-        # in 2pi*Hz
+        """
+        Calculate the optimal detuning of the Rydberg laser, given the powers of
+        the two lasers or their Rabi frequencies.
 
+        Parameters
+        ----------
+        P1 : float, optional
+            The power of the probe laser, in W.
+        P2 : float, optional
+            The power of the couple laser, in W.
+        rabiFreq1 : float, optional
+            The Rabi frequency of the probe laser, in Hz.
+        rabiFreq2 : float, optional
+            The Rabi frequency of the couple laser, in Hz.
+        gamma2 : float, optional
+            The linewidth of the intermediate state, in Hz.
+        gamma3 : float, optional
+            The linewidth of the Rydberg state, in Hz.
+
+        Returns
+        -------
+        float
+            The optimal detuning of the Rydberg laser, in Hz.
+
+        Notes
+        -----
+        The optimal detuning is calculated following the procedure outlined in
+        the Rydberg parameters notebook.
+        """
         if gamma2 is None or gamma3 is None:
             gamma2 = self.get_e_linewidth()
             gamma3 = self.get_r_linewidth()
@@ -220,6 +372,33 @@ class RydbergTransition:
             raise ValueError("Must specify either P1, P2 or rabiFreq1, rabiFreq2")
 
     def get_total_rabi_angular_freq(self, Pp, Pc, resonance=False):
+        """
+        Compute the total Rabi angular frequency of the two-photon transition.
+
+        Parameters
+        ----------
+        Pp : float
+            The power of the probe laser, in W.
+        Pc : float
+            The power of the couple laser, in W.
+        resonance : bool, optional
+            If True, the resonance condition is assumed to be satisfied.
+            If False (default), the optimal detuning is calculated.
+
+        Returns
+        -------
+        float
+            The total Rabi angular frequency of the two-photon transition, in
+            Hz.
+
+        Notes
+        -----
+        The total Rabi angular frequency is calculated as the geometric mean of
+        the Rabi angular frequencies of the two lasers, divided by the
+        optimal detuning.
+        If the resonance condition is assumed to be satisfied, the detuning is
+        neglected.
+        """
         rabiFreq_1 = self.get_e_rabi_angular_freq(laserPower=Pp)
         rabiFreq_2 = self.get_r_rabi_angular_freq(laserPower=Pc)
         if not resonance:
@@ -230,34 +409,60 @@ class RydbergTransition:
             return 0.5 * np.sqrt(rabiFreq_1**2 + rabiFreq_2**2)
 
     def get_pi_pulse_duration(self, Pp, Pc, resonance=False):
+        """
+        Compute the duration of a pi pulse of the two-photon transition.
+
+        Parameters
+        ----------
+        Pp : float
+            The power of the probe laser, in W.
+        Pc : float
+            The power of the couple laser, in W.
+        resonance : bool, optional
+            If True, the resonance condition is assumed to be satisfied.
+            If False (default), the optimal detuning is calculated.
+
+        Returns
+        -------
+        float
+            The duration of a pi pulse of the two-photon transition, in seconds.
+
+        Notes
+        -----
+        The duration of a pi pulse is calculated as pi / total Rabi angular
+        frequency, where the total Rabi angular frequency is calculated as the
+        geometric mean of the Rabi angular frequencies of the two lasers,
+        divided by the optimal detuning.
+        If the resonance condition is assumed to be satisfied, the detuning is
+        neglected.
+        """
         omega = self.get_total_rabi_angular_freq(Pp, Pc, resonance=resonance)
         return np.pi / omega
     
     def get_pi_detuning(self, probe_power, couple_power, pi_time):
-        # get the detuning required to implement a pi pulse of duration pi_time
+        """
+        Calculate the detuning required to implement a pi pulse of specified
+        duration.
+        
+        Parameters
+        ----------
+        probe_power : float
+            The power of the probe laser, in W.
+        couple_power : float
+            The power of the coupling laser, in W.
+        pi_time : float
+            The desired duration of the pi pulse, in seconds.
+        
+        Returns
+        -------
+        float
+            The detuning required to achieve the specified pi pulse duration.
+        """
         rabiFreq_1 = self.get_e_rabi_angular_freq(laserPower=probe_power)
         rabiFreq_2 = self.get_r_rabi_angular_freq(laserPower=couple_power)
-        detuning = pi_time/np.pi/2 * rabiFreq_1 * rabiFreq_2 # in 2pi*Hz
+        detuning = pi_time/np.pi/2 * rabiFreq_1 * rabiFreq_2
         
         return detuning
-
-    def get_diff_ryd_ac_stark(self, Pp, Pc):
-        rabiFreq_1 = self.get_e_rabi_angular_freq(laserPower=Pp)
-        rabiFreq_2 = self.get_r_rabi_angular_freq(laserPower=Pc)
-        Delta0 = self.get_optimal_detuning(rabiFreq1=rabiFreq_1,
-                                           rabiFreq2=rabiFreq_2)
-
-        diffAC = (rabiFreq_1**2 + rabiFreq_2**2) / 4 / Delta0
-        return diffAC  # in 2pi*Hz
-
-    def get_bin_diff_ryd_ac_stark(self, Pp, Pc):
-        # Corrected for reflexive detuning with binomial approximation
-        rabiFreq_1 = self.get_e_rabi_angular_freq(laserPower=Pp)
-        rabiFreq_2 = self.get_r_rabi_angular_freq(laserPower=Pc)
-        Delta0 = self.get_optimal_detuning(rabiFreq1=rabiFreq_1, rabiFreq2=rabiFreq_2)
-
-        diffAC = (rabiFreq_1**2 + rabiFreq_2**2) / 4 / Delta0 * (1 + rabiFreq_2**2 / 4 / Delta0**2)**(-1)
-        return diffAC  # in 2pi*Hz
 
     def print_laser_frequencies(self, Pp, Pc, AOM456=-220e6, AOM1064=-110e6):
         trans1 = self.get_e_transition_freq()
@@ -301,7 +506,7 @@ class RydbergTransition:
                                            l2=self.l3,
                                            j2=self.j3, q=self.q2,
                                            laserPower=tweezer_power,
-                                           laserWaist=1e-6)  # in 2pi*Hz
+                                           laserWaist=1e-6)
 
         transition_frequency = self.get_r_transition_freq()
         print("Transition Frequency (GHz)", transition_frequency * 1e-9)
