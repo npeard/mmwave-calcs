@@ -77,6 +77,19 @@
 <div class="viewcode-block" id="wavelength2freq">
 <a class="viewcode-back" href="../../api.html#models.utility.wavelength2freq">[docs]</a>
 <span class="k">def</span> <span class="nf">wavelength2freq</span><span class="p">(</span><span class="n">wavelength</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts a wavelength to a frequency in Hz.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    wavelength : float</span>
+<span class="sd">        The wavelength in meters.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    frequency : float</span>
+<span class="sd">        The frequency in Hz.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">c_c</span> <span class="o">/</span> <span class="n">wavelength</span></div>
 
 
@@ -84,6 +97,19 @@
 <div class="viewcode-block" id="wavelength2angularfreq">
 <a class="viewcode-back" href="../../api.html#models.utility.wavelength2angularfreq">[docs]</a>
 <span class="k">def</span> <span class="nf">wavelength2angularfreq</span><span class="p">(</span><span class="n">wavelength</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts a wavelength to an angular frequency in rad/s.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    wavelength : float</span>
+<span class="sd">        The wavelength in meters.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    angular_frequency : float</span>
+<span class="sd">        The angular frequency in rad/s.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">wavelength2freq</span><span class="p">(</span><span class="n">wavelength</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span></div>
 
 
@@ -91,6 +117,19 @@
 <div class="viewcode-block" id="freq2wavelength">
 <a class="viewcode-back" href="../../api.html#models.utility.freq2wavelength">[docs]</a>
 <span class="k">def</span> <span class="nf">freq2wavelength</span><span class="p">(</span><span class="n">frequency</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts a frequency to a wavelength in meters.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    frequency : float</span>
+<span class="sd">        The frequency in Hz.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    wavelength : float</span>
+<span class="sd">        The wavelength in meters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">c_c</span> <span class="o">/</span> <span class="n">frequency</span></div>
 
 
@@ -98,9 +137,28 @@
 <div class="viewcode-block" id="power2field">
 <a class="viewcode-back" href="../../api.html#models.utility.power2field">[docs]</a>
 <span class="k">def</span> <span class="nf">power2field</span><span class="p">(</span><span class="n">laserPower</span><span class="p">,</span> <span class="n">laserWaist</span><span class="p">):</span>
-    <span class="c1"># P is power in W</span>
-    <span class="c1"># A is area in cm^2</span>
-    <span class="c1"># E is field in V/m</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts a laser power and waist to an electric field in V/m.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    laserPower : float</span>
+<span class="sd">        The power of the laser, in W.</span>
+<span class="sd">    laserWaist : float</span>
+<span class="sd">        The waist of the laser, in meters.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    electricField : float</span>
+<span class="sd">        The electric field of the laser, in V/m.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The formula used to calculate the electric field is</span>
+<span class="sd">    E = sqrt(2 * I / (c * epsilon_0)),</span>
+<span class="sd">    where I is the intensity in W/m^2, c is the speed of light in m/s,</span>
+<span class="sd">    and epsilon_0 is the vacuum permittivity in F/m.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">maxIntensity</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">laserPower</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">laserWaist</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
     <span class="n">electricField</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">maxIntensity</span> <span class="o">/</span> <span class="p">(</span><span class="n">c_c</span> <span class="o">*</span> <span class="n">epsilon_0</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">electricField</span></div>

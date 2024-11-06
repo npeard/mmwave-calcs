@@ -107,7 +107,7 @@
         <span class="n">Pp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">100e-3</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
         <span class="n">Pp_RabiAngularFreq</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">Pp</span><span class="p">:</span>
-            <span class="n">Pp_RabiAngularFreq</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_E_RabiAngularFreq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">p</span><span class="p">))</span>
+            <span class="n">Pp_RabiAngularFreq</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_e_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">p</span><span class="p">))</span>
         <span class="n">Pp_RabiAngularFreq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Pp_RabiAngularFreq</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">RabiAngularFreq_1_from_Power</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">Pp</span><span class="p">,</span> <span class="n">Pp_RabiAngularFreq</span><span class="p">,</span>
                                                      <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;cubic&#39;</span><span class="p">)</span>
@@ -118,7 +118,7 @@
         <span class="n">Pc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
         <span class="n">Pc_RabiAngularFreq</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">Pc</span><span class="p">:</span>
-            <span class="n">Pc_RabiAngularFreq</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_R_RabiAngularFreq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">p</span><span class="p">))</span>
+            <span class="n">Pc_RabiAngularFreq</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_r_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">p</span><span class="p">))</span>
         <span class="n">Pc_RabiAngularFreq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Pc_RabiAngularFreq</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">RabiAngularFreq_2_from_Power</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">Pc</span><span class="p">,</span> <span class="n">Pc_RabiAngularFreq</span><span class="p">,</span>
                                                      <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;cubic&#39;</span><span class="p">)</span>
@@ -127,9 +127,9 @@
                                                      <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;cubic&#39;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="RydbergTransition.get_E_RabiAngularFreq">
-<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_E_RabiAngularFreq">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_E_RabiAngularFreq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">laserPower</span><span class="p">):</span>
+<div class="viewcode-block" id="RydbergTransition.get_e_rabi_angular_freq">
+<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_e_rabi_angular_freq">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_e_rabi_angular_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">laserPower</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute the Rabi angular frequency for the 6S1/2 -&gt; 7P3/2</span>
 <span class="sd">        excited state transition.</span>
@@ -160,9 +160,9 @@
         <span class="k">return</span> <span class="n">rabiFreq_1</span>  <span class="c1"># in 2pi*Hz</span></div>
 
 
-<div class="viewcode-block" id="RydbergTransition.get_R_RabiAngularFreq">
-<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_R_RabiAngularFreq">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_R_RabiAngularFreq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">laserPower</span><span class="p">):</span>
+<div class="viewcode-block" id="RydbergTransition.get_r_rabi_angular_freq">
+<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_r_rabi_angular_freq">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_r_rabi_angular_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">laserPower</span><span class="p">):</span>
         <span class="c1"># laserPower is in W</span>
         <span class="c1"># laserWaist is in m</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">RabiAngularFreq_2_from_Power</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -193,25 +193,25 @@
             <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="RydbergTransition.get_E_Linewidth">
-<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_E_Linewidth">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_E_Linewidth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RydbergTransition.get_e_linewidth">
+<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_e_linewidth">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_e_linewidth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">gamma2</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">cs</span><span class="p">()</span><span class="o">.</span><span class="n">getStateLifetime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">l2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">j2</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span>
                                            <span class="n">includeLevelsUpTo</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n2</span> <span class="o">+</span> <span class="mi">5</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">gamma2</span>  <span class="c1"># in Hz</span></div>
 
 
-<div class="viewcode-block" id="RydbergTransition.get_R_Linewidth">
-<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_R_Linewidth">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_R_Linewidth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RydbergTransition.get_r_linewidth">
+<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_r_linewidth">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_r_linewidth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">gamma3</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">cs</span><span class="p">()</span><span class="o">.</span><span class="n">getStateLifetime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">l3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">j3</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span>
                                            <span class="n">includeLevelsUpTo</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n3</span> <span class="o">+</span> <span class="mi">5</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">gamma3</span>  <span class="c1"># in Hz</span></div>
 
 
-<div class="viewcode-block" id="RydbergTransition.get_E_TransitionFreq">
-<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_E_TransitionFreq">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_E_TransitionFreq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RydbergTransition.get_e_transition_freq">
+<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_e_transition_freq">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_e_transition_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Returned values is given relative to the centre of gravity of the hyperfine-split states.</span>
         <span class="n">freq_1</span> <span class="o">=</span> <span class="n">cs</span><span class="p">()</span><span class="o">.</span><span class="n">getTransitionFrequency</span><span class="p">(</span><span class="n">n1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n1</span><span class="p">,</span> <span class="n">l1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">l1</span><span class="p">,</span> <span class="n">j1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">j1</span><span class="p">,</span> <span class="n">n2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n2</span><span class="p">,</span> <span class="n">l2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">l2</span><span class="p">,</span>
                                              <span class="n">j2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">j2</span><span class="p">)</span>
@@ -224,9 +224,9 @@
         <span class="k">return</span> <span class="n">freq_1</span> <span class="o">-</span> <span class="n">HFS_g</span> <span class="o">+</span> <span class="n">HFS_e</span>  <span class="c1"># in Hz</span></div>
 
 
-<div class="viewcode-block" id="RydbergTransition.get_R_TransitionFreq">
-<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_R_TransitionFreq">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_R_TransitionFreq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RydbergTransition.get_r_transition_freq">
+<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_r_transition_freq">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_r_transition_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Returned values is given relative to the centre of gravity of the hyperfine-split states.</span>
         <span class="n">freq_2</span> <span class="o">=</span> <span class="n">cs</span><span class="p">()</span><span class="o">.</span><span class="n">getTransitionFrequency</span><span class="p">(</span><span class="n">n1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n2</span><span class="p">,</span> <span class="n">l1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">l2</span><span class="p">,</span> <span class="n">j1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">j2</span><span class="p">,</span> <span class="n">n2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n3</span><span class="p">,</span> <span class="n">l2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">l3</span><span class="p">,</span>
                                              <span class="n">j2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">j3</span><span class="p">)</span>
@@ -237,64 +237,64 @@
         <span class="k">return</span> <span class="n">freq_2</span> <span class="o">-</span> <span class="n">HFS_e</span>  <span class="c1"># in Hz</span></div>
 
 
-<div class="viewcode-block" id="RydbergTransition.get_E_SaturationPower">
-<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_E_SaturationPower">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_E_SaturationPower</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RydbergTransition.get_e_saturation_power">
+<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_e_saturation_power">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_e_saturation_power</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">sat_1</span> <span class="o">=</span> <span class="n">cs</span><span class="p">()</span><span class="o">.</span><span class="n">getSaturationIntensityIsotropic</span><span class="p">(</span><span class="n">ng</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n1</span><span class="p">,</span> <span class="n">lg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">l1</span><span class="p">,</span> <span class="n">jg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">j1</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
                                                      <span class="n">ne</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n2</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">l2</span><span class="p">,</span>
                                                      <span class="n">je</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">j2</span><span class="p">,</span> <span class="n">fe</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">sat_1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">laserWaist</span><span class="o">**</span><span class="mi">2</span>  <span class="c1"># in Watts</span></div>
 
 
-<div class="viewcode-block" id="RydbergTransition.get_R_SaturationPower">
-<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_R_SaturationPower">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_R_SaturationPower</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RydbergTransition.get_r_saturation_power">
+<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_r_saturation_power">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_r_saturation_power</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">sat_2</span> <span class="o">=</span> <span class="n">cs</span><span class="p">()</span><span class="o">.</span><span class="n">getSaturationIntensityIsotropic</span><span class="p">(</span><span class="n">ng</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n2</span><span class="p">,</span> <span class="n">lg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">l2</span><span class="p">,</span> <span class="n">jg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">j2</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
                                                      <span class="n">ne</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n3</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">l3</span><span class="p">,</span>
                                                      <span class="n">je</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">j3</span><span class="p">,</span> <span class="n">fe</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">sat_2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">laserWaist</span><span class="o">**</span><span class="mi">2</span>  <span class="c1"># in Watts</span></div>
 
 
-<div class="viewcode-block" id="RydbergTransition.get_OptimalDetuning">
-<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_OptimalDetuning">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_OptimalDetuning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">P1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rabiFreq1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                            <span class="n">rabiFreq2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gamma2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gamma3</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="RydbergTransition.get_optimal_detuning">
+<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_optimal_detuning">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_optimal_detuning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">P1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rabiFreq1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                             <span class="n">rabiFreq2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gamma2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gamma3</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># Calculate the optimal detuning, see Rydberg parameters notebook</span>
         <span class="c1"># in 2pi*Hz</span>
 
         <span class="k">if</span> <span class="n">gamma2</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">gamma3</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">gamma2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_E_Linewidth</span><span class="p">()</span>
-            <span class="n">gamma3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_R_Linewidth</span><span class="p">()</span>
+            <span class="n">gamma2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e_linewidth</span><span class="p">()</span>
+            <span class="n">gamma3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_r_linewidth</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">rabiFreq1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">rabiFreq2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">Delta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">rabiFreq1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">rabiFreq2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">gamma2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">gamma3</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">Delta</span>
         <span class="k">elif</span> <span class="n">P1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">P2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">rabiFreq1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_E_RabiAngularFreq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">P1</span><span class="p">)</span>
-            <span class="n">rabiFreq2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_R_RabiAngularFreq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">P2</span><span class="p">)</span>
+            <span class="n">rabiFreq1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">P1</span><span class="p">)</span>
+            <span class="n">rabiFreq2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_r_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">P2</span><span class="p">)</span>
             <span class="n">Delta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">rabiFreq1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">rabiFreq2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">gamma2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">gamma3</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">Delta</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must specify either P1, P2 or rabiFreq1, rabiFreq2&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="RydbergTransition.get_totalRabiAngularFreq">
-<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_totalRabiAngularFreq">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_totalRabiAngularFreq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">,</span> <span class="n">resonance</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="n">rabiFreq_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_E_RabiAngularFreq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pp</span><span class="p">)</span>
-        <span class="n">rabiFreq_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_R_RabiAngularFreq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pc</span><span class="p">)</span>
+<div class="viewcode-block" id="RydbergTransition.get_total_rabi_angular_freq">
+<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_total_rabi_angular_freq">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_total_rabi_angular_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">,</span> <span class="n">resonance</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">rabiFreq_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pp</span><span class="p">)</span>
+        <span class="n">rabiFreq_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_r_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pc</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">resonance</span><span class="p">:</span>
-            <span class="n">Delta0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_OptimalDetuning</span><span class="p">(</span><span class="n">rabiFreq1</span><span class="o">=</span><span class="n">rabiFreq_1</span><span class="p">,</span>
-                                              <span class="n">rabiFreq2</span><span class="o">=</span><span class="n">rabiFreq_2</span><span class="p">)</span>
+            <span class="n">Delta0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optimal_detuning</span><span class="p">(</span><span class="n">rabiFreq1</span><span class="o">=</span><span class="n">rabiFreq_1</span><span class="p">,</span>
+                                               <span class="n">rabiFreq2</span><span class="o">=</span><span class="n">rabiFreq_2</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">rabiFreq_1</span> <span class="o">*</span> <span class="n">rabiFreq_2</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">Delta0</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">rabiFreq_1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">rabiFreq_2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="RydbergTransition.get_PiPulseDuration">
-<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_PiPulseDuration">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_PiPulseDuration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">,</span> <span class="n">resonance</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="n">omega</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_totalRabiAngularFreq</span><span class="p">(</span><span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">,</span> <span class="n">resonance</span><span class="o">=</span><span class="n">resonance</span><span class="p">)</span>
+<div class="viewcode-block" id="RydbergTransition.get_pi_pulse_duration">
+<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_pi_pulse_duration">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_pi_pulse_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">,</span> <span class="n">resonance</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">omega</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_total_rabi_angular_freq</span><span class="p">(</span><span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">,</span> <span class="n">resonance</span><span class="o">=</span><span class="n">resonance</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">omega</span></div>
 
     
@@ -302,32 +302,32 @@
 <a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_pi_detuning">[docs]</a>
     <span class="k">def</span> <span class="nf">get_pi_detuning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">probe_power</span><span class="p">,</span> <span class="n">couple_power</span><span class="p">,</span> <span class="n">pi_time</span><span class="p">):</span>
         <span class="c1"># get the detuning required to implement a pi pulse of duration pi_time</span>
-        <span class="n">rabiFreq_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_E_RabiAngularFreq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">probe_power</span><span class="p">)</span>
-        <span class="n">rabiFreq_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_R_RabiAngularFreq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">couple_power</span><span class="p">)</span>
+        <span class="n">rabiFreq_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">probe_power</span><span class="p">)</span>
+        <span class="n">rabiFreq_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_r_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">couple_power</span><span class="p">)</span>
         <span class="n">detuning</span> <span class="o">=</span> <span class="n">pi_time</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="n">rabiFreq_1</span> <span class="o">*</span> <span class="n">rabiFreq_2</span> <span class="c1"># in 2pi*Hz</span>
         
         <span class="k">return</span> <span class="n">detuning</span></div>
 
 
-<div class="viewcode-block" id="RydbergTransition.get_DiffRydACStark">
-<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_DiffRydACStark">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_DiffRydACStark</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">):</span>
-        <span class="n">rabiFreq_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_E_RabiAngularFreq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pp</span><span class="p">)</span>
-        <span class="n">rabiFreq_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_R_RabiAngularFreq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pc</span><span class="p">)</span>
-        <span class="n">Delta0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_OptimalDetuning</span><span class="p">(</span><span class="n">rabiFreq1</span><span class="o">=</span><span class="n">rabiFreq_1</span><span class="p">,</span>
-                                          <span class="n">rabiFreq2</span><span class="o">=</span><span class="n">rabiFreq_2</span><span class="p">)</span>
+<div class="viewcode-block" id="RydbergTransition.get_diff_ryd_ac_stark">
+<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_diff_ryd_ac_stark">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_diff_ryd_ac_stark</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">):</span>
+        <span class="n">rabiFreq_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pp</span><span class="p">)</span>
+        <span class="n">rabiFreq_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_r_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pc</span><span class="p">)</span>
+        <span class="n">Delta0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optimal_detuning</span><span class="p">(</span><span class="n">rabiFreq1</span><span class="o">=</span><span class="n">rabiFreq_1</span><span class="p">,</span>
+                                           <span class="n">rabiFreq2</span><span class="o">=</span><span class="n">rabiFreq_2</span><span class="p">)</span>
 
         <span class="n">diffAC</span> <span class="o">=</span> <span class="p">(</span><span class="n">rabiFreq_1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">rabiFreq_2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">4</span> <span class="o">/</span> <span class="n">Delta0</span>
         <span class="k">return</span> <span class="n">diffAC</span>  <span class="c1"># in 2pi*Hz</span></div>
 
 
-<div class="viewcode-block" id="RydbergTransition.get_BinDiffRydACStark">
-<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_BinDiffRydACStark">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_BinDiffRydACStark</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">):</span>
+<div class="viewcode-block" id="RydbergTransition.get_bin_diff_ryd_ac_stark">
+<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_bin_diff_ryd_ac_stark">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_bin_diff_ryd_ac_stark</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">):</span>
         <span class="c1"># Corrected for reflexive detuning with binomial approximation</span>
-        <span class="n">rabiFreq_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_E_RabiAngularFreq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pp</span><span class="p">)</span>
-        <span class="n">rabiFreq_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_R_RabiAngularFreq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pc</span><span class="p">)</span>
-        <span class="n">Delta0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_OptimalDetuning</span><span class="p">(</span><span class="n">rabiFreq1</span><span class="o">=</span><span class="n">rabiFreq_1</span><span class="p">,</span> <span class="n">rabiFreq2</span><span class="o">=</span><span class="n">rabiFreq_2</span><span class="p">)</span>
+        <span class="n">rabiFreq_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pp</span><span class="p">)</span>
+        <span class="n">rabiFreq_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_r_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pc</span><span class="p">)</span>
+        <span class="n">Delta0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optimal_detuning</span><span class="p">(</span><span class="n">rabiFreq1</span><span class="o">=</span><span class="n">rabiFreq_1</span><span class="p">,</span> <span class="n">rabiFreq2</span><span class="o">=</span><span class="n">rabiFreq_2</span><span class="p">)</span>
 
         <span class="n">diffAC</span> <span class="o">=</span> <span class="p">(</span><span class="n">rabiFreq_1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">rabiFreq_2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">4</span> <span class="o">/</span> <span class="n">Delta0</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">rabiFreq_2</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="mi">4</span> <span class="o">/</span> <span class="n">Delta0</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">diffAC</span>  <span class="c1"># in 2pi*Hz</span></div>
@@ -336,13 +336,13 @@
 <div class="viewcode-block" id="RydbergTransition.print_laser_frequencies">
 <a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.print_laser_frequencies">[docs]</a>
     <span class="k">def</span> <span class="nf">print_laser_frequencies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">,</span> <span class="n">AOM456</span><span class="o">=-</span><span class="mf">220e6</span><span class="p">,</span> <span class="n">AOM1064</span><span class="o">=-</span><span class="mf">110e6</span><span class="p">):</span>
-        <span class="n">trans1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_E_TransitionFreq</span><span class="p">()</span>
-        <span class="n">line1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_E_Linewidth</span><span class="p">()</span>
-        <span class="n">trans2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_R_TransitionFreq</span><span class="p">()</span>
-        <span class="n">line2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_R_Linewidth</span><span class="p">()</span>
-        <span class="n">rabiFreq_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_E_RabiAngularFreq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pp</span><span class="p">)</span>
-        <span class="n">rabiFreq_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_R_RabiAngularFreq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pc</span><span class="p">)</span>
-        <span class="n">Delta0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_OptimalDetuning</span><span class="p">(</span><span class="n">rabiFreq1</span><span class="o">=</span><span class="n">rabiFreq_1</span><span class="p">,</span> <span class="n">rabiFreq2</span><span class="o">=</span><span class="n">rabiFreq_2</span><span class="p">)</span>
+        <span class="n">trans1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e_transition_freq</span><span class="p">()</span>
+        <span class="n">line1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e_linewidth</span><span class="p">()</span>
+        <span class="n">trans2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_r_transition_freq</span><span class="p">()</span>
+        <span class="n">line2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_r_linewidth</span><span class="p">()</span>
+        <span class="n">rabiFreq_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pp</span><span class="p">)</span>
+        <span class="n">rabiFreq_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_r_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pc</span><span class="p">)</span>
+        <span class="n">Delta0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optimal_detuning</span><span class="p">(</span><span class="n">rabiFreq1</span><span class="o">=</span><span class="n">rabiFreq_1</span><span class="p">,</span> <span class="n">rabiFreq2</span><span class="o">=</span><span class="n">rabiFreq_2</span><span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="n">trans1</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Probe laser frequency (with AOM)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">trans1</span> <span class="o">-</span> <span class="n">AOM456</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-9</span><span class="p">,</span>
@@ -366,13 +366,14 @@
                                            <span class="n">AOM1064</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-9</span><span class="p">,</span> <span class="s2">&quot;GHz&quot;</span><span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Expected Rabi Frequency = 2*pi&quot;</span><span class="p">,</span>
-              <span class="bp">self</span><span class="o">.</span><span class="n">get_totalRabiAngularFreq</span><span class="p">(</span><span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-6</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span> <span class="s2">&quot;MHz&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Pi Pulse Duration&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_PiPulseDuration</span><span class="p">(</span><span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e9</span><span class="p">,</span> <span class="s2">&quot;ns&quot;</span><span class="p">)</span></div>
+              <span class="bp">self</span><span class="o">.</span><span class="n">get_total_rabi_angular_freq</span><span class="p">(</span><span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-6</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span> <span class="s2">&quot;MHz&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Pi Pulse Duration&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pi_pulse_duration</span><span class="p">(</span><span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e9</span><span class="p">,</span> <span class="s2">&quot;ns&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="RydbergTransition.print_tweezer_stark_shift">
 <a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.print_tweezer_stark_shift">[docs]</a>
     <span class="k">def</span> <span class="nf">print_tweezer_stark_shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tweezer_power</span><span class="p">):</span>
+        <span class="c1"># TODO: update this function to use the calculators from ac_stark.py</span>
         <span class="c1"># Two state approximation here is not very accurate</span>
         <span class="n">rabiFreq_2</span> <span class="o">=</span> <span class="n">cs</span><span class="p">()</span><span class="o">.</span><span class="n">getRabiFrequency</span><span class="p">(</span><span class="n">n1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n2</span><span class="p">,</span> <span class="n">l1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">l2</span><span class="p">,</span> <span class="n">j1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">j2</span><span class="p">,</span>
                                            <span class="n">mj1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mj2</span><span class="p">,</span> <span class="n">n2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n3</span><span class="p">,</span>
@@ -381,7 +382,7 @@
                                            <span class="n">laserPower</span><span class="o">=</span><span class="n">tweezer_power</span><span class="p">,</span>
                                            <span class="n">laserWaist</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>  <span class="c1"># in 2pi*Hz</span>
 
-        <span class="n">transition_frequency</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_R_TransitionFreq</span><span class="p">()</span>
+        <span class="n">transition_frequency</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_r_transition_freq</span><span class="p">()</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Transition Frequency (GHz)&quot;</span><span class="p">,</span> <span class="n">transition_frequency</span> <span class="o">*</span> <span class="mf">1e-9</span><span class="p">)</span>
         <span class="n">tweezer_frequency</span> <span class="o">=</span> <span class="mf">2.99792e8</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1069.79e-9</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Tweezer Frequency (GHz)&quot;</span><span class="p">,</span> <span class="n">tweezer_frequency</span> <span class="o">*</span> <span class="mf">1e-9</span><span class="p">)</span>
@@ -394,12 +395,13 @@
 <div class="viewcode-block" id="RydbergTransition.print_ac_stark_shift">
 <a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.print_ac_stark_shift">[docs]</a>
     <span class="k">def</span> <span class="nf">print_ac_stark_shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">):</span>
-        <span class="n">diff_Stark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_DiffRydACStark</span><span class="p">(</span><span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">)</span>
+        <span class="c1"># TODO: update this function to use the calculators from ac_stark.py</span>
+        <span class="n">diff_Stark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_diff_ryd_ac_stark</span><span class="p">(</span><span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Differential Stark Shift (MHz)&quot;</span><span class="p">,</span> <span class="n">diff_Stark</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-6</span><span class="p">)</span>
 
-        <span class="n">rabiFreq_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_E_RabiAngularFreq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pp</span><span class="p">)</span>
-        <span class="n">rabiFreq_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_R_RabiAngularFreq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pc</span><span class="p">)</span>
-        <span class="n">Delta0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_OptimalDetuning</span><span class="p">(</span><span class="n">rabiFreq1</span><span class="o">=</span><span class="n">rabiFreq_1</span><span class="p">,</span> <span class="n">rabiFreq2</span><span class="o">=</span><span class="n">rabiFreq_2</span><span class="p">)</span>
+        <span class="n">rabiFreq_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pp</span><span class="p">)</span>
+        <span class="n">rabiFreq_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_r_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pc</span><span class="p">)</span>
+        <span class="n">Delta0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optimal_detuning</span><span class="p">(</span><span class="n">rabiFreq1</span><span class="o">=</span><span class="n">rabiFreq_1</span><span class="p">,</span> <span class="n">rabiFreq2</span><span class="o">=</span><span class="n">rabiFreq_2</span><span class="p">)</span>
 
         <span class="n">Stark_1</span> <span class="o">=</span> <span class="n">rabiFreq_1</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="mi">4</span> <span class="o">/</span> <span class="n">Delta0</span>
         <span class="n">Stark_2</span> <span class="o">=</span> <span class="n">rabiFreq_2</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="mi">4</span> <span class="o">/</span> <span class="n">Delta0</span>
@@ -411,8 +413,8 @@
 <a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.print_saturation_powers">[docs]</a>
     <span class="k">def</span> <span class="nf">print_saturation_powers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># get the saturation powers for the probe and coupling transitions</span>
-        <span class="n">satPower_E</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_E_SaturationPower</span><span class="p">()</span>
-        <span class="n">satPower_R</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_R_SaturationPower</span><span class="p">()</span>
+        <span class="n">satPower_E</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e_saturation_power</span><span class="p">()</span>
+        <span class="n">satPower_R</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_r_saturation_power</span><span class="p">()</span>
         
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Saturation Power E (mW)&quot;</span><span class="p">,</span> <span class="n">satPower_E</span> <span class="o">*</span> <span class="mf">1e3</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Saturation Power R (mW)&quot;</span><span class="p">,</span> <span class="n">satPower_R</span> <span class="o">*</span> <span class="mf">1e3</span><span class="p">)</span></div>
