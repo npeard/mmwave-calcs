@@ -83,7 +83,7 @@ class OpticalTransition:
         -------
         None
         """
-        power = np.logspace(1e-6, 10, 100)
+        power = np.logspace(-6, 1, 200)
         Power_from_RabiAngularFreq = []
         for p in power:
             Power_from_RabiAngularFreq.append(self.get_rabi_angular_freq(laserPower=p))
@@ -198,8 +198,8 @@ class OpticalTransition:
 #  reuse
 class RydbergTransition:
     def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, f1=4,
-                 q1=1,
-                 n2=7, l2=1, j2=1.5, mj2=1.5, f2=5, q2=1, n3=47, l3=2, j3=2.5):
+                 q1=1, n2=7, l2=1, j2=1.5, mj2=1.5, f2=5, q2=1, n3=47, l3=2,
+                 j3=2.5, mj3=2.5, f3=5):
         """
         Initialize a Rydberg transition with specified quantum numbers and laser parameters.
 
@@ -256,7 +256,7 @@ class RydbergTransition:
         self.transition2 = OpticalTransition(laserWaist=laserWaist,
                                              n1=n2, l1=l2, j1=j2, mj1=mj2,
                                              f1=f2, n2=n3, l2=l3, j2=j3,
-                                             mj2=2.5, f2=5, q=q2)
+                                             mj2=mj3, f2=f3, q=q2)
                         
     def get_balanced_laser_power(self, probe_power=None, couple_power=None):
         """
@@ -518,3 +518,17 @@ if __name__ == '__main__':
                                      q2=-1, n3=40, l3=0, j3=0.5)
 
     transition40.print_laser_frequencies(Pp=0.010, Pc=2)
+    
+    powers = np.linspace(0, 10, 1000)
+    rabiFreqs = [transition40.transition2.RabiAngularFreq_from_Power(p) for p
+                 in powers]
+    powersOut = [transition40.transition2.Power_from_RabiAngularFreq(f) for
+                 f in
+                 rabiFreqs]
+    import matplotlib.pyplot as plt
+    plt.plot(powers, rabiFreqs)
+    plt.plot(powersOut, rabiFreqs)
+    plt.xlabel('Power (W)')
+    plt.ylabel('Rabi Frequency (Hz)')
+    plt.show()
+    
