@@ -125,8 +125,8 @@ class UnitaryRydberg:
         -----
         The Hamiltonian is given by
 
-        H = -1/2 \* (Omega12 \* (|e><g| + |g><e|) + Omega23 \* (|r><e| + |e><r|))
-             - Delta \* |e><e| - delta \* |r><r|
+        H = -1/2 * (Omega12 * (|e><g| + |g><e|) + Omega23 * (|r><e| + |e><r|))
+             - Delta * |e><e| - delta * |r><r|
 
         where |g>, |e>, and |r> are the ground, excited, and Rydberg states,
         respectively.
@@ -537,6 +537,7 @@ class LossyRydberg(UnitaryRydberg):
         """
         # loss channel
         spLoss1 = np.asarray(
+            [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 1, 0, 0]],
             dtype=np.complex128)  # sigma plus, since the loss channel is "above" the Rydberg state
         spLoss2 = np.asarray(
             [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 0]],

@@ -468,12 +468,14 @@ class RydbergTransition:
         Delta0 = self.get_optimal_detuning(rabiFreq1=rabiFreq_1,
                                            rabiFreq2=rabiFreq_2)
 
-        print(trans1)
+        print("Probe laser frequency (no AOM)", trans1 * 1e-9, "GHz")
         print("Probe laser frequency (with AOM)", (trans1 - AOM456) * 1e-9,
               "GHz")
         print(r"Power Broadening $\sqrt(2)*\Omega = $", np.sqrt(2) *
               rabiFreq_1 / (2*np.pi) * 1e-6, "MHz")
         print("Natural Linewidth", line1 * 1e-6, "MHz")
+
+        print("\nCouple laser frequency (no AOM)", trans2 * 1e-9, "GHz")
         print("Couple laser frequency (with AOM)", (trans2 - AOM1064) * 1e-9,
                                                     "GHz")
         print(r"Power Broadening $\sqrt(2)*\Omega = $", np.sqrt(2) *
@@ -482,12 +484,10 @@ class RydbergTransition:
 
         print("\nOptimal detuning", Delta0 * 1e-9 / (2 * np.pi), "GHz ")
 
-        print("\nOptimal probe frequency (with AOM)", (trans1 + Delta0 / (2 *
-                                                                     np.pi) -
-                                            AOM456) * 1e-9, "GHz")
-        print("Optimal couple frequency (with AOM)", (trans2 - Delta0 / (2 *
-                                                                     np.pi) -
-                                           AOM1064) * 1e-9, "GHz")
+        print("\nOptimal probe frequency (with AOM)",
+              (trans1 + Delta0 / (2 * np.pi) - AOM456) * 1e-9, "GHz")
+        print("Optimal couple frequency (with AOM)",
+              (trans2 - Delta0 / (2 * np.pi) - AOM1064) * 1e-9, "GHz")
 
         print("\nExpected Rabi Frequency = 2*pi",
               self.get_total_rabi_angular_freq(Pp, Pc) * 1e-6 / (2 * np.pi), "MHz")
