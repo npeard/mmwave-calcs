@@ -85,7 +85,7 @@ class ACStarkShift:
 
         Returns
         -------
-        U_AC_Shirley : array_like
+        u_shirley : array_like
             A 2D array of the AC Stark shifts at each combination of powers and
             wavelengths.
         """
@@ -94,21 +94,29 @@ class ACStarkShift:
         eFields = power2field(powers, self.laserWaist)  # 0.1*1e3  # V/m
 
         calc_full = ShirleyMethod(self.atom)
+        # calc_full.defineBasis(
+        #     *self.state, self.mj, self.q, self.state[0] - self.n_basis,
+        #     self.state[0] + self.n_basis,
+        #     self.lmax,
+        #     edN=0,
+        #     progressOutput=False
+        # )
         calc_full.defineBasis(
-            *self.state, self.mj, self.q, self.state[0] - self.n_basis,
-            self.state[0] + self.n_basis,
+            *self.state, self.mj, self.q, 39,
+                                          43,
             self.lmax,
             edN=0,
             progressOutput=False
         )
+        
         calc_full.defineShirleyHamiltonian(fn=1)
 
-        U_AC_Shirley = []
+        u_shirley = []
 
         for freq, eField in product(freqs, eFields):
             calc_full.diagonalise(eField, freq, progressOutput=False)
-            U_AC_Shirley.append(calc_full.targetShifts)
-        results_Shirley = np.array(U_AC_Shirley).reshape((len(eFields),
+            u_shirley.append(calc_full.targetShifts)
+        results_Shirley = np.array(u_shirley).reshape((len(eFields),
                                                           len(freqs)))
 
         return results_Shirley

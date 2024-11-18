@@ -8,7 +8,7 @@ def plot_Cs_ground_state_tweezer_shift():
     shifter = ac_stark.ACStarkShift()#laserWaist=1e-6, n=6, l=0, j=0.5,
     # mj=0.5, q=0)
     tweezer_wavelength = np.asarray([1069.79]) * 1e-9
-    wavelengths = np.linspace(780, 1080, 1000) * 1e-9
+    wavelengths = np.linspace(450, 460, 3000) * 1e-9
     powers = np.asarray([20e-3])
     shirley_shift_wavelength_6S = shifter.ac_stark_shift_shirley(wavelengths,
                                                                  powers).squeeze()
@@ -133,7 +133,7 @@ def plot_Cs_Rydberg_local_address_shift(n=40):
     addr_power = np.asarray([2e-3])
 
     shifter = ac_stark.ACStarkShift()
-    wavelengths = np.linspace(850, 1560, 2000) * 1e-9
+    wavelengths = np.linspace(1064, 1066, 20000) * 1e-9
     powers = addr_power
     shirley_shift_wavelength_6S = shifter.ac_stark_shift_shirley(wavelengths,
                                                                  powers).squeeze()
@@ -244,4 +244,5 @@ def plot_Cs_Rydberg_local_address_shift(n=40):
 
 
 if __name__ == "__main__":
-    plot_Cs_ground_state_tweezer_shift()
+    #plot_Cs_ground_state_tweezer_shift()
+    plot_Cs_Rydberg_local_address_shift(n=40)
