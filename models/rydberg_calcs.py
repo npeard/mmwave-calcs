@@ -21,6 +21,8 @@ class OpticalTransition:
             The total angular momentum of the lower energy level. Defaults to 0.5.
         mj1 : float, optional
             The magnetic quantum number of the lower energy level. Defaults to 0.5.
+        f1 : int, optional
+            The hyperfine quantum number of the lower energy level. Defaults to 4.
         n2 : int, optional
             The principal quantum number of the upper energy level. Defaults to 7.
         l2 : int, optional
@@ -29,6 +31,8 @@ class OpticalTransition:
             The total angular momentum of the upper energy level. Defaults to 1.5.
         mj2 : float, optional
             The magnetic quantum number of the upper energy level. Defaults to 1.5.
+        f2 : int, optional
+            The hyperfine quantum number of the upper energy level. Defaults to 5.
         q : int, optional
             The polarization of the laser. Defaults to 0.
         
@@ -215,6 +219,8 @@ class RydbergTransition:
             The total angular momentum quantum number of the first state. Defaults to 0.5.
         mj1 : float, optional
             The magnetic quantum number of the first state. Defaults to 0.5.
+        f1 : int, optional
+            The hyperfine quantum number of the first state. Defaults to 4.
         q1 : int, optional
             The polarization of the laser for the first transition. Defaults to 1.
         n2 : int, optional
@@ -225,6 +231,8 @@ class RydbergTransition:
             The total angular momentum quantum number of the second state. Defaults to 1.5.
         mj2 : float, optional
             The magnetic quantum number of the second state. Defaults to 1.5.
+        f2 : int, optional
+            The hyperfine quantum number of the second state. Defaults to 5.
         q2 : int, optional
             The polarization of the laser for the second transition. Defaults to 1.
         n3 : int, optional
@@ -233,21 +241,17 @@ class RydbergTransition:
             The orbital angular momentum quantum number of the third state. Defaults to 2.
         j3 : float, optional
             The total angular momentum quantum number of the third state. Defaults to 2.5.
+        mj3 : float, optional
+            The magnetic quantum number of the third state. Defaults to 2.5.
+        f3 : int, optional
+            The hyperfine quantum number of the third state. Defaults to 5.
             
         Attributes
         ----------
-        RabiAngularFreq_1_from_Power : callable
-            A function that takes a power in W and returns the corresponding
-            Rabi angular frequency for the E transition.
-        Power_from_RabiAngularFreq_1 : callable
-            A function that takes a Rabi angular frequency for the E transition
-            and returns the corresponding power in W.
-        RabiAngularFreq_2_from_Power : callable
-            A function that takes a power in W and returns the corresponding
-            Rabi angular frequency for the R transition.
-        Power_from_RabiAngularFreq_2 : callable
-            A function that takes a Rabi angular frequency for the R
-            transition and returns the corresponding power in W.
+        transition1 : OpticalTransition
+            The first optical transition.
+        transition2 : OpticalTransition
+            The second optical transition.
         """
         self.transition1 = OpticalTransition(laserWaist=laserWaist,
                                              n1=n1, l1=l1, j1=j1, mj1=mj1,
