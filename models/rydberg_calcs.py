@@ -3,10 +3,11 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 class OpticalTransition:
-    def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5,
-                 n2=7, l2=1, j2=1.5, mj2=1.5, q=0):
+    def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, f1=4,
+                 n2=7, l2=1, j2=1.5, mj2=1.5, f2=5, q=0):
         """
-        Initialize a transition between two energy levels in Cesium.
+        Initialize a transition between two energy levels in Cesium. Default
+        is the Cs F=4 GS to 7P3/2 transition.
         
         Parameters
         ----------
@@ -45,17 +46,105 @@ class OpticalTransition:
         self.l1 = l1
         self.j1 = j1
         self.mj1 = mj1
+        self.f1 = f1
         self.n2 = n2
         self.l2 = l2
         self.j2 = j2
         self.mj2 = mj2
+        self.f2 = f2
         self.q = q
         
         self.RabiAngularFreq_from_Power = None
         self.Power_from_RabiAngularFreq = None
         
-        #self.init_fast_lookup()
+        self.init_fast_lookup()
         
+    def init_fast_lookup(self):
+        """
+        Initialize fast lookup functions for Rabi angular frequencies vs. power.
+
+        Fast lookup functions are generated using cubic interpolation of the
+        Rabi angular frequencies vs. power for the excited state and Rydberg
+        state transitions. The points used for interpolation are spaced
+        logarithmically between 0 and 100 mW for the excited state transition
+        and linearly between 0 and 10 mW for the Rydberg state transition.
+
+        The generated functions are stored as instance variables and can be
+        used to quickly look up the Rabi angular frequency for a given power.
+        This is useful when we want to do a long series of calculations that
+        require us to compute the Rabi frequency many times and would
+        otherwise be very slow in ARC.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        power = np.logspace(1e-6, 10, 100)
+        Power_from_RabiAngularFreq = []
+        for p in power:
+            Power_from_RabiAngularFreq.append(
+                self.get_r_rabi_angular_freq(laserPower=p))
+        Power_from_RabiAngularFreq = np.array(Power_from_RabiAngularFreq)
+        
+        # Add origin point
+        power = np.insert(power, 0, 0)
+        Power_from_RabiAngularFreq = np.insert(Power_from_RabiAngularFreq, 0, 0)
+        
+        self.RabiAngularFreq_from_Power = interp1d(power,
+                                                     Power_from_RabiAngularFreq,
+                                                     kind='cubic')
+        # inverse
+        self.Power_from_RabiAngularFreq = interp1d(Power_from_RabiAngularFreq,
+                                                     power,
+                                                     kind='cubic')
+    
+    def get_linewidth(self):
+        """
+        This function computes the linewidth of the excited state, given by the
+        inverse of the lifetime of the state.
+
+        Returns
+        -------
+        gamma : float
+            The linewidth of the excited state, in Hz.
+        """
+        gamma = 1 / cs().getStateLifetime(self.n2, self.l2, self.j2,
+                                           temperature=300.0,
+                                           includeLevelsUpTo=self.n2 + 5)
+        return gamma
+    
+    def get_transition_freq(self):
+        """
+        Compute the transition frequency for the excitation laser, taking into
+        account the hyperfine structure of the ground and excited states.
+        Returned values is given relative to the centre of gravity of the
+        hyperfine-split states.
+
+        Returns
+        -------
+        float
+            The transition frequency, in Hz.
+        """
+        freq = cs().getTransitionFrequency(n1=self.n1, l1=self.l1,
+                                           j1=self.j1, n2=self.n2,
+                                           l2=self.l2, j2=self.j2)
+        
+        # HFS energy shift
+        HFS_g = cs().getHFSEnergyShift(j=self.j1, f=self.f1,
+                                       A=cs().getHFSCoefficients(n=self.n1,
+                                                                 l=self.l1,
+                                                                 j=self.j1)[0])
+        HFS_e = cs().getHFSEnergyShift(j=self.j2, f=self.f2,
+                                       A=cs().getHFSCoefficients(n=self.n2,
+                                                                 l=self.l2,
+                                                                 j=self.j2)[0])
+        
+        return freq - HFS_g + HFS_e
+    
     def get_rabi_angular_freq(self, laserPower):
         """
         Compute the Rabi angular frequency for the transition.
@@ -83,12 +172,32 @@ class OpticalTransition:
             rabiFreq = self.RabiAngularFreq_from_Power(laserPower)
 
         return rabiFreq
+    
+    def get_saturation_power(self):
+        """
+        Compute the saturation power for the transition.
+
+        The saturation power is given by the intensity required to saturate the
+        transition, multiplied by the area of the beam.
+
+        Returns
+        -------
+        float
+            The saturation power of the excitation laser, in W.
+        """
+        sat = cs().getSaturationIntensityIsotropic(ng=self.n1, lg=self.l1,
+                                                     jg=self.j1, fg=self.f1,
+                                                     ne=self.n2, le=self.l2,
+                                                     je=self.j2, fe=self.f2)
+        return sat * np.pi * self.laserWaist**2  # in Watts
+    
 
 # TODO: refactor this class to use two 2-level transitions for maximum code
 #  reuse
 class RydbergTransition:
-    def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, q1=1,
-                 n2=7, l2=1, j2=1.5, mj2=1.5, q2=1, n3=47, l3=2, j3=2.5):
+    def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, f1=4,
+                 q1=1,
+                 n2=7, l2=1, j2=1.5, mj2=1.5, f2=5, q2=1, n3=47, l3=2, j3=2.5):
         """
         Initialize a Rydberg transition with specified quantum numbers and laser parameters.
 
@@ -143,10 +252,12 @@ class RydbergTransition:
         self.l1 = l1
         self.j1 = j1
         self.mj1 = mj1
+        self.f1 = f1
         self.n2 = n2
         self.l2 = l2
         self.j2 = j2
         self.mj2 = mj2
+        self.f2 = f2
         self.n3 = n3
         self.l3 = l3
         self.j3 = j3
@@ -158,52 +269,6 @@ class RydbergTransition:
         self.Power_from_RabiAngularFreq_2 = None
 
         self.init_fast_lookup()
-
-    def init_fast_lookup(self):
-        """
-        Initialize fast lookup functions for Rabi angular frequencies vs. power.
-
-        Fast lookup functions are generated using cubic interpolation of the
-        Rabi angular frequencies vs. power for the excited state and Rydberg
-        state transitions. The points used for interpolation are spaced
-        logarithmically between 0 and 100 mW for the excited state transition
-        and linearly between 0 and 10 mW for the Rydberg state transition.
-
-        The generated functions are stored as instance variables and can be
-        used to quickly look up the Rabi angular frequency for a given power.
-        This is useful when we want to do a long series of calculations that
-        require us to compute the Rabi frequency many times and would
-        otherwise be very slow in ARC.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
-        """
-        Pp = np.linspace(0, 100e-3, 100)
-        Pp_RabiAngularFreq = []
-        for p in Pp:
-            Pp_RabiAngularFreq.append(self.get_e_rabi_angular_freq(laserPower=p))
-        Pp_RabiAngularFreq = np.array(Pp_RabiAngularFreq)
-        self.RabiAngularFreq_1_from_Power = interp1d(Pp, Pp_RabiAngularFreq,
-                                                     kind='cubic')
-        # inverse
-        self.Power_from_RabiAngularFreq_1 = interp1d(Pp_RabiAngularFreq, Pp,
-                                                     kind='cubic')
-
-        Pc = np.linspace(0, 10, 100)
-        Pc_RabiAngularFreq = []
-        for p in Pc:
-            Pc_RabiAngularFreq.append(self.get_r_rabi_angular_freq(laserPower=p))
-        Pc_RabiAngularFreq = np.array(Pc_RabiAngularFreq)
-        self.RabiAngularFreq_2_from_Power = interp1d(Pc, Pc_RabiAngularFreq,
-                                                     kind='cubic')
-        # inverse
-        self.Power_from_RabiAngularFreq_2 = interp1d(Pc_RabiAngularFreq, Pc,
-                                                     kind='cubic')
 
     def get_e_rabi_angular_freq(self, laserPower):
         """
