@@ -198,6 +198,16 @@
 <span class="sd">        -------</span>
 <span class="sd">        H : float64[:,:]</span>
 <span class="sd">            Hamiltonian in the three-state basis.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The Hamiltonian is given by</span>
+
+<span class="sd">        H = -1/2 * (Omega12 * (|e&gt;&lt;g| + |g&gt;&lt;e|) + Omega23 * (|r&gt;&lt;e| + |e&gt;&lt;r|))</span>
+<span class="sd">             - Delta * |e&gt;&lt;e| - delta * |r&gt;&lt;r|</span>
+
+<span class="sd">        where |g&gt;, |e&gt;, and |r&gt; are the ground, excited, and Rydberg states,</span>
+<span class="sd">        respectively.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">sm1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>  <span class="c1"># sigma minus</span>
         <span class="n">sm2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>  <span class="c1"># sigma minus</span>
