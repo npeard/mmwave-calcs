@@ -131,84 +131,46 @@ def plot_Cs_7p_tweezer_shift():
 def plot_Cs_Rydberg_local_address_shift(n=40):
     addr_wavelength = np.asarray([1064]) * 1e-9
     addr_power = np.asarray([2e-3])
+    wavelengths = np.linspace(850, 1100, 2000) * 1e-9
 
+    # Rydberg states
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
+    state_list = [{"n": n, "l": 0, "j": 0.5, "mj": 0.5},
+                  {"n": n, "l": 1, "j": 0.5, "mj": 0.5},
+                  {"n": n, "l": 1, "j": 1.5, "mj": 0.5},
+                  {"n": n, "l": 1, "j": 1.5, "mj": 1.5},
+                  {"n": n, "l": 2, "j": 1.5, "mj": 1.5},
+                  {"n": n, "l": 2, "j": 2.5, "mj": 1.5},
+                  {"n": n, "l": 2, "j": 2.5, "mj": 2.5}]
+    for state in state_list:
+        shifter = ac_stark.ACStarkShift(**state)
+        print(shifter.target_state)
+        powers = addr_power
+        shirley_shift_wavelength = shifter.ac_stark_shift_shirley(wavelengths,
+                                                                  powers).squeeze()
+
+        powers = np.linspace(0, 20e-3, 1000)
+        shirley_shift_power = shifter.ac_stark_shift_shirley(addr_wavelength,
+                                                             powers).squeeze()
+
+        ax1.plot(wavelengths * 1e9, shirley_shift_wavelength * 1e-6, '--',
+                 label=f"state = {shifter.target_state}")
+        ax2.plot(powers * 1e3, shirley_shift_power * 1e-6, '--',
+                 label=f"state = {shifter.target_state}")
+        
+    # Ground state
     shifter = ac_stark.ACStarkShift()
-    wavelengths = np.linspace(1064, 1066, 20000) * 1e-9
     powers = addr_power
     shirley_shift_wavelength_6S = shifter.ac_stark_shift_shirley(wavelengths,
                                                                  powers).squeeze()
-
+    
     powers = np.linspace(0, 20e-3, 1000)
     shirley_shift_power_6S = shifter.ac_stark_shift_shirley(addr_wavelength,
                                                             powers).squeeze()
-    # Rydberg S_1/2 states
-    shifter_RydS12 = ac_stark.ACStarkShift(n=n, l=0, j=0.5)
-    powers = addr_power
-    shirley_shift_wavelength_RydS12 = shifter_RydS12.ac_stark_shift_shirley(
-        wavelengths, powers).squeeze()
 
-    powers = np.linspace(0, 20e-3, 1000)
-    shirley_shift_power_RydS12 = shifter_RydS12.ac_stark_shift_shirley(addr_wavelength,
-                                                                   powers).squeeze()
-    # Rydberg P_1/2 states
-    shifter_RydP12 = ac_stark.ACStarkShift(n=n, l=1, j=0.5)
-    powers = addr_power
-    shirley_shift_wavelength_RydP12 = shifter_RydP12.ac_stark_shift_shirley(
-        wavelengths,
-        powers).squeeze()
-
-    powers = np.linspace(0, 20e-3, 1000)
-    shirley_shift_power_RydP12 = shifter_RydP12.ac_stark_shift_shirley(addr_wavelength,
-                                                                   powers).squeeze()
     
-    # Rydberg P_3/2 states
-    shifter_RydP32 = ac_stark.ACStarkShift(n=n, l=1, j=1.5)
-    powers = addr_power
-    shirley_shift_wavelength_RydP32 = shifter_RydP32.ac_stark_shift_shirley(
-        wavelengths,
-        powers).squeeze()
-
-    powers = np.linspace(0, 20e-3, 1000)
-    shirley_shift_power_RydP32 = shifter_RydP32.ac_stark_shift_shirley(addr_wavelength,
-                                                                   powers).squeeze()
-    
-    # Rydberg D_3/2 states
-    shifter_RydD32 = ac_stark.ACStarkShift(n=n, l=2, j=1.5)
-    powers = addr_power
-    shirley_shift_wavelength_RydD32 = shifter_RydD32.ac_stark_shift_shirley(
-        wavelengths,
-        powers).squeeze()
-    
-    powers = np.linspace(0, 20e-3, 1000)
-    shirley_shift_power_RydD32 = shifter_RydD32.ac_stark_shift_shirley(
-        addr_wavelength,
-        powers).squeeze()
-    
-    # Rydberg D_5/2 states
-    shifter_RydD52 = ac_stark.ACStarkShift(n=n, l=2, j=2.5)
-    powers = addr_power
-    shirley_shift_wavelength_RydD52 = shifter_RydD52.ac_stark_shift_shirley(
-        wavelengths,
-        powers).squeeze()
-    
-    powers = np.linspace(0, 20e-3, 1000)
-    shirley_shift_power_RydD52 = shifter_RydD52.ac_stark_shift_shirley(
-        addr_wavelength,
-        powers).squeeze()
-
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
-    ax1.plot(wavelengths * 1e9, shirley_shift_wavelength_RydS12 * 1e-6, '--',
-             label=f"state = {shifter_RydS12.state}")
-    ax1.plot(wavelengths * 1e9, shirley_shift_wavelength_RydP12 * 1e-6, '--',
-             label=f"state = {shifter_RydP12.state}")
-    ax1.plot(wavelengths * 1e9, shirley_shift_wavelength_RydP32 * 1e-6, '--',
-             label=f"state = {shifter_RydP32.state}")
-    ax1.plot(wavelengths * 1e9, shirley_shift_wavelength_RydD32 * 1e-6, '--',
-             label=f"state = {shifter_RydD32.state}")
-    ax1.plot(wavelengths * 1e9, shirley_shift_wavelength_RydD52 * 1e-6, '--',
-             label=f"state = {shifter_RydD52.state}")
     ax1.plot(wavelengths * 1e9, shirley_shift_wavelength_6S * 1e-6, '--',
-             label=f"state = {shifter.state}")
+            label=f"state = {shifter.target_state}")
     ax1.set_xlabel("wavelength (nm)")
     ax1.set_ylim([-100, 100])
     ax1.set_ylabel("AC Stark Shift (MHz)")
@@ -217,18 +179,8 @@ def plot_Cs_Rydberg_local_address_shift(n=40):
     ax1.legend()
     ax1.grid()
 
-    ax2.plot(powers * 1e3, shirley_shift_power_RydS12 * 1e-6, '--',
-             label=f"state = {shifter_RydS12.state}")
-    ax2.plot(powers * 1e3, shirley_shift_power_RydP12 * 1e-6, '--',
-             label=f"state = {shifter_RydP12.state}")
-    ax2.plot(powers * 1e3, shirley_shift_power_RydP32 * 1e-6, '--',
-             label=f"state = {shifter_RydP32.state}")
-    ax2.plot(powers * 1e3, shirley_shift_power_RydD32 * 1e-6, '--',
-             label=f"state = {shifter_RydD32.state}")
-    ax2.plot(powers * 1e3, shirley_shift_power_RydD52 * 1e-6, '--',
-             label=f"state = {shifter_RydD52.state}")
     ax2.plot(powers * 1e3, shirley_shift_power_6S * 1e-6, '--',
-             label=f"state = {shifter.state}")
+            label=f"state = {shifter.target_state}")
     ax2.set_xlabel("tweezer power (mW)")
     # ax2.set_ylim([0, 100])
     ax2.set_ylabel("AC Stark Shift (MHz)")
@@ -245,4 +197,4 @@ def plot_Cs_Rydberg_local_address_shift(n=40):
 
 if __name__ == "__main__":
     #plot_Cs_ground_state_tweezer_shift()
-    plot_Cs_Rydberg_local_address_shift(n=40)
+    plot_Cs_Rydberg_local_address_shift(n=41)

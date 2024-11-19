@@ -37,9 +37,12 @@ class ACStarkShift:
         self.atom = Cs()
 
         # calculation specific parameters
-        self.state = [self.n, self.l, self.j]
-        self.lmax = 2
-        self.n_basis = 5
+        self.target_state = [self.n, self.l, self.j]
+        self.lmax = 3
+        # for optical transitions, might want to adjust n_min and n_max such
+        # that the transition is included in the calculation
+        self.basis_n_min = self.n - 5
+        self.basis_n_max = self.n + 5
 
     def ac_stark_shift_polarizability(self, wavelengthList, P):
         """
@@ -58,8 +61,8 @@ class ACStarkShift:
             A list of the AC Stark shifts at each of the wavelengths in
             wavelengthList.
         """
-        calc = DynamicPolarizability(self.atom, *self.state)
-        calc.defineBasis(self.atom.groundStateN, self.n_basis)
+        calc = DynamicPolarizability(self.atom, *self.target_state)
+        calc.defineBasis(self.basis_n_min, self.basis_n_max)
         alpha0_lst = []
         for wavelength in wavelengthList:
             alpha0, alpha1, alpha2, alphaC, alphaP, closestState = calc.getPolarizability(
@@ -89,34 +92,50 @@ class ACStarkShift:
             A 2D array of the AC Stark shifts at each combination of powers and
             wavelengths.
         """
+        # Define the frequencies and electric field magnitudes that generate
+        # the shifts
         freqs = wavelength2freq(wavelengths)
-
-        eFields = power2field(powers, self.laserWaist)  # 0.1*1e3  # V/m
+        eFields = power2field(powers, self.laserWaist)
 
         calc_full = ShirleyMethod(self.atom)
-        # calc_full.defineBasis(
-        #     *self.state, self.mj, self.q, self.state[0] - self.n_basis,
-        #     self.state[0] + self.n_basis,
-        #     self.lmax,
-        #     edN=0,
-        #     progressOutput=False
-        # )
+        
+        # define a basis set that includes the local (microwave) and coupled
+        # (optical) basis set
         calc_full.defineBasis(
-            *self.state, self.mj, self.q, 39,
-                                          43,
+            *self.target_state, self.mj, self.q, self.basis_n_min,
+            self.basis_n_max,
             self.lmax,
             edN=0,
-            progressOutput=False
-        )
+            progressOutput=False)
+        basis_local = calc_full.basisStates
+        calc_full.defineBasis(*self.target_state, self.mj, self.q, 6,
+            10,
+            self.lmax,
+            edN=0,
+            progressOutput=False)
+        ryd_basis_coupled = calc_full.basisStates
         
+        full_basis = basis_local
+        if self.target_state[0] > 10:
+            full_basis = basis_local + ryd_basis_coupled
+            # If our target state is highly-excited and we are looking at AC
+            # stark shifts near optical transitions, we need to include basis
+            # states near the ground state that are coupled by the optical
+            # transition, as well as those that are coupled by microwave
+            # transitions.
+        # Define the final basis
+        calc_full.defineBasis(*self.target_state, self.mj, self.q,
+                              basisStates=full_basis,
+                              progressOutput=False)
+        
+        # Define the Hamiltonian
         calc_full.defineShirleyHamiltonian(fn=1)
 
+        # Compute the AC Stark shifts
         u_shirley = []
-
         for freq, eField in product(freqs, eFields):
             calc_full.diagonalise(eField, freq, progressOutput=False)
             u_shirley.append(calc_full.targetShifts)
         results_Shirley = np.array(u_shirley).reshape((len(eFields),
                                                           len(freqs)))
-
         return results_Shirley
