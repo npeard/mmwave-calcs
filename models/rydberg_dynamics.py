@@ -120,6 +120,16 @@ class UnitaryRydberg:
         -------
         H : float64[:,:]
             Hamiltonian in the three-state basis.
+
+        Notes
+        -----
+        The Hamiltonian is given by
+
+        H = -1/2 * (Omega12 * (|e><g| + |g><e|) + Omega23 * (|r><e| + |e><r|))
+             - Delta * |e><e| - delta * |r><r|
+
+        where |g>, |e>, and |r> are the ground, excited, and Rydberg states,
+        respectively.
         """
         sm1 = np.asarray([[0, 1, 0], [0, 0, 0], [0, 0, 0]])  # sigma minus
         sm2 = np.asarray([[0, 0, 0], [0, 0, 1], [0, 0, 0]])  # sigma minus

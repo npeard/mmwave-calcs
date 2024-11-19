@@ -4,6 +4,6 @@ flake8>=6.0.0
 numpy
 scipy
 matplotlib
-ARC-Alkali-Rydberg-Calculator>=3.5
+ARC-Alkali-Rydberg-Calculator>=3.6.0
 numba
 scikit-optimize
