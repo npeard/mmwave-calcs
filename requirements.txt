@@ -7,3 +7,4 @@ matplotlib
 ARC-Alkali-Rydberg-Calculator>=3.6.0
 numba
 scikit-optimize
+quspin
