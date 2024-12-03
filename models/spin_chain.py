@@ -15,12 +15,10 @@ class LatticeHamiltonian:
         self.interaction_dict: Dict[str, List[List[Any]]] = interaction_dict or {}
     
     def __call__(self, t):
-        return {
-            op: [[f(t) if callable(f) else f for f in interaction]
-                 for interaction in interactions]
-            for op, interactions in self.interaction_dict.items()
-        }
-    
+        return {op: [[f(t) if callable(f) else f for f in interaction] for
+                     interaction in interactions] for op, interactions in
+                        self.interaction_dict.items()}
+
     @classmethod
     def from_interactions(cls, L: int, terms: List[List[Any]]):
         # Create a fresh interaction dictionary
@@ -49,21 +47,22 @@ class LatticeHamiltonian:
                 # Nearest Neighbor (NN) interactions
                 if alpha == 'nn':
                     if callable(strength):
-                        print("strength", strength(0.25, 1, 2))
-                        dummy = lambda t: strength(t, 1, 2)
-                        print("dummy", dummy(0.25))
-                        graph = [[lambda t: strength(t, i, i + 1), i, i + 1]
+                        graph = [[lambda t, s=strength, i=i: s(t, i, i + 1), i,
+                                  i + 1]
                                  for i in range(L - 1)]
                     else:
-                        graph = [[strength, i, i + 1] for i in range(L - 1)]
+                        graph = [[lambda t, s=strength: s, i, i + 1]
+                                 for i in range(L - 1)]
                 
                 # Next-Nearest Neighbor (NNN) interactions
                 elif alpha == 'nnn':
                     if callable(strength):
-                        graph = [[lambda t: strength(t, i, i + 2), i, i + 2]
+                        graph = [[lambda t, s=strength, i=i: s(t, i, i + 2), i,
+                                  i + 2]
                                  for i in range(L - 2)]
                     else:
-                        graph = [[strength, i, i + 2] for i in range(L - 2)]
+                        graph = [[lambda t, s=strength: s, i, i + 2]
+                                 for i in range(L - 2)]
                 
                 else:
                     raise ValueError(f"Invalid range cutoff string: {alpha}")
@@ -79,10 +78,12 @@ class LatticeHamiltonian:
                 # On-site interaction
                 if callable(strength):
                     # Time-dependent or site-specific on-site term
-                    graph = [[lambda t: strength(t, i), i] for i in range(L)]
+                    graph = [[lambda t, s=strength, i=i: s(t, i), i]
+                             for i in range(L)]
                 else:
                     # Constant on-site term
-                    graph = [[strength, i] for i in range(L)]
+                    graph = [[lambda t, s=strength: s, i]
+                             for i in range(L)]
                 
                 # Add to the dictionary for this operator
                 new_interaction_dict[operator].extend(graph)
@@ -95,12 +96,12 @@ class LatticeHamiltonian:
                 # General long-range interaction
                 if callable(strength):
                     # Time and site-dependent interaction
-                    graph = [[lambda t: strength(t, i, j), i, j]
+                    graph = [[lambda t, s=strength, i=i, j=j: s(t, i, j), i, j]
                              for i in range(L) for j in range(L)]
                 else:
                     # Constant interaction strength
-                    graph = [[strength, i, j] for i in range(L)
-                             for j in range(L)]
+                    graph = [[lambda t, s=strength: s, i, j]
+                             for i in range(L) for j in range(L)]
                 
                 # Add to the dictionary for this operator
                 new_interaction_dict[operator].extend(graph)
@@ -158,14 +159,13 @@ if __name__ == "__main__":
     def param_xx(t, i, j):
         return np.sin(2 * np.pi * t)
     
-    terms = [['xx', param_xx, 'nn'], ['yy', 1, 'nn'], ['z', 2, np.inf],
+    terms = [['XX', param_xx, 'nn'], ['yy', 1, 'nn'], ['z', 2, np.inf],
              ['xx', 3, 'nn']]
     hamiltonian = LatticeHamiltonian.from_interactions(4, terms)
     
-    print(hamiltonian(0.25))
+    print(hamiltonian(0.26))
     
     computation = DiagonalizationEngine(hamiltonian)
     computation.build_basis()
-    H = computation.quspin_hamiltonian(0.0)
-    print(H)
+    H = computation.quspin_hamiltonian(0.15)
     #computation.run_calculation(0.0)
