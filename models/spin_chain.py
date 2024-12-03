@@ -127,6 +127,31 @@ class ComputationStrategy(ABC):
         """
         pass
     
+    def hilbert_schmidt_fidelity(self, H1, H2):
+        # Use the Hilbert-Schmidt inner product to compute a fidelity metric for two
+        # Hamiltonians. If the two input matrices are identical, the output will be
+        # 1.
+        conjH1 = np.matrix(H1).getH()
+        conjH2 = np.matrix(H2).getH()
+        product = matvec(conjH1, H2)
+        overlap = np.abs(np.trace(product))
+        norm = np.sqrt(np.abs(np.trace(matvec(conjH1, H1))) * np.abs(
+            np.trace(matvec(conjH2, H2))))
+        return overlap / norm
+    
+    def norm_identity_loss(self, H1, H2):
+        # Use the norm difference between the product of two unitaries and the
+        # identity to establish a loss metric for the two unitaries. Identical
+        # unitaries return values close to zero.
+        conjH1 = np.matrix(H1).getH()
+        conjH2 = np.matrix(H2).getH()
+        product = matvec(conjH1, H2)
+        identity = np.identity(product.shape[0])
+        diff = product - identity
+        conjdiff = np.matrix(diff).getH()
+        norm = np.sqrt(np.abs(np.trace(matvec(conjdiff, diff))))
+        return norm
+    
 class DiagonalizationEngine(ComputationStrategy):
     def build_basis(self, a=1):
         self.basis = spin_basis_1d(L=self.hamiltonian.L, a=a, S=self.spin)
@@ -164,18 +189,20 @@ class DiagonalizationEngine(ComputationStrategy):
         results = Floquet(evo_dict, HF=True, UF=True)
         
         return results.HF, results.UF
+    
+    def hilbert_schmidt_fidelity(self, H1, H2):
+        # Override for formatting
+        if isinstance(H1, quspin.operators.hamiltonian):
+            H1 = H1.todense()
+        if isinstance(H2, quspin.operators.hamiltonian):
+            H2 = H2.todense()
+        
+        return super().hilbert_schmidt_fidelity(H1, H2)
         
     
 class DMRGEngine(ComputationStrategy):
     def run_calculation(self, t: float = 0.0):
-        # Construct Hamiltonian
-        H = self.hamiltonian_builder.construct_hamiltonian(t)
-        
-        # Perform DMRG (placeholder)
-        # This would use Block2 or other DMRG library
-        print("DMRG calculation placeholder")
-        
-        return H  # Simplified return
+        pass
 
 
 if __name__ == "__main__":
@@ -219,4 +246,7 @@ if __name__ == "__main__":
     paramList = ["nat", "+DM", "nat", "+XY", "nat", "-XY", "nat", "-DM", "nat"]
     dtList = [tJ, 0, tD, 0, 2*tmJ, 0, tD, 0, tJ]
     HF, UF = computation.compute_floquet_hamiltonian(paramList, dtList)
-    print(HF)
+    #print(HF)
+    fid = computation.hilbert_schmidt_fidelity(HF,
+                                               computation.quspin_hamiltonian(0))
+    print(fid)
