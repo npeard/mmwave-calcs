@@ -49,22 +49,21 @@ class LatticeHamiltonian:
                 # Nearest Neighbor (NN) interactions
                 if alpha == 'nn':
                     if callable(strength):
-                        graph = [[lambda t, i=i, j=i + 1: strength(t, i, j), i,
-                                  i + 1]
+                        print("strength", strength(0.25, 1, 2))
+                        dummy = lambda t: strength(t, 1, 2)
+                        print("dummy", dummy(0.25))
+                        graph = [[lambda t: strength(t, i, i + 1), i, i + 1]
                                  for i in range(L - 1)]
                     else:
-                        graph = [[strength, i, i + 1] for i in
-                                 range(L - 1)]
+                        graph = [[strength, i, i + 1] for i in range(L - 1)]
                 
                 # Next-Nearest Neighbor (NNN) interactions
                 elif alpha == 'nnn':
                     if callable(strength):
-                        graph = [[lambda t, i=i, j=i + 2: strength(t, i, j), i,
-                                  i + 2]
+                        graph = [[lambda t: strength(t, i, i + 2), i, i + 2]
                                  for i in range(L - 2)]
                     else:
-                        graph = [[strength, i, i + 2] for i in
-                                 range(L - 2)]
+                        graph = [[strength, i, i + 2] for i in range(L - 2)]
                 
                 else:
                     raise ValueError(f"Invalid range cutoff string: {alpha}")
@@ -80,8 +79,7 @@ class LatticeHamiltonian:
                 # On-site interaction
                 if callable(strength):
                     # Time-dependent or site-specific on-site term
-                    graph = [[lambda t, i=i: strength(t, i), i]
-                             for i in range(L)]
+                    graph = [[lambda t: strength(t, i), i] for i in range(L)]
                 else:
                     # Constant on-site term
                     graph = [[strength, i] for i in range(L)]
@@ -97,11 +95,8 @@ class LatticeHamiltonian:
                 # General long-range interaction
                 if callable(strength):
                     # Time and site-dependent interaction
-                    graph = [
-                        [lambda t, i=i, j=j: strength(t, i, j), i, j]
-                        for i in range(L)
-                        for j in range(L)
-                    ]
+                    graph = [[lambda t: strength(t, i, j), i, j]
+                             for i in range(L) for j in range(L)]
                 else:
                     # Constant interaction strength
                     graph = [[strength, i, j] for i in range(L)
@@ -115,7 +110,7 @@ class LatticeHamiltonian:
     
     
 class ComputationStrategy(ABC):
-    def __init__(self, hamiltonian: LatticeHamiltonian, spin=1/2):
+    def __init__(self, hamiltonian: LatticeHamiltonian, spin='1/2'):
         self.hamiltonian = hamiltonian
         self.spin = spin
     
@@ -133,9 +128,9 @@ class ComputationStrategy(ABC):
     
 class DiagonalizationEngine(ComputationStrategy):
     def build_basis(self, a=1):
-        self.basis = spin_basis_1d(L=self.hamiltonian.L, a=a)
+        self.basis = spin_basis_1d(L=self.hamiltonian.L, a=a, S=self.spin)
         
-    def build_hamiltonian(self, t):
+    def quspin_hamiltonian(self, t):
         # Put our Hamiltonian into QuSpin format
         static = [[key, self.hamiltonian(t)[key]] for key in self.hamiltonian(t).keys()]
         # Create QuSpin Hamiltonian
@@ -160,13 +155,17 @@ class DMRGEngine(ComputationStrategy):
 
 if __name__ == "__main__":
     # Example usage
-    terms = [['xx', 1, 'nn'], ['yy', 1, 'nn'], ['z', 2, np.inf],
+    def param_xx(t, i, j):
+        return np.sin(2 * np.pi * t)
+    
+    terms = [['xx', param_xx, 'nn'], ['yy', 1, 'nn'], ['z', 2, np.inf],
              ['xx', 3, 'nn']]
     hamiltonian = LatticeHamiltonian.from_interactions(4, terms)
     
-    print(hamiltonian(1))
+    print(hamiltonian(0.25))
     
     computation = DiagonalizationEngine(hamiltonian)
     computation.build_basis()
-    computation.build_hamiltonian(0.0)
+    H = computation.quspin_hamiltonian(0.0)
+    print(H)
     #computation.run_calculation(0.0)
