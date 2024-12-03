@@ -135,12 +135,36 @@ class DiagonalizationEngine(ComputationStrategy):
         # Put our Hamiltonian into QuSpin format
         static = [[key, self.hamiltonian(t)[key]] for key in self.hamiltonian(t).keys()]
         # Create QuSpin Hamiltonian
+        # TODO: is this multiplying my operators by 2?
         H = quspin.operators.hamiltonian(static, [], basis=self.basis)
         
         return H
     
     def run_calculation(self, t: float = 0.0):
         pass
+    
+    def compute_floquet_hamiltonian(self, paramList, dtList):
+        # paramList could be a list of times to evaluate the Hamiltonian
+        # but really it is just a list of parameters because the time dimension
+        # is implicit from dtList. Set dt=0 for a delta pulse (make sure
+        # you've integrated the Hamiltonian to accrue the proper amount of
+        # phase)
+        if len(paramList) != len(dtList):
+            raise ValueError("paramList and dtList must have the same length")
+        
+        H_list = [self.quspin_hamiltonian(t) for t in paramList]
+        T = sum(dtList)
+        # if there are elements value 0 in dtList (indicating a delta pulse),
+        # replace them with 1 for QuSpin's integrator
+        dtList = [dt if dt > 0 else 1 for dt in dtList]
+        evo_dict = {"H_list": H_list, "dt_list": dtList, "T": T}
+        # the Hamiltonian could also be computed on-the-fly by QuSpin, but for
+        # sake of clarity and speed, we'll generate the list of Hamiltonians
+        # ahead of time
+        results = Floquet(evo_dict, HF=True, UF=True)
+        
+        return results.HF, results.UF
+        
     
 class DMRGEngine(ComputationStrategy):
     def run_calculation(self, t: float = 0.0):
@@ -156,16 +180,43 @@ class DMRGEngine(ComputationStrategy):
 
 if __name__ == "__main__":
     # Example usage
-    def param_xx(t, i, j):
-        return np.sin(2 * np.pi * t)
+    def DM_z_period4(t, i):
+        phase = np.pi/2 * (i % 4)
+        if t == "+DM":
+            return phase
+        elif t == "-DM":
+            return -phase
+        else:
+            return 0
+        
+    def XY_z_period4(t, i):
+        phase = np.pi - 3.*np.pi/2*(i % 4)
+        if t == "+XY":
+            return phase
+        elif t == "-XY":
+            return -phase
+        else:
+            return 0
+        
+    def native(t, i, j):
+        if t in ["+DM", "-DM", "+XY", "-XY"]:
+            return 0
+        else:
+            return 0.5
     
-    terms = [['XX', param_xx, 'nn'], ['yy', 1, 'nn'], ['z', 2, np.inf],
-             ['xx', 3, 'nn']]
+    terms = [['XX', native, 'nn'], ['yy', native, 'nn'],
+             ['z', DM_z_period4, np.inf], ['z', XY_z_period4, np.inf]]
     hamiltonian = LatticeHamiltonian.from_interactions(4, terms)
     
-    print(hamiltonian(0.26))
+    print(hamiltonian("-DM"))
     
     computation = DiagonalizationEngine(hamiltonian)
-    computation.build_basis()
-    H = computation.quspin_hamiltonian(0.15)
+    computation.build_basis(a=4)
+    # H = computation.quspin_hamiltonian("-DM")
+    # print(H)
     #computation.run_calculation(0.0)
+    tD = 1; tJ = 1; tmJ = 1;
+    paramList = ["nat", "+DM", "nat", "+XY", "nat", "-XY", "nat", "-DM", "nat"]
+    dtList = [tJ, 0, tD, 0, 2*tmJ, 0, tD, 0, tJ]
+    HF, UF = computation.compute_floquet_hamiltonian(paramList, dtList)
+    print(HF)
