@@ -12,7 +12,6 @@ from scipy.linalg import expm
 class LatticeHamiltonian:
     def __init__(self, L: int = None, interaction_dict: dict = None):
         self.L = L  # number of sites
-        self.terms = None  # list of terms in the Hamiltonian
         self.interaction_dict: Dict[str, List[List[Any]]] = interaction_dict or {}
     
     def __call__(self, t):
@@ -22,11 +21,12 @@ class LatticeHamiltonian:
             for op, interactions in self.interaction_dict.items()
         }
     
-    def construct_graph(self):
+    @classmethod
+    def from_interactions(cls, L: int, terms: List[List[Any]]):
         # Create a fresh interaction dictionary
         new_interaction_dict = {}
         
-        for term in self.terms:
+        for term in terms:
             # Unpack term: operator, strength, interaction range
             operator, strength, alpha = term
             
@@ -51,20 +51,20 @@ class LatticeHamiltonian:
                     if callable(strength):
                         graph = [[lambda t, i=i, j=i + 1: strength(t, i, j), i,
                                   i + 1]
-                                 for i in range(self.L - 1)]
+                                 for i in range(L - 1)]
                     else:
                         graph = [[strength, i, i + 1] for i in
-                                 range(self.L - 1)]
+                                 range(L - 1)]
                 
                 # Next-Nearest Neighbor (NNN) interactions
                 elif alpha == 'nnn':
                     if callable(strength):
                         graph = [[lambda t, i=i, j=i + 2: strength(t, i, j), i,
                                   i + 2]
-                                 for i in range(self.L - 2)]
+                                 for i in range(L - 2)]
                     else:
                         graph = [[strength, i, i + 2] for i in
-                                 range(self.L - 2)]
+                                 range(L - 2)]
                 
                 else:
                     raise ValueError(f"Invalid range cutoff string: {alpha}")
@@ -81,10 +81,10 @@ class LatticeHamiltonian:
                 if callable(strength):
                     # Time-dependent or site-specific on-site term
                     graph = [[lambda t, i=i: strength(t, i), i]
-                             for i in range(self.L)]
+                             for i in range(L)]
                 else:
                     # Constant on-site term
-                    graph = [[strength, i] for i in range(self.L)]
+                    graph = [[strength, i] for i in range(L)]
                 
                 # Add to the dictionary for this operator
                 new_interaction_dict[operator].extend(graph)
@@ -99,19 +99,19 @@ class LatticeHamiltonian:
                     # Time and site-dependent interaction
                     graph = [
                         [lambda t, i=i, j=j: strength(t, i, j), i, j]
-                        for i in range(self.L)
-                        for j in range(self.L)
+                        for i in range(L)
+                        for j in range(L)
                     ]
                 else:
                     # Constant interaction strength
-                    graph = [[strength, i, j] for i in range(self.L)
-                             for j in range(self.L)]
+                    graph = [[strength, i, j] for i in range(L)
+                             for j in range(L)]
                 
                 # Add to the dictionary for this operator
                 new_interaction_dict[operator].extend(graph)
         
         # Create a new Hamiltonian with the constructed interaction dictionary
-        return LatticeHamiltonian(self.L, new_interaction_dict)
+        return cls(L, new_interaction_dict)
     
     
 class ComputationStrategy(ABC):
@@ -139,9 +139,7 @@ class DiagonalizationEngine(ComputationStrategy):
         # Put our Hamiltonian into QuSpin format
         static = [[key, self.hamiltonian(t)[key]] for key in self.hamiltonian(t).keys()]
         # Create QuSpin Hamiltonian
-        print(static)
         H = quspin.operators.hamiltonian(static, [], basis=self.basis)
-        print(H)
         
         return H
     
@@ -162,10 +160,9 @@ class DMRGEngine(ComputationStrategy):
 
 if __name__ == "__main__":
     # Example usage
-    hamiltonian = LatticeHamiltonian(L=4)
-    hamiltonian.terms = [['xx', 1, 'nn'], ['yy', 1, 'nn'], ['z', 2, np.inf],
-                         ['xx', 3, 'nn']]
-    hamiltonian = hamiltonian.construct_graph()
+    terms = [['xx', 1, 'nn'], ['yy', 1, 'nn'], ['z', 2, np.inf],
+             ['xx', 3, 'nn']]
+    hamiltonian = LatticeHamiltonian.from_interactions(4, terms)
     
     print(hamiltonian(1))
     
