@@ -1,9 +1,9 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import List, Union, Callable, Any, Dict
+from typing import List, Any, Dict
 import quspin
 from scipy.linalg import expm
-from quspin.basis import spin_basis_1d  # Hilbert space spin basis
+from quspin.basis import spin_basis_1d
 from quspin.tools.Floquet import Floquet
 from quspin.tools.misc import matvec
 from models.utility import HiddenPrints
@@ -43,15 +43,14 @@ class LatticeGraph:
                 if len(operator) != 2:
                     raise ValueError(f"Two-site operation requires two-site "
                                      f"operator: {operator}")
-
+                # TODO: find simple way to turn PBC on/off, see 'nn' below
                 # Nearest Neighbor (NN) interactions
                 if alpha == 'nn':
                     if callable(strength):
-                        graph = [[lambda t, s=strength, i=i: s(t, i,(i + 1) % L), i,
-                                  (i + 1)%L]
-                                 for i in range(L)]
+                        graph = [[lambda t, s=strength, i=i: s(t, i,(i + 1) % L),
+                                  i, (i + 1) % L]for i in range(L)]
                     else:
-                        graph = [[lambda t, s=strength: s, i, (i + 1)%L]
+                        graph = [[lambda t, s=strength: s, i, (i + 1) % L]
                                  for i in range(L)]
 
                 # Next-Nearest Neighbor (NNN) interactions
@@ -169,15 +168,14 @@ class DiagonEngine(ComputationStrategy):
         # Create QuSpin Hamiltonian, suppressing annoying print statements
         # TODO: is this multiplying my operators by 2?
         with HiddenPrints():
-            H = quspin.operators.hamiltonian(static, [],
-                                             basis=self.basis)
+            H = quspin.operators.hamiltonian(static, [], basis=self.basis)
 
         return H
 
     def run_calculation(self, t: float = 0.0):
         pass
 
-    def get_quspin_floquet_hamiltonian(self, params: List[float],
+    def get_quspin_floquet_hamiltonian(self, params: List[float or str],
                                        dt_list: List[float]):
         # paramList could be a list of times to evaluate the Hamiltonian
         # but really it is just a list of parameters because the time dimension
@@ -266,7 +264,3 @@ if __name__ == "__main__":
     paramList = ["nat", "+DM", "nat", "+XY", "nat", "-XY", "nat", "-DM", "nat"]
     dtList = [tJ, 0, tD, 0, 2 * tmJ, 0, tD, 0, tJ]
     HF, UF = computation.get_quspin_floquet_hamiltonian(paramList, dtList)
-    # print(HF)
-    fid = computation.hilbert_schmidt_fidelity(HF,
-                                               computation.get_quspin_hamiltonian(0))
-    print(fid)
