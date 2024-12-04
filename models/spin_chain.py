@@ -5,6 +5,7 @@ import quspin
 from quspin.basis import spin_basis_1d  # Hilbert space spin basis
 from quspin.tools.Floquet import Floquet
 from quspin.tools.misc import matvec
+from models.utility import HiddenPrints
 
 
 class LatticeGraph:
@@ -93,12 +94,14 @@ class LatticeGraph:
 
                 # General long-range interaction
                 if callable(strength):
-                    # Time and site-dependent interaction
-                    graph = [[lambda t, s=strength, i=i, j=j: s(t, i, j), i, j]
+                    # Time and site-dependent strength, inverse range alpha
+                    graph = [[lambda t, s=strength, i=i, j=j:
+                              s(t, i, j)/(np.abs(i-j)**alpha), i, j]
                              for i in range(L) for j in range(L)]
                 else:
-                    # Constant interaction strength
-                    graph = [[lambda t, s=strength: s, i, j]
+                    # Constant interaction strength, inverse range alpha
+                    graph = [[lambda t, s=strength:
+                              s/(np.abs(i-j)**alpha), i, j]
                              for i in range(L) for j in range(L)]
 
                 # Add to the dictionary for this operator
@@ -156,9 +159,10 @@ class DiagonEngine(ComputationStrategy):
         self.basis = spin_basis_1d(L=self.graph.L, a=a, S=self.spin)
         # Put our Hamiltonian into QuSpin format
         static = [[key, self.graph(t)[key]] for key in self.graph(t).keys()]
-        # Create QuSpin Hamiltonian
+        # Create QuSpin Hamiltonian, suppressing annoying print statements
         # TODO: is this multiplying my operators by 2?
-        H = quspin.operators.hamiltonian(static, [], basis=self.basis)
+        with HiddenPrints():
+            H = quspin.operators.hamiltonian(static, [], basis=self.basis)
 
         return H
 

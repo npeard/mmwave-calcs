@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.constants import c as c_c
 from scipy.constants import epsilon_0
+import os, sys
 
 
 def wavelength2freq(wavelength):
@@ -80,3 +81,13 @@ def power2field(laserPower, laserWaist):
     maxIntensity = 2 * laserPower / (np.pi * laserWaist**2)
     electricField = np.sqrt(2.0 * maxIntensity / (c_c * epsilon_0))
     return electricField
+
+
+class HiddenPrints:
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
