@@ -9,7 +9,7 @@ from quspin.tools.misc import matvec
 from scipy.linalg import expm
 
 
-class LatticeHamiltonian:
+class LatticeGraph:
     def __init__(self, L: int = None, interaction_dict: dict = None):
         self.L = L  # number of sites
         self.interaction_dict: Dict[str, List[List[Any]]] = interaction_dict or {}
@@ -111,8 +111,8 @@ class LatticeHamiltonian:
     
     
 class ComputationStrategy(ABC):
-    def __init__(self, hamiltonian: LatticeHamiltonian, spin='1/2'):
-        self.hamiltonian = hamiltonian
+    def __init__(self, graph: LatticeGraph, spin='1/2'):
+        self.graph = graph
         self.spin = spin
     
     @abstractmethod
@@ -154,11 +154,11 @@ class ComputationStrategy(ABC):
     
 class DiagonalizationEngine(ComputationStrategy):
     def build_basis(self, a=1):
-        self.basis = spin_basis_1d(L=self.hamiltonian.L, a=a, S=self.spin)
+        self.basis = spin_basis_1d(L=self.graph.L, a=a, S=self.spin)
         
     def quspin_hamiltonian(self, t):
         # Put our Hamiltonian into QuSpin format
-        static = [[key, self.hamiltonian(t)[key]] for key in self.hamiltonian(t).keys()]
+        static = [[key, self.graph(t)[key]] for key in self.graph(t).keys()]
         # Create QuSpin Hamiltonian
         # TODO: is this multiplying my operators by 2?
         H = quspin.operators.hamiltonian(static, [], basis=self.basis)
@@ -233,7 +233,7 @@ if __name__ == "__main__":
     
     terms = [['XX', native, 'nn'], ['yy', native, 'nn'],
              ['z', DM_z_period4, np.inf], ['z', XY_z_period4, np.inf]]
-    hamiltonian = LatticeHamiltonian.from_interactions(4, terms)
+    hamiltonian = LatticeGraph.from_interactions(4, terms)
     
     print(hamiltonian("-DM"))
     
