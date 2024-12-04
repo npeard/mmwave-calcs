@@ -2,6 +2,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 from typing import List, Union, Callable, Any, Dict
 import quspin
+from scipy.linalg import expm
 from quspin.basis import spin_basis_1d  # Hilbert space spin basis
 from quspin.tools.Floquet import Floquet
 from quspin.tools.misc import matvec
@@ -46,22 +47,22 @@ class LatticeGraph:
                 # Nearest Neighbor (NN) interactions
                 if alpha == 'nn':
                     if callable(strength):
-                        graph = [[lambda t, s=strength, i=i: s(t, i, i + 1), i,
-                                  i + 1]
-                                 for i in range(L - 1)]
+                        graph = [[lambda t, s=strength, i=i: s(t, i,(i + 1) % L), i,
+                                  (i + 1)%L]
+                                 for i in range(L)]
                     else:
-                        graph = [[lambda t, s=strength: s, i, i + 1]
-                                 for i in range(L - 1)]
+                        graph = [[lambda t, s=strength: s, i, (i + 1)%L]
+                                 for i in range(L)]
 
                 # Next-Nearest Neighbor (NNN) interactions
                 elif alpha == 'nnn':
                     if callable(strength):
                         graph = [[lambda t, s=strength, i=i: s(t, i, i + 2), i,
                                   i + 2]
-                                 for i in range(L - 2)]
+                                 for i in range(L - 1)]
                     else:
                         graph = [[lambda t, s=strength: s, i, i + 2]
-                                 for i in range(L - 2)]
+                                 for i in range(L - 1)]
 
                 else:
                     raise ValueError(f"Invalid range cutoff string: {alpha}")
@@ -112,9 +113,11 @@ class LatticeGraph:
 
 
 class ComputationStrategy(ABC):
-    def __init__(self, graph: LatticeGraph, spin='1/2'):
+    def __init__(self, graph: LatticeGraph, spin='1/2',
+                 unit_cell_length: int = 1):
         self.graph = graph
         self.spin = spin
+        self.unit_cell_length = unit_cell_length
 
     @abstractmethod
     def run_calculation(self, t: float = 0.0):
@@ -144,25 +147,30 @@ class ComputationStrategy(ABC):
         # Use the norm difference between the product of two unitaries and the
         # identity to establish a loss metric for the two unitaries. Identical
         # unitaries return values close to zero.
-        conjH1 = np.matrix(H1).getH()
-        conjH2 = np.matrix(H2).getH()
-        product = matvec(conjH1, H2)
+        # expects input of Hamiltonians times evolution time, then converts to unitaries
+        U1 = expm(-1j*H1)
+        U2 = expm(-1j*H2)
+        conjU1 = np.matrix(U1).getH()
+        # conjU2 = np.matrix(U2).getH()
+        product = matvec(conjU1, U2)
         identity = np.identity(product.shape[0])
         diff = product - identity
-        conjdiff = np.matrix(diff).getH()
-        norm = np.sqrt(np.abs(np.trace(matvec(conjdiff, diff))))
+        conj_diff = np.matrix(diff).getH()
+        norm = np.sqrt(np.abs(np.trace(matvec(conj_diff, diff))))
         return norm
 
 
 class DiagonEngine(ComputationStrategy):
-    def get_quspin_hamiltonian(self, t: float, a: int = 1):
-        self.basis = spin_basis_1d(L=self.graph.L, a=a, S=self.spin)
+    def get_quspin_hamiltonian(self, t: float):
+        self.basis = spin_basis_1d(L=self.graph.L, a=self.unit_cell_length,
+                                   S=self.spin)
         # Put our Hamiltonian into QuSpin format
         static = [[key, self.graph(t)[key]] for key in self.graph(t).keys()]
         # Create QuSpin Hamiltonian, suppressing annoying print statements
         # TODO: is this multiplying my operators by 2?
         with HiddenPrints():
-            H = quspin.operators.hamiltonian(static, [], basis=self.basis)
+            H = quspin.operators.hamiltonian(static, [],
+                                             basis=self.basis)
 
         return H
 
@@ -188,9 +196,9 @@ class DiagonEngine(ComputationStrategy):
         # the Hamiltonian could also be computed on-the-fly by QuSpin, but for
         # sake of clarity and speed, we'll generate the list of Hamiltonians
         # ahead of time
-        results = Floquet(evo_dict, HF=True, UF=True)
+        results = Floquet(evo_dict, HF=True, UF=False, force_ONB=True, n_jobs=1)
 
-        return results.HF, results.UF
+        return results.HF
 
     def hilbert_schmidt_fidelity(self, H1, H2):
         # Override for formatting
