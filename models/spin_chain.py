@@ -152,11 +152,10 @@ class ComputationStrategy(ABC):
         norm = np.sqrt(np.abs(np.trace(matvec(conjdiff, diff))))
         return norm
     
-class DiagonalizationEngine(ComputationStrategy):
-    def build_basis(self, a=1):
+    
+class DiagonEngine(ComputationStrategy):
+    def get_quspin_hamiltonian(self, t: float, a: int = 1):
         self.basis = spin_basis_1d(L=self.graph.L, a=a, S=self.spin)
-        
-    def quspin_hamiltonian(self, t):
         # Put our Hamiltonian into QuSpin format
         static = [[key, self.graph(t)[key]] for key in self.graph(t).keys()]
         # Create QuSpin Hamiltonian
@@ -168,21 +167,22 @@ class DiagonalizationEngine(ComputationStrategy):
     def run_calculation(self, t: float = 0.0):
         pass
     
-    def compute_floquet_hamiltonian(self, paramList, dtList):
+    def get_quspin_floquet_hamiltonian(self, params: List[float],
+                                       dt_list: List[float]):
         # paramList could be a list of times to evaluate the Hamiltonian
         # but really it is just a list of parameters because the time dimension
         # is implicit from dtList. Set dt=0 for a delta pulse (make sure
         # you've integrated the Hamiltonian to accrue the proper amount of
         # phase)
-        if len(paramList) != len(dtList):
+        if len(params) != len(dt_list):
             raise ValueError("paramList and dtList must have the same length")
         
-        H_list = [self.quspin_hamiltonian(t) for t in paramList]
-        T = sum(dtList)
+        H_list = [self.get_quspin_hamiltonian(t) for t in params]
+        T = sum(dt_list)
         # if there are elements value 0 in dtList (indicating a delta pulse),
         # replace them with 1 for QuSpin's integrator
-        dtList = [dt if dt > 0 else 1 for dt in dtList]
-        evo_dict = {"H_list": H_list, "dt_list": dtList, "T": T}
+        dt_list = [dt if dt > 0 else 1 for dt in dt_list]
+        evo_dict = {"H_list": H_list, "dt_list": dt_list, "T": T}
         # the Hamiltonian could also be computed on-the-fly by QuSpin, but for
         # sake of clarity and speed, we'll generate the list of Hamiltonians
         # ahead of time
@@ -198,6 +198,15 @@ class DiagonalizationEngine(ComputationStrategy):
             H2 = H2.todense()
         
         return super().hilbert_schmidt_fidelity(H1, H2)
+    
+    def norm_identity_loss(self, H1, H2):
+        # Override for formatting
+        if isinstance(H1, quspin.operators.hamiltonian):
+            H1 = H1.todense()
+        if isinstance(H2, quspin.operators.hamiltonian):
+            H2 = H2.todense()
+        
+        return super().norm_identity_loss(H1, H2)
         
     
 class DMRGEngine(ComputationStrategy):
@@ -233,20 +242,19 @@ if __name__ == "__main__":
     
     terms = [['XX', native, 'nn'], ['yy', native, 'nn'],
              ['z', DM_z_period4, np.inf], ['z', XY_z_period4, np.inf]]
-    hamiltonian = LatticeGraph.from_interactions(4, terms)
+    graph = LatticeGraph.from_interactions(4, terms)
     
-    print(hamiltonian("-DM"))
+    print(graph("-DM"))
     
-    computation = DiagonalizationEngine(hamiltonian)
-    computation.build_basis(a=4)
-    # H = computation.quspin_hamiltonian("-DM")
+    computation = DiagonEngine(graph)
+    # H = computation.quspin_hamiltonian("-DM", a = 4)
     # print(H)
     #computation.run_calculation(0.0)
     tD = 1; tJ = 1; tmJ = 1;
     paramList = ["nat", "+DM", "nat", "+XY", "nat", "-XY", "nat", "-DM", "nat"]
     dtList = [tJ, 0, tD, 0, 2*tmJ, 0, tD, 0, tJ]
-    HF, UF = computation.compute_floquet_hamiltonian(paramList, dtList)
+    HF, UF = computation.get_quspin_floquet_hamiltonian(paramList, dtList)
     #print(HF)
     fid = computation.hilbert_schmidt_fidelity(HF,
-                                               computation.quspin_hamiltonian(0))
+                                               computation.get_quspin_hamiltonian(0))
     print(fid)
