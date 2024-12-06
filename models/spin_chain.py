@@ -130,10 +130,10 @@ class ComputationStrategy(ABC):
         """
         pass
 
-    def hilbert_schmidt_fidelity(self, H1, H2):
-        # Use the Hilbert-Schmidt inner product to compute a fidelity metric for two
+    def frobenius_norm(self, H1, H2):
+        # Use the Frobenius norm to compute a fidelity metric for two
         # Hamiltonians. If the two input matrices are identical, the output will be
-        # 1.
+        # 1. Also could use numpy.linalg.norm(), which is faster?
         conjH1 = np.matrix(H1).getH()
         conjH2 = np.matrix(H2).getH()
         product = matvec(conjH1, H2)
@@ -198,14 +198,14 @@ class DiagonEngine(ComputationStrategy):
 
         return results.HF
 
-    def hilbert_schmidt_fidelity(self, H1, H2):
+    def frobenius_norm(self, H1, H2):
         # Override for formatting
         if isinstance(H1, quspin.operators.hamiltonian):
             H1 = H1.todense()
         if isinstance(H2, quspin.operators.hamiltonian):
             H2 = H2.todense()
 
-        return super().hilbert_schmidt_fidelity(H1, H2)
+        return super().frobenius_norm(H1, H2)
 
     def norm_identity_loss(self, H1, H2):
         # Override for formatting
