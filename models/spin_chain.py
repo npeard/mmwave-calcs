@@ -140,7 +140,7 @@ class ComputationStrategy(ABC):
         overlap = np.abs(np.trace(product))
         norm = np.sqrt(np.abs(np.trace(matvec(conjH1, H1))) * np.abs(
             np.trace(matvec(conjH2, H2))))
-        return overlap / norm
+        return np.sqrt(overlap / norm)
 
     def norm_identity_loss(self, H1, H2):
         # Use the norm difference between the product of two unitaries and the
