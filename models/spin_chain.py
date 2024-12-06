@@ -130,17 +130,21 @@ class ComputationStrategy(ABC):
         """
         pass
 
+    def frobenius_loss(self, H1, H2):
+        # Use the (normalized) Frobenius norm to compute a fidelity metric for
+        # two Hamiltonians. If the two input matrices are identical,
+        # the output will be 1. Also could use numpy.linalg.norm(), which is
+        # faster?
+        overlap = self.frobenius_norm(H1, H2)
+        norm = np.sqrt(self.frobenius_norm(H1, H1) * self.frobenius_norm(H2, H2))
+        return 1 - overlap / norm
+    
     def frobenius_norm(self, H1, H2):
-        # Use the Frobenius norm to compute a fidelity metric for two
-        # Hamiltonians. If the two input matrices are identical, the output will be
-        # 1. Also could use numpy.linalg.norm(), which is faster?
         conjH1 = np.matrix(H1).getH()
         conjH2 = np.matrix(H2).getH()
         product = matvec(conjH1, H2)
         overlap = np.abs(np.trace(product))
-        norm = np.sqrt(np.abs(np.trace(matvec(conjH1, H1))) * np.abs(
-            np.trace(matvec(conjH2, H2))))
-        return np.sqrt(overlap / norm)
+        return np.sqrt(overlap)
 
     def norm_identity_loss(self, H1, H2):
         # Use the norm difference between the product of two unitaries and the
@@ -198,6 +202,15 @@ class DiagonEngine(ComputationStrategy):
 
         return results.HF
 
+    def frobenius_loss(self, H1, H2):
+        # Override for formatting
+        if isinstance(H1, quspin.operators.hamiltonian):
+            H1 = H1.todense()
+        if isinstance(H2, quspin.operators.hamiltonian):
+            H2 = H2.todense()
+
+        return super().frobenius_loss(H1, H2)
+    
     def frobenius_norm(self, H1, H2):
         # Override for formatting
         if isinstance(H1, quspin.operators.hamiltonian):
