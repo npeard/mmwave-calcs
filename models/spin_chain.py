@@ -1,6 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import List, Any, Dict
+from typing import Any
 import quspin
 from scipy.linalg import expm
 from quspin.basis import spin_basis_1d
@@ -10,9 +10,10 @@ from models.utility import HiddenPrints
 
 
 class LatticeGraph:
-    def __init__(self, L: int = None, interaction_dict: dict = None):
-        self.L = L  # number of sites
-        self.interaction_dict: Dict[str, List[List[Any]]] = interaction_dict or {}
+    def __init__(self, num_sites: int = None, interaction_dict: dict = None):
+        self.num_sites = num_sites  # number of sites
+        self.interaction_dict: dict[str, list[list[Any]]] = (interaction_dict
+                                                             or {})
 
     def __call__(self, t):
         return {op: [[f(t) if callable(f) else f for f in interaction] for
@@ -20,7 +21,8 @@ class LatticeGraph:
                 self.interaction_dict.items()}
 
     @classmethod
-    def from_interactions(cls, L: int, terms: List[List[Any]]):
+    def from_interactions(cls, num_sites: int, terms: list[list[Any]],
+                          pbc: bool = False):
         # Create a fresh interaction dictionary
         new_interaction_dict = {}
 
@@ -43,25 +45,30 @@ class LatticeGraph:
                 if len(operator) != 2:
                     raise ValueError(f"Two-site operation requires two-site "
                                      f"operator: {operator}")
-                # TODO: find simple way to turn PBC on/off, see 'nn' below
+                
                 # Nearest Neighbor (NN) interactions
                 if alpha == 'nn':
                     if callable(strength):
-                        graph = [[lambda t, s=strength, i=i: s(t, i,(i + 1) % L),
-                                  i, (i + 1) % L]for i in range(L)]
+                        graph = [[lambda t, s=strength, i=i:
+                                  s(t, i, (i + 1) % num_sites), i,
+                                  (i + 1) % num_sites] for i
+                                 in range(num_sites - 1 + int(pbc))]
                     else:
-                        graph = [[lambda t, s=strength: s, i, (i + 1) % L]
-                                 for i in range(L)]
+                        graph = [[lambda t, s=strength: s, i,
+                                  (i + 1) % num_sites]
+                                 for i in range(num_sites - 1 + int(pbc))]
 
                 # Next-Nearest Neighbor (NNN) interactions
                 elif alpha == 'nnn':
                     if callable(strength):
-                        graph = [[lambda t, s=strength, i=i: s(t, i, i + 2), i,
-                                  i + 2]
-                                 for i in range(L - 1)]
+                        graph = [[lambda t, s=strength, i=i:
+                                  s(t, i, (i + 2) % num_sites), i,
+                                  (i + 2) % num_sites]
+                                 for i in range(num_sites - 2 + int(pbc))]
                     else:
-                        graph = [[lambda t, s=strength: s, i, i + 2]
-                                 for i in range(L - 1)]
+                        graph = [[lambda t, s=strength: s, i,
+                                  (i + 2) % num_sites]
+                                 for i in range(num_sites - 2 + int(pbc))]
 
                 else:
                     raise ValueError(f"Invalid range cutoff string: {alpha}")
@@ -78,11 +85,11 @@ class LatticeGraph:
                 if callable(strength):
                     # Time-dependent or site-specific on-site term
                     graph = [[lambda t, s=strength, i=i: s(t, i), i]
-                             for i in range(L)]
+                             for i in range(num_sites)]
                 else:
                     # Constant on-site term
                     graph = [[lambda t, s=strength: s, i]
-                             for i in range(L)]
+                             for i in range(num_sites)]
 
                 # Add to the dictionary for this operator
                 new_interaction_dict[operator].extend(graph)
@@ -97,18 +104,18 @@ class LatticeGraph:
                     # Time and site-dependent strength, inverse range alpha
                     graph = [[lambda t, s=strength, i=i, j=j:
                               s(t, i, j)/(np.abs(i-j)**alpha), i, j]
-                             for i in range(L) for j in range(L)]
+                             for i in range(num_sites) for j in range(num_sites)]
                 else:
                     # Constant interaction strength, inverse range alpha
                     graph = [[lambda t, s=strength:
                               s/(np.abs(i-j)**alpha), i, j]
-                             for i in range(L) for j in range(L)]
+                             for i in range(num_sites) for j in range(num_sites)]
 
                 # Add to the dictionary for this operator
                 new_interaction_dict[operator].extend(graph)
 
         # Create a new Hamiltonian with the constructed interaction dictionary
-        return cls(L, new_interaction_dict)
+        return cls(num_sites, new_interaction_dict)
 
 
 class ComputationStrategy(ABC):
@@ -120,42 +127,34 @@ class ComputationStrategy(ABC):
 
     @abstractmethod
     def run_calculation(self, t: float = 0.0):
-        """
-        Run specific computational method
+        raise NotImplementedError
 
-        Parameters:
-        -----------
-        t : float, optional
-            Time point for Hamiltonian construction
-        """
-        pass
-
-    def frobenius_loss(self, H1, H2):
+    def frobenius_loss(self, matrix1: list[list[Any]], matrix2: list[list[Any]]):
         # Use the (normalized) Frobenius norm to compute a fidelity metric for
         # two Hamiltonians. If the two input matrices are identical,
         # the output will be 1. Also could use numpy.linalg.norm(), which is
         # faster?
-        overlap = self.frobenius_norm(H1, H2)
-        norm = np.sqrt(self.frobenius_norm(H1, H1) * self.frobenius_norm(H2, H2))
+        overlap = self.frobenius_norm(matrix1, matrix2)
+        norm = np.sqrt(self.frobenius_norm(matrix1, matrix1) * self.frobenius_norm(matrix2, matrix2))
         return 1 - overlap / norm
     
-    def frobenius_norm(self, H1, H2):
-        conjH1 = np.matrix(H1).getH()
-        conjH2 = np.matrix(H2).getH()
-        product = matvec(conjH1, H2)
+    def frobenius_norm(self, matrix1: list[list[Any]], matrix2: list[list[Any]]):
+        conjH1 = np.matrix(matrix1).getH()
+        conjH2 = np.matrix(matrix2).getH()
+        product = matvec(conjH1, matrix2)
         overlap = np.abs(np.trace(product))
         return np.sqrt(overlap)
 
-    def norm_identity_loss(self, H1, H2):
+    def norm_identity_loss(self, matrix1: list[list[Any]],
+                           matrix2: list[list[Any]]):
         # Use the norm difference between the product of two unitaries and the
         # identity to establish a loss metric for the two unitaries. Identical
         # unitaries return values close to zero.
         # expects input of Hamiltonians times evolution time, then converts to unitaries
-        U1 = expm(-1j*H1)
-        U2 = expm(-1j*H2)
-        conjU1 = np.matrix(U1).getH()
-        # conjU2 = np.matrix(U2).getH()
-        product = matvec(conjU1, U2)
+        unitary1 = expm(-1j * matrix1)
+        unitary2 = expm(-1j * matrix2)
+        conj_unitary1 = np.matrix(unitary1).getH()
+        product = matvec(conj_unitary1, unitary2)
         identity = np.identity(product.shape[0])
         diff = product - identity
         conj_diff = np.matrix(diff).getH()
@@ -165,7 +164,7 @@ class ComputationStrategy(ABC):
 
 class DiagonEngine(ComputationStrategy):
     def get_quspin_hamiltonian(self, t: float):
-        self.basis = spin_basis_1d(L=self.graph.L, a=self.unit_cell_length,
+        self.basis = spin_basis_1d(L=self.graph.num_sites, a=self.unit_cell_length,
                                    S=self.spin)
         # Put our Hamiltonian into QuSpin format
         static = [[key, self.graph(t)[key]] for key in self.graph(t).keys()]
@@ -177,10 +176,10 @@ class DiagonEngine(ComputationStrategy):
         return H
 
     def run_calculation(self, t: float = 0.0):
-        pass
+        raise NotImplementedError
 
-    def get_quspin_floquet_hamiltonian(self, params: List[float or str],
-                                       dt_list: List[float]):
+    def get_quspin_floquet_hamiltonian(self, params: list[float or str],
+                                       dt_list: list[float]):
         # paramList could be a list of times to evaluate the Hamiltonian
         # but really it is just a list of parameters because the time dimension
         # is implicit from dtList. Set dt=0 for a delta pulse (make sure
@@ -190,11 +189,11 @@ class DiagonEngine(ComputationStrategy):
             raise ValueError("paramList and dtList must have the same length")
 
         H_list = [self.get_quspin_hamiltonian(t) for t in params]
-        T = sum(dt_list)
+        floquet_period = sum(dt_list)
         # if there are elements value 0 in dtList (indicating a delta pulse),
         # replace them with 1 for QuSpin's integrator
         dt_list = [dt if dt > 0 else 1 for dt in dt_list]
-        evo_dict = {"H_list": H_list, "dt_list": dt_list, "T": T}
+        evo_dict = {"H_list": H_list, "dt_list": dt_list, "T": floquet_period}
         # the Hamiltonian could also be computed on-the-fly by QuSpin, but for
         # sake of clarity and speed, we'll generate the list of Hamiltonians
         # ahead of time
@@ -202,37 +201,37 @@ class DiagonEngine(ComputationStrategy):
 
         return results.HF
 
-    def frobenius_loss(self, H1, H2):
+    def frobenius_loss(self, matrix1, matrix2):
         # Override for formatting
-        if isinstance(H1, quspin.operators.hamiltonian):
-            H1 = H1.todense()
-        if isinstance(H2, quspin.operators.hamiltonian):
-            H2 = H2.todense()
+        if isinstance(matrix1, quspin.operators.hamiltonian):
+            matrix1 = matrix1.todense()
+        if isinstance(matrix2, quspin.operators.hamiltonian):
+            matrix2 = matrix2.todense()
 
-        return super().frobenius_loss(H1, H2)
+        return super().frobenius_loss(matrix1, matrix2)
     
-    def frobenius_norm(self, H1, H2):
+    def frobenius_norm(self, matrix1, matrix2):
         # Override for formatting
-        if isinstance(H1, quspin.operators.hamiltonian):
-            H1 = H1.todense()
-        if isinstance(H2, quspin.operators.hamiltonian):
-            H2 = H2.todense()
+        if isinstance(matrix1, quspin.operators.hamiltonian):
+            matrix1 = matrix1.todense()
+        if isinstance(matrix2, quspin.operators.hamiltonian):
+            matrix2 = matrix2.todense()
 
-        return super().frobenius_norm(H1, H2)
+        return super().frobenius_norm(matrix1, matrix2)
 
-    def norm_identity_loss(self, H1, H2):
+    def norm_identity_loss(self, matrix1, matrix2):
         # Override for formatting
-        if isinstance(H1, quspin.operators.hamiltonian):
-            H1 = H1.todense()
-        if isinstance(H2, quspin.operators.hamiltonian):
-            H2 = H2.todense()
+        if isinstance(matrix1, quspin.operators.hamiltonian):
+            matrix1 = matrix1.todense()
+        if isinstance(matrix2, quspin.operators.hamiltonian):
+            matrix2 = matrix2.todense()
 
-        return super().norm_identity_loss(H1, H2)
+        return super().norm_identity_loss(matrix1, matrix2)
 
 
 class DMRGEngine(ComputationStrategy):
     def run_calculation(self, t: float = 0.0):
-        pass
+        raise NotImplementedError
 
 
 if __name__ == "__main__":
@@ -263,17 +262,9 @@ if __name__ == "__main__":
 
     terms = [['XX', native, 'nn'], ['yy', native, 'nn'],
              ['z', DM_z_period4, np.inf], ['z', XY_z_period4, np.inf]]
-    graph = LatticeGraph.from_interactions(4, terms)
+    graph = LatticeGraph.from_interactions(4, terms, pbc=True)
 
     print(graph("-DM"))
 
     computation = DiagonEngine(graph)
-    # H = computation.quspin_hamiltonian("-DM", a = 4)
-    # print(H)
-    # computation.run_calculation(0.0)
-    tD = 1
-    tJ = 1
-    tmJ = 1
-    paramList = ["nat", "+DM", "nat", "+XY", "nat", "-XY", "nat", "-DM", "nat"]
-    dtList = [tJ, 0, tD, 0, 2 * tmJ, 0, tD, 0, tJ]
-    HF, UF = computation.get_quspin_floquet_hamiltonian(paramList, dtList)
+
