@@ -6,8 +6,8 @@ from scipy.linalg import expm
 from quspin.basis import spin_basis_1d
 from quspin.tools.Floquet import Floquet
 from quspin.tools.misc import matvec
-from models.utility import HiddenPrints
-
+from utility import HiddenPrints
+from pyblock2.driver.core import DMRGDriver, SymmetryTypes, MPOAlgorithmTypes
 
 class LatticeGraph:
     def __init__(self, num_sites: int = None, interaction_dict: dict = None):
@@ -454,8 +454,205 @@ class DiagonEngine(ComputationStrategy):
 
 
 class DMRGEngine(ComputationStrategy):
-    def run_calculation(self, t: float = 0.0):
-        raise NotImplementedError
+    def __init__(self, graph: LatticeGraph, spin='1', unit_cell_length: int = 1):
+        """
+        Initialize the DMRG Engine for solving spin chain problems.
+        
+        Parameters
+        ----------
+        graph : LatticeGraph
+            The lattice graph defining the spin chain system.
+        spin : str, optional
+            The spin representation to use. Default is '1' for spin-1.
+        unit_cell_length : int, optional
+            Length of the unit cell. Default is 1.
+        """
+        super().__init__(graph, spin, unit_cell_length)
+        self.energies = []  # List to store computed energies
+        self.states = []    # List to store computed states
+        self.driver = self._initialize_driver()
+        
+    def _initialize_driver(self):
+        """
+        Initialize the DMRG driver with appropriate symmetry and system parameters.
+        
+        Returns
+        -------
+        DMRGDriver
+            Initialized DMRG driver instance.
+        """
+        # Initialize DMRG driver
+        driver = DMRGDriver(scratch="./tmp", symm_type=SymmetryTypes.SGB)
+        
+        # Initialize system based on spin type
+        heis_twos = int(2*self.spin)
+        driver.initialize_system(n_sites=self.graph.num_sites, heis_twos=heis_twos, heis_twosz=0)
+        
+        return driver
+        
+    def _build_mpo(self, t: float = 0.0):
+        """
+        Build the MPO (Matrix Product Operator) for the Hamiltonian.
+        
+        Parameters
+        ----------
+        t : float, optional
+            Time at which to evaluate the Hamiltonian. Default is 0.0.
+            
+        Returns
+        -------
+        MPO
+            The constructed Matrix Product Operator representing the Hamiltonian.
+        """
+        # Get interaction terms from the graph at time t
+        interactions = self.graph(t)
+        
+        # Build Hamiltonian expression
+        b = self.driver.expr_builder()
+        
+        # Process all interactions from the graph
+        for op_type, terms in interactions.items():
+            for term in terms:
+                if len(term) < 2:  # Skip invalid terms
+                    continue
+                    
+                J = term[0]  # Interaction strength
+                
+                if len(term) == 2:  # Single-site term
+                    site = term[1]
+                    if op_type.lower() == 'z':
+                        b.add_term("Z", [site], J)
+                    elif op_type.lower() == 'x':
+                        b.add_term("X", [site], J)
+                    elif op_type.lower() == 'y':
+                        b.add_term("Y", [site], J)
+                        
+                elif len(term) == 3:  # Two-site term
+                    site1, site2 = term[1], term[2]
+                    # TODO: add appropriate check here to change xx+yy to pm+mp
+                    if op_type.lower() == 'xx':
+                        # XX terms are implemented as (P+M- + M+P-)/2
+                        b.add_term("PM", [site1, site2], 0.5 * J)
+                        b.add_term("MP", [site1, site2], 0.5 * J)
+                    elif op_type.lower() == 'yy':
+                        # YY terms are implemented as -(P+M- + M+P-)/2
+                        b.add_term("PM", [site1, site2], -0.5 * J)
+                        b.add_term("MP", [site1, site2], -0.5 * J)
+                    elif op_type.lower() == 'zz':
+                        b.add_term("ZZ", [site1, site2], J)
+        
+        # Define and return the MPO
+        return self.driver.get_mpo(b.finalize(adjust_order=True), algo_type=MPOAlgorithmTypes.FastBipartite)
+        
+    def compute_energies_mps(self, bond_dims=[50, 100, 200], n_roots=1, t: float = 0.0):
+        """
+        Compute energies and MPS states using DMRG.
+        
+        Parameters
+        ----------
+        bond_dims : list, optional
+            List of bond dimensions to use in DMRG. For example, [50, 100, 200] will run
+            DMRG first with bond dimension 50, then 100, then 200, to converge the calculation
+            to higher degrees of accuracy in the state correlations.
+        n_roots : int, optional
+            Number of states to compute. Default is 1.
+        t : float, optional
+            Time at which to evaluate the Hamiltonian. Default is 0.0.
+            
+        Returns
+        -------
+        tuple
+            (energies, states) where energies is a list of computed energies
+            and states is a list of computed MPS states.
+        """
+        # Build the MPO
+        heis_mpo = self._build_mpo(t)
+        
+        energies = []
+        states = []
+        
+        # Get initial random MPS
+        ket = self.driver.get_random_mps(tag="KET", bond_dim=min(10, bond_dims[0]), nroots=n_roots)
+        
+        # Set up DMRG parameters
+        noises = [1e-3] * 5 + [1e-5] * 5 + [0]
+        thrds = [1e-8] * 10
+        
+        # Run DMRG
+        energy = self.driver.dmrg(
+            heis_mpo,
+            ket,
+            n_sweeps=100,
+            bond_dims=bond_dims,
+            noises=noises,
+            thrds=thrds,
+            cutoff=1E-20,
+            tol=1e-6
+        )
+        
+        # Save results
+        energies.append(energy)
+        mps = self.driver.load_mps(tag="KET", nroots=n_roots)
+        
+        mps = [self.driver.split_mps(mps, iroot=i, tag=f"KET_state_{i}") 
+                    for i in range(n_roots)]
+        
+        states.append(mps)
+            
+        self.energies = energies
+        self.states = states
+        return energies, states
+    
+    def compute_correlation(self, state_idx=0, operator='z'):
+        """
+        Compute correlation functions for a given state.
+        
+        Parameters
+        ----------
+        state_idx : int, optional
+            Index of the state to compute correlations for. Default is 0.
+        operator : str, optional
+            Operator to compute correlations for ('x', 'y', or 'z'). Default is 'z'.
+            
+        Returns
+        -------
+        numpy.ndarray
+            Correlation values.
+        """
+        if not self.states:
+            raise ValueError("No states available. Run calculation first.")
+            
+        # Initialize driver
+        driver = DMRGDriver(scratch="./tmp", symm_type=SymmetryTypes.SGB)
+        heis_twos = 2 if self.spin == '1' else 1
+        driver.initialize_system(n_sites=self.graph.num_sites, heis_twos=heis_twos, heis_twosz=0)
+        
+        # Get the state
+        mps = self.states[state_idx]
+            
+        # Build correlation operator
+        b = driver.expr_builder()
+        N = self.graph.num_sites
+        correlations = np.zeros((N, N))
+        
+        # Compute all correlations
+        op_map = {'z': 'Z', 'x': 'X', 'y': 'Y'}
+        op = op_map.get(operator.lower(), 'Z')
+        
+        for i in range(N):
+            for j in range(i, N):
+                if i == j:
+                    b.add_term(op, [i], 1.0)
+                else:
+                    b.add_term(op + op, [i, j], 1.0)
+                    
+                mpo = driver.get_mpo(b.finalize())
+                correlations[i,j] = driver.expectation(mpo, mps, mps)
+                correlations[j,i] = correlations[i,j]  # Symmetrize
+                
+                b = driver.expr_builder()  # Reset builder for next term
+                
+        return correlations
 
 
 if __name__ == "__main__":
@@ -490,5 +687,4 @@ if __name__ == "__main__":
 
     print(graph("-DM"))
 
-    computation = DiagonEngine(graph)
-
+    computation = DMRGEngine(graph)
