@@ -134,3 +134,6 @@ dmypy.json
 # training data
 data/*
 checkpoints/*
+
+# OSX stuff
+.DS_Store
