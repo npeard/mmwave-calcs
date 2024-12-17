@@ -179,13 +179,13 @@ class LatticeGraph:
                 if callable(strength):
                     # Time and site-dependent strength, inverse range alpha
                     graph = [[lambda t, s=strength, i=i, j=j:
-                              s(t, i, j)/(np.abs(i - j)**alpha), i, j]
+                              s(t, i, j)*np.abs(j - i).astype(float)**(-1*alpha), i, j]
                              for i in range(num_sites) for j in
                              range(num_sites) if j>i]
                 else:
                     # Constant interaction strength, inverse range alpha
                     graph = [[lambda t, s=strength:
-                              s/(np.abs(i - j)**alpha), i, j]
+                              s*np.abs(j - i).astype(float)**(-1*alpha), i, j]
                              for i in range(num_sites) for j in
                              range(num_sites) if j>i]
 

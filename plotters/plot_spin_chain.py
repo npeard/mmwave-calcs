@@ -7,8 +7,8 @@ from models.spin_chain import LatticeGraph, DMRGEngine
 
 # Parameters
 L = 20  # chain length
-bond_dims = np.asarray([2, 4, 8, 16, 32, 64, 128])
-Delta = np.asarray([-1.5, -0.5, 0.5, 1.5])
+bond_dims = np.asarray([2, 4, 8, 16])
+Delta = np.asarray([-1.5])#, -0.5, 0.5, 1.5])
 n_roots = 2  # compute ground state and first excited state
 
 def get_XXZ_energy(alpha=None, Jxy=1, Delta=1, chi=50):
@@ -51,13 +51,13 @@ def get_XXZ_energy(alpha=None, Jxy=1, Delta=1, chi=50):
     
     # ZZ terms with same spatial dependence
     if alpha is None:
-        terms.append(['zz', Jxy * Delta, 'nn'])
+        terms.append(['zz', Delta, 'nn'])
     else:
-        terms.append(['zz', Jxy * Delta, alpha])
+        terms.append(['zz', Delta, alpha])
     
     # Create lattice graph and DMRG engine
     graph = LatticeGraph.from_interactions(L, terms, pbc=False)
-    dmrg = DMRGEngine(graph, spin='1/2')
+    dmrg = DMRGEngine(graph, spin='1')
     
     # Compute energies and states
     energies, states = dmrg.compute_energies_mps(bond_dims=[chi], n_roots=n_roots)
