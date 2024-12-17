@@ -6,7 +6,7 @@ from scipy.linalg import expm
 from quspin.basis import spin_basis_1d
 from quspin.tools.Floquet import Floquet
 from quspin.tools.misc import matvec
-from utility import HiddenPrints
+from models.utility import HiddenPrints
 from pyblock2.driver.core import DMRGDriver, SymmetryTypes, MPOAlgorithmTypes
 
 class LatticeGraph:
@@ -181,13 +181,13 @@ class LatticeGraph:
                     graph = [[lambda t, s=strength, i=i, j=j:
                               s(t, i, j)/(np.abs(i - j)**alpha), i, j]
                              for i in range(num_sites) for j in
-                             range(num_sites)]
+                             range(num_sites) if j>i]
                 else:
                     # Constant interaction strength, inverse range alpha
                     graph = [[lambda t, s=strength:
                               s/(np.abs(i - j)**alpha), i, j]
                              for i in range(num_sites) for j in
-                             range(num_sites)]
+                             range(num_sites) if j>i]
 
                 # Add to the dictionary for this operator
                 new_interaction_dict[operator].extend(graph)
@@ -214,10 +214,6 @@ class ComputationStrategy(ABC):
         self.graph = graph
         self.spin = spin
         self.unit_cell_length = unit_cell_length
-
-    @abstractmethod
-    def run_calculation(self, t: float = 0.0):
-        raise NotImplementedError
 
     def frobenius_loss(self, matrix1: list[list[Any]],
                        matrix2: list[list[Any]]):
@@ -340,9 +336,6 @@ class DiagonEngine(ComputationStrategy):
             H = quspin.operators.hamiltonian(static, [], basis=self.basis)
 
         return H
-
-    def run_calculation(self, t: float = 0.0):
-        raise NotImplementedError
 
     def get_quspin_floquet_hamiltonian(self, params: list[float or str],
                                        dt_list: list[float]):
@@ -482,10 +475,10 @@ class DMRGEngine(ComputationStrategy):
             Initialized DMRG driver instance.
         """
         # Initialize DMRG driver
-        driver = DMRGDriver(scratch="./tmp", symm_type=SymmetryTypes.SGB)
+        driver = DMRGDriver(scratch="./dmrg_tmp", symm_type=SymmetryTypes.SGB)
         
         # Initialize system based on spin type
-        heis_twos = int(2*self.spin)
+        heis_twos = int(2*float(eval(self.spin)))
         driver.initialize_system(n_sites=self.graph.num_sites, heis_twos=heis_twos, heis_twosz=0)
         
         return driver
@@ -623,7 +616,7 @@ class DMRGEngine(ComputationStrategy):
             raise ValueError("No states available. Run calculation first.")
             
         # Initialize driver
-        driver = DMRGDriver(scratch="./tmp", symm_type=SymmetryTypes.SGB)
+        driver = DMRGDriver(scratch="./dmrg_tmp", symm_type=SymmetryTypes.SGB)
         heis_twos = 2 if self.spin == '1' else 1
         driver.initialize_system(n_sites=self.graph.num_sites, heis_twos=heis_twos, heis_twosz=0)
         
