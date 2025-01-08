@@ -14,7 +14,7 @@ n_roots = 2  # compute ground state and first excited state
 def get_XXZ_energy(alpha=None, Jxy=1, Delta=1, chi=50):
     """
     Compute the energy per spin for the XXZ model with given parameters.
-    
+
     Parameters
     ----------
     alpha : float or None
@@ -26,7 +26,7 @@ def get_XXZ_energy(alpha=None, Jxy=1, Delta=1, chi=50):
         Anisotropy parameter
     chi : int
         Bond dimension for DMRG
-    
+
     Returns
     -------
     tuple
@@ -34,7 +34,7 @@ def get_XXZ_energy(alpha=None, Jxy=1, Delta=1, chi=50):
     """
     # Define the XXZ model terms
     terms = []
-    
+
     # XX and YY terms
     if alpha is None:
         # Nearest neighbor case
@@ -48,20 +48,20 @@ def get_XXZ_energy(alpha=None, Jxy=1, Delta=1, chi=50):
             ['xx', Jxy, alpha],
             ['yy', Jxy, alpha]
         ])
-    
+
     # ZZ terms with same spatial dependence
     if alpha is None:
         terms.append(['zz', Delta, 'nn'])
     else:
         terms.append(['zz', Delta, alpha])
-    
+
     # Create lattice graph and DMRG engine
     graph = LatticeGraph.from_interactions(L, terms, pbc=False)
     dmrg = DMRGEngine(graph, spin='1')
-    
+
     # Compute energies and states
     energies, states = dmrg.compute_energies_mps(bond_dims=[chi], n_roots=n_roots)
-    
+
     return np.array(energies), states
 
 # Lists to store results
@@ -102,16 +102,16 @@ fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(12, 5))
 for i, delta in enumerate(Delta):
     converged_gs_energy = EperSpin_nn_array[i, -1, 0]  # Use highest bond dim as reference
     converged_s1_energy = EperSpin_nn_array[i, -1, 1]
-    
-    ax1.plot(bond_dims, np.abs(EperSpin_nn_array[i, :, 0] - converged_gs_energy),
+
+    ax1.plot(bond_dims, np.abs(EperSpin_nn_array[i, :, 0]/converged_gs_energy - 1),
              marker='.', markersize=10, linestyle='solid',
              label=f'$\\Delta = {delta}$')
-    ax2.plot(bond_dims, np.abs(EperSpin_nn_array[i, :, 1] - converged_s1_energy),
+    ax2.plot(bond_dims, np.abs(EperSpin_nn_array[i, :, 1]/converged_s1_energy - 1),
              marker='.', markersize=10, linestyle='dotted',
              label=f'$\\Delta = {delta}$')
 
 ax1.set_xlabel(r'$\chi$')
-ax1.set_ylabel('Energy Error')
+ax1.set_ylabel('Relative Energy Error')
 ax1.set_yscale('log')
 ax1.set_xscale('log', base=2)
 ax1.grid(True)
@@ -119,7 +119,7 @@ ax1.legend()
 ax1.set_title('Ground State')
 
 ax2.set_xlabel(r'$\chi$')
-ax2.set_ylabel('Energy Error')
+ax2.set_ylabel('Relative Energy Error')
 ax2.set_yscale('log')
 ax2.set_xscale('log', base=2)
 ax2.grid(True)
@@ -128,7 +128,7 @@ ax2.set_title('First Excited State')
 
 fig.suptitle(f'XXZ Energy Error vs Bond Dimension (Nearest-Neighbor), L = {L}')
 plt.tight_layout()
-plt.savefig('xxz_energy_error_nn.png')
+#plt.savefig('xxz_energy_error_nn.png')
 plt.show()
 
 # r^-3 case
@@ -136,16 +136,16 @@ fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(12, 5))
 for i, delta in enumerate(Delta):
     converged_gs_energy = EperSpin_r3_array[i, -1, 0]
     converged_s1_energy = EperSpin_r3_array[i, -1, 1]
-    
-    ax1.plot(bond_dims, np.abs(EperSpin_r3_array[i, :, 0] - converged_gs_energy),
+
+    ax1.plot(bond_dims, np.abs(EperSpin_r3_array[i, :, 0]/converged_gs_energy - 1),
              marker='.', markersize=10, linestyle='solid',
              label=f'$\\Delta = {delta}$')
-    ax2.plot(bond_dims, np.abs(EperSpin_r3_array[i, :, 1] - converged_s1_energy),
+    ax2.plot(bond_dims, np.abs(EperSpin_r3_array[i, :, 1]/converged_s1_energy - 1),
              marker='.', markersize=10, linestyle='dotted',
              label=f'$\\Delta = {delta}$')
 
 ax1.set_xlabel(r'$\chi$')
-ax1.set_ylabel('Energy Error')
+ax1.set_ylabel('Relative Energy Error')
 ax1.set_yscale('log')
 ax1.set_xscale('log', base=2)
 ax1.grid(True)
@@ -153,7 +153,7 @@ ax1.legend()
 ax1.set_title('Ground State')
 
 ax2.set_xlabel(r'$\chi$')
-ax2.set_ylabel('Energy Error')
+ax2.set_ylabel('Relative Energy Error')
 ax2.set_yscale('log')
 ax2.set_xscale('log', base=2)
 ax2.grid(True)
@@ -162,7 +162,7 @@ ax2.set_title('First Excited State')
 
 fig.suptitle(f'XXZ Energy Error vs Bond Dimension (Dipolar), L = {L}')
 plt.tight_layout()
-plt.savefig('xxz_energy_error_r3.png')
+#plt.savefig('xxz_energy_error_r3.png')
 plt.show()
 
 # Dense case
@@ -170,16 +170,16 @@ fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(12, 5))
 for i, delta in enumerate(Delta):
     converged_gs_energy = EperSpin_dense_array[i, -1, 0]
     converged_s1_energy = EperSpin_dense_array[i, -1, 1]
-    
-    ax1.plot(bond_dims, np.abs(EperSpin_dense_array[i, :, 0] - converged_gs_energy),
+
+    ax1.plot(bond_dims, np.abs(EperSpin_dense_array[i, :, 0]/converged_gs_energy - 1),
              marker='.', markersize=10, linestyle='solid',
              label=f'$\\Delta = {delta}$')
-    ax2.plot(bond_dims, np.abs(EperSpin_dense_array[i, :, 1] - converged_s1_energy),
+    ax2.plot(bond_dims, np.abs(EperSpin_dense_array[i, :, 1]/converged_s1_energy - 1),
              marker='.', markersize=10, linestyle='dotted',
              label=f'$\\Delta = {delta}$')
 
 ax1.set_xlabel(r'$\chi$')
-ax1.set_ylabel('Energy Error')
+ax1.set_ylabel('Relative Energy Error')
 ax1.set_yscale('log')
 ax1.set_xscale('log', base=2)
 ax1.grid(True)
@@ -187,7 +187,7 @@ ax1.legend()
 ax1.set_title('Ground State')
 
 ax2.set_xlabel(r'$\chi$')
-ax2.set_ylabel('Energy Error')
+ax2.set_ylabel('Relative Energy Error')
 ax2.set_yscale('log')
 ax2.set_xscale('log', base=2)
 ax2.grid(True)
@@ -196,5 +196,5 @@ ax2.set_title('First Excited State')
 
 fig.suptitle(f'XXZ Energy Error vs Bond Dimension (Dense), L = {L}')
 plt.tight_layout()
-plt.savefig('xxz_energy_error_dense.png')
+#plt.savefig('xxz_energy_error_dense.png')
 plt.show()

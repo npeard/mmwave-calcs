@@ -130,8 +130,7 @@ class LatticeGraph:
                                   (i + 1) % num_sites] for i
                                  in range(num_sites - 1 + int(pbc))]
                     else:
-                        graph = [[lambda t, s=strength: s, i,
-                                  (i + 1) % num_sites]
+                        graph = [[strength, i, (i + 1) % num_sites]
                                  for i in range(num_sites - 1 + int(pbc))]
 
                 # Next-Nearest Neighbor (NNN) interactions
@@ -140,11 +139,10 @@ class LatticeGraph:
                         graph = [[lambda t, s=strength, i=i:
                                   s(t, i, (i + 2) % num_sites), i,
                                   (i + 2) % num_sites]
-                                 for i in range(num_sites - 2 + int(pbc))]
+                                 for i in range(num_sites - 2 + 2*int(pbc))]
                     else:
-                        graph = [[lambda t, s=strength: s, i,
-                                  (i + 2) % num_sites]
-                                 for i in range(num_sites - 2 + int(pbc))]
+                        graph = [[strength, i, (i + 2) % num_sites]
+                                 for i in range(num_sites - 2 + 2*int(pbc))]
 
                 else:
                     raise ValueError(f"Invalid range cutoff string: {alpha}")
@@ -164,7 +162,7 @@ class LatticeGraph:
                              for i in range(num_sites)]
                 else:
                     # Constant on-site term
-                    graph = [[lambda t, s=strength: s, i]
+                    graph = [[strength, i]
                              for i in range(num_sites)]
 
                 # Add to the dictionary for this operator
@@ -184,8 +182,7 @@ class LatticeGraph:
                              range(num_sites) if j>i]
                 else:
                     # Constant interaction strength, inverse range alpha
-                    graph = [[lambda t, s=strength:
-                              s*np.abs(j - i).astype(float)**(-1*alpha), i, j]
+                    graph = [[strength*np.abs(j - i).astype(float)**(-1*alpha), i, j]
                              for i in range(num_sites) for j in
                              range(num_sites) if j>i]
 
