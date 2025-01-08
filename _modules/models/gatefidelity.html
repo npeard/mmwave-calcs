@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>models.gatefidelity &mdash; mmwave-calc  documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -73,13 +73,13 @@
 <span class="c1"># Jiang, X., Scott, J., Friesen, M. &amp; Saffman, M. Sensitivity of quantum gate</span>
 <span class="c1"># fidelity to laser phase and intensity noise. Phys. Rev. A 107, 042611 (2023).</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">models.rydberg_calcs</span> <span class="k">as</span> <span class="nn">calcs</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">models.rydberg_calcs</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">calcs</span>
 
 
 <div class="viewcode-block" id="white_gate_error">
 <a class="viewcode-back" href="../../api.html#models.gatefidelity.white_gate_error">[docs]</a>
-<span class="k">def</span> <span class="nf">white_gate_error</span><span class="p">(</span><span class="n">FWHM1</span><span class="p">,</span> <span class="n">FWHM2</span><span class="p">,</span> <span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">white_gate_error</span><span class="p">(</span><span class="n">FWHM1</span><span class="p">,</span> <span class="n">FWHM2</span><span class="p">,</span> <span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the gate error for a pi*N gate due to laser phase noise.</span>
 
@@ -117,7 +117,7 @@
 
 <div class="viewcode-block" id="servo_gate_error">
 <a class="viewcode-back" href="../../api.html#models.gatefidelity.servo_gate_error">[docs]</a>
-<span class="k">def</span> <span class="nf">servo_gate_error</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">fg</span><span class="p">,</span> <span class="n">rabiFreq12</span><span class="p">,</span> <span class="n">rabiFreq23</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">servo_gate_error</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">fg</span><span class="p">,</span> <span class="n">rabiFreq12</span><span class="p">,</span> <span class="n">rabiFreq23</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the gate error due to a servo bump at the specified integrated</span>
 <span class="sd">    noise power sg and center frequency fg.</span>
@@ -157,7 +157,7 @@
 
 <div class="viewcode-block" id="intensity_gate_error">
 <a class="viewcode-back" href="../../api.html#models.gatefidelity.intensity_gate_error">[docs]</a>
-<span class="k">def</span> <span class="nf">intensity_gate_error</span><span class="p">(</span><span class="n">sigma1</span><span class="p">,</span> <span class="n">sigma2</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">intensity_gate_error</span><span class="p">(</span><span class="n">sigma1</span><span class="p">,</span> <span class="n">sigma2</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the gate error due to relative intensity noise in a two-photon</span>
 <span class="sd">    excitation.</span>

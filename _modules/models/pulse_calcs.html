@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>models.pulse_calcs &mdash; mmwave-calc  documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -69,14 +69,14 @@
            <div itemprop="articleBody">
              
   <h1>Source code for models.pulse_calcs</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">numba</span> <span class="kn">import</span> <span class="n">njit</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numba</span><span class="w"> </span><span class="kn">import</span> <span class="n">njit</span>
 
 
 <div class="viewcode-block" id="get_blackman_pulse">
 <a class="viewcode-back" href="../../api.html#models.pulse_calcs.get_blackman_pulse">[docs]</a>
 <span class="nd">@njit</span>
-<span class="k">def</span> <span class="nf">get_blackman_pulse</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="n">hold</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_blackman_pulse</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="n">hold</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the value of a Blackman-Harris window function at time t.</span>
 
@@ -124,7 +124,7 @@
 <div class="viewcode-block" id="get_vectorized_blackman_pulse">
 <a class="viewcode-back" href="../../api.html#models.pulse_calcs.get_vectorized_blackman_pulse">[docs]</a>
 <span class="nd">@njit</span>
-<span class="k">def</span> <span class="nf">get_vectorized_blackman_pulse</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="n">hold</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_vectorized_blackman_pulse</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="n">hold</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute the values of a Blackman-Harris window function for a vector of time</span>
 <span class="sd">    points.</span>

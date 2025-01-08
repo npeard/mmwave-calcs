@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>models.recapture_monte_carlo &mdash; mmwave-calc  documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -69,21 +69,21 @@
            <div itemprop="articleBody">
              
   <h1>Source code for models.recapture_monte_carlo</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">models.utility</span> <span class="kn">import</span> <span class="n">wavelength2freq</span><span class="p">,</span> <span class="n">wavelength2angularfreq</span>
-<span class="kn">import</span> <span class="nn">scipy.constants</span> <span class="k">as</span> <span class="nn">const</span>
-<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">odeint</span>
-<span class="kn">from</span> <span class="nn">arc</span> <span class="kn">import</span> <span class="n">Caesium</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">skopt</span> <span class="kn">import</span> <span class="n">gp_minimize</span><span class="p">,</span> <span class="n">forest_minimize</span>
-<span class="kn">from</span> <span class="nn">skopt.space</span> <span class="kn">import</span> <span class="n">Real</span>
-<span class="kn">from</span> <span class="nn">skopt.utils</span> <span class="kn">import</span> <span class="n">use_named_args</span>
-<span class="kn">from</span> <span class="nn">skopt.plots</span> <span class="kn">import</span> <span class="n">plot_convergence</span><span class="p">,</span> <span class="n">plot_objective</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">models.utility</span><span class="w"> </span><span class="kn">import</span> <span class="n">wavelength2freq</span><span class="p">,</span> <span class="n">wavelength2angularfreq</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.constants</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">const</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.integrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">odeint</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Caesium</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">skopt</span><span class="w"> </span><span class="kn">import</span> <span class="n">gp_minimize</span><span class="p">,</span> <span class="n">forest_minimize</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">skopt.space</span><span class="w"> </span><span class="kn">import</span> <span class="n">Real</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">skopt.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">use_named_args</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">skopt.plots</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_convergence</span><span class="p">,</span> <span class="n">plot_objective</span>
 
 
 <div class="viewcode-block" id="iHO_a_3d">
 <a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.iHO_a_3d">[docs]</a>
-<span class="k">def</span> <span class="nf">iHO_a_3d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">omega_H</span><span class="p">,</span> <span class="n">omega_L</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">iHO_a_3d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">omega_H</span><span class="p">,</span> <span class="n">omega_L</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the acceleration components in the iHO frame for a given position and frequencies.</span>
 
@@ -119,7 +119,7 @@
 
 <div class="viewcode-block" id="newton_3d">
 <a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.newton_3d">[docs]</a>
-<span class="k">def</span> <span class="nf">newton_3d</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">omega_H</span><span class="p">,</span> <span class="n">omega_L</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">newton_3d</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">omega_H</span><span class="p">,</span> <span class="n">omega_L</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the next position and velocity of a particle in 3D space</span>
 <span class="sd">    using Newton&#39;s second law of motion.</span>
@@ -149,7 +149,7 @@
 
 <div class="viewcode-block" id="get_trap_depth">
 <a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.get_trap_depth">[docs]</a>
-<span class="k">def</span> <span class="nf">get_trap_depth</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="n">Caesium</span><span class="p">()</span><span class="o">.</span><span class="n">getStateLifetime</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">l</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_trap_depth</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="n">Caesium</span><span class="p">()</span><span class="o">.</span><span class="n">getStateLifetime</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">l</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the depth of a trap given the power and laser waist.</span>
 
@@ -181,7 +181,7 @@
 
 <div class="viewcode-block" id="get_trap_freqs">
 <a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.get_trap_freqs">[docs]</a>
-<span class="k">def</span> <span class="nf">get_trap_freqs</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="o">=</span><span class="mf">1.15e-6</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="n">Caesium</span><span class="p">()</span><span class="o">.</span><span class="n">mass</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_trap_freqs</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="o">=</span><span class="mf">1.15e-6</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="n">Caesium</span><span class="p">()</span><span class="o">.</span><span class="n">mass</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the trap frequencies based on the trap parameters.</span>
 
@@ -225,7 +225,7 @@
 
 <div class="viewcode-block" id="get_tau">
 <a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.get_tau">[docs]</a>
-<span class="k">def</span> <span class="nf">get_tau</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">T_ensemble</span><span class="p">,</span> <span class="n">waist</span><span class="o">=</span><span class="mf">1.15e-6</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_tau</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">T_ensemble</span><span class="p">,</span> <span class="n">waist</span><span class="o">=</span><span class="mf">1.15e-6</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the energy to trap depth ratio of the 3D system of atoms.</span>
 <span class="sd">    This parameter is used by the radial recapture model.</span>
@@ -253,7 +253,7 @@
 
 <div class="viewcode-block" id="radial_recapture_rate">
 <a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.radial_recapture_rate">[docs]</a>
-<span class="k">def</span> <span class="nf">radial_recapture_rate</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">power</span><span class="p">,</span> <span class="n">T_ensemble</span><span class="p">,</span> <span class="n">waist</span><span class="o">=</span><span class="mf">1.15e-6</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">radial_recapture_rate</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">power</span><span class="p">,</span> <span class="n">T_ensemble</span><span class="p">,</span> <span class="n">waist</span><span class="o">=</span><span class="mf">1.15e-6</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the radial recapture rate of a 3D system of atoms.</span>
 <span class="sd">    This model assumes that the atoms are mainly lost in the radial axis of the</span>
@@ -288,7 +288,7 @@
 
 <div class="viewcode-block" id="monte_carlo_3d">
 <a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.monte_carlo_3d">[docs]</a>
-<span class="k">def</span> <span class="nf">monte_carlo_3d</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">omega_H</span><span class="p">,</span> <span class="n">omega_L</span><span class="p">,</span> <span class="n">T_ensemble</span><span class="p">,</span> <span class="n">N_ensemble</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">monte_carlo_3d</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">omega_H</span><span class="p">,</span> <span class="n">omega_L</span><span class="p">,</span> <span class="n">T_ensemble</span><span class="p">,</span> <span class="n">N_ensemble</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
                    <span class="n">mass</span><span class="o">=</span><span class="n">Caesium</span><span class="p">()</span><span class="o">.</span><span class="n">mass</span><span class="p">,</span> <span class="n">do_iHO</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate ensembles of 3D positions and velocities using a Monte Carlo method.</span>
@@ -373,7 +373,7 @@
 
 <div class="viewcode-block" id="energy_3d">
 <a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.energy_3d">[docs]</a>
-<span class="k">def</span> <span class="nf">energy_3d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">vx</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">vy</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">vz</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">energy_3d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">vx</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">vy</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">vz</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the energy of a 3D system of atoms.</span>
 
@@ -414,7 +414,7 @@
 
 <div class="viewcode-block" id="total_energy">
 <a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.total_energy">[docs]</a>
-<span class="k">def</span> <span class="nf">total_energy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">vx</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">vy</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">vz</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">total_energy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">vx</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">vy</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">vz</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the total energy of a 3D system of atoms.</span>
 
@@ -459,7 +459,7 @@
 
 <div class="viewcode-block" id="recapture_rate_3d">
 <a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.recapture_rate_3d">[docs]</a>
-<span class="k">def</span> <span class="nf">recapture_rate_3d</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="p">,</span> <span class="n">T_ensemble</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="n">Caesium</span><span class="p">()</span><span class="o">.</span><span class="n">mass</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">recapture_rate_3d</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">power</span><span class="p">,</span> <span class="n">waist</span><span class="p">,</span> <span class="n">T_ensemble</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="n">Caesium</span><span class="p">()</span><span class="o">.</span><span class="n">mass</span><span class="p">,</span>
                       <span class="n">do_iHO</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the recapture rate of a 3D system of atoms.</span>
@@ -523,7 +523,7 @@
 
 <div class="viewcode-block" id="get_simulated_recapture_data">
 <a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.get_simulated_recapture_data">[docs]</a>
-<span class="k">def</span> <span class="nf">get_simulated_recapture_data</span><span class="p">(</span><span class="n">max_us</span><span class="p">,</span> <span class="n">num_recap_times</span><span class="p">,</span> <span class="n">T_ensemble</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_simulated_recapture_data</span><span class="p">(</span><span class="n">max_us</span><span class="p">,</span> <span class="n">num_recap_times</span><span class="p">,</span> <span class="n">T_ensemble</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate simulated recapture data for a given duration and number of time steps.</span>
 
@@ -555,7 +555,7 @@
 
 <div class="viewcode-block" id="plot_recapture_rate">
 <a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.plot_recapture_rate">[docs]</a>
-<span class="k">def</span> <span class="nf">plot_recapture_rate</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_recapture_rate</span><span class="p">():</span>
     <span class="n">omega_H</span> <span class="o">=</span> <span class="mf">0.8e6</span>  <span class="c1"># Hz</span>
     <span class="n">omega_L</span> <span class="o">=</span> <span class="mf">0.19e6</span>  <span class="c1"># Hz</span>
     <span class="n">T_ensemble</span> <span class="o">=</span> <span class="mf">20e-6</span>  <span class="c1"># 168e-6 #K</span>
@@ -585,7 +585,7 @@
 
 <div class="viewcode-block" id="plot_loss_landscape">
 <a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.plot_loss_landscape">[docs]</a>
-<span class="k">def</span> <span class="nf">plot_loss_landscape</span><span class="p">(</span><span class="n">recapture_time</span><span class="p">,</span> <span class="n">recapture_rate</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_loss_landscape</span><span class="p">(</span><span class="n">recapture_time</span><span class="p">,</span> <span class="n">recapture_rate</span><span class="p">,</span>
                         <span class="n">tweezer_power</span><span class="p">,</span> <span class="n">tweezer_waist</span><span class="o">=</span><span class="mf">1.15e-6</span><span class="p">):</span>
     <span class="n">temperatures</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">1e-6</span><span class="p">,</span> <span class="mf">20e-6</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
     <span class="n">losses</span> <span class="o">=</span> <span class="p">[]</span>
@@ -604,7 +604,7 @@
 
 <div class="viewcode-block" id="tweezer_temperature_regress">
 <a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.tweezer_temperature_regress">[docs]</a>
-<span class="k">def</span> <span class="nf">tweezer_temperature_regress</span><span class="p">(</span><span class="n">recapture_time</span><span class="p">,</span> <span class="n">recapture_rate</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">tweezer_temperature_regress</span><span class="p">(</span><span class="n">recapture_time</span><span class="p">,</span> <span class="n">recapture_rate</span><span class="p">,</span>
                                 <span class="n">tweezer_power</span><span class="p">,</span> <span class="n">recapture_std</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                 <span class="n">tweezer_waist</span><span class="o">=</span><span class="mf">1.15e-6</span><span class="p">,</span>
                                 <span class="n">plot_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">quantify_error</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -638,7 +638,7 @@
     <span class="n">space</span> <span class="o">=</span> <span class="p">[</span><span class="n">Real</span><span class="p">(</span><span class="mf">1e-6</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;T_ensemble&quot;</span><span class="p">)]</span>
 
     <span class="nd">@use_named_args</span><span class="p">(</span><span class="n">space</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">objective_func</span><span class="p">(</span><span class="n">T_ensemble</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">objective_func</span><span class="p">(</span><span class="n">T_ensemble</span><span class="p">):</span>
         <span class="n">predicted_rate</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">recapture_rate_3d</span><span class="p">(</span><span class="n">recapture_time</span><span class="p">,</span>
                                               <span class="n">tweezer_power</span><span class="p">,</span> <span class="n">tweezer_waist</span><span class="p">,</span> <span class="n">T_ensemble</span><span class="p">,</span> <span class="n">do_iHO</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">loss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">recapture_rate</span> <span class="o">-</span> <span class="n">predicted_rate</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
@@ -655,7 +655,7 @@
                          <span class="n">n_random_starts</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
 
     <span class="c1"># use lmfit to fit radial recapture model</span>
-    <span class="kn">from</span> <span class="nn">lmfit</span> <span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">Parameters</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">lmfit</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">Parameters</span>
     <span class="n">params</span> <span class="o">=</span> <span class="n">Parameters</span><span class="p">()</span>
     <span class="n">params</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;T_ensemble&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">12e-6</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">)</span>
     <span class="n">params</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;power&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">tweezer_power</span><span class="p">,</span> <span class="n">vary</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -732,7 +732,7 @@
 
 <div class="viewcode-block" id="run_model">
 <a class="viewcode-back" href="../../api.html#models.recapture_monte_carlo.run_model">[docs]</a>
-<span class="k">def</span> <span class="nf">run_model</span><span class="p">(</span><span class="n">recapture_time</span><span class="p">,</span> <span class="n">recapture_rate</span><span class="p">,</span> <span class="n">tweezer_power</span><span class="p">,</span> <span class="n">recapture_std</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_model</span><span class="p">(</span><span class="n">recapture_time</span><span class="p">,</span> <span class="n">recapture_rate</span><span class="p">,</span> <span class="n">tweezer_power</span><span class="p">,</span> <span class="n">recapture_std</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
               <span class="n">quantify_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">true_T_ensemble</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Runs the model to estimate the ensemble temperature.</span>

@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>models.utility &mdash; mmwave-calc  documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -69,15 +69,15 @@
            <div itemprop="articleBody">
              
   <h1>Source code for models.utility</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.constants</span> <span class="kn">import</span> <span class="n">c</span> <span class="k">as</span> <span class="n">c_c</span>
-<span class="kn">from</span> <span class="nn">scipy.constants</span> <span class="kn">import</span> <span class="n">epsilon_0</span>
-<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">c</span> <span class="k">as</span> <span class="n">c_c</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">epsilon_0</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span><span class="o">,</span><span class="w"> </span><span class="nn">sys</span>
 
 
 <div class="viewcode-block" id="wavelength2freq">
 <a class="viewcode-back" href="../../api.html#models.utility.wavelength2freq">[docs]</a>
-<span class="k">def</span> <span class="nf">wavelength2freq</span><span class="p">(</span><span class="n">wavelength</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">wavelength2freq</span><span class="p">(</span><span class="n">wavelength</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Converts a wavelength to a frequency in Hz.</span>
 
@@ -97,7 +97,7 @@
 
 <div class="viewcode-block" id="wavelength2angularfreq">
 <a class="viewcode-back" href="../../api.html#models.utility.wavelength2angularfreq">[docs]</a>
-<span class="k">def</span> <span class="nf">wavelength2angularfreq</span><span class="p">(</span><span class="n">wavelength</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">wavelength2angularfreq</span><span class="p">(</span><span class="n">wavelength</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Converts a wavelength to an angular frequency in rad/s.</span>
 
@@ -117,7 +117,7 @@
 
 <div class="viewcode-block" id="freq2wavelength">
 <a class="viewcode-back" href="../../api.html#models.utility.freq2wavelength">[docs]</a>
-<span class="k">def</span> <span class="nf">freq2wavelength</span><span class="p">(</span><span class="n">frequency</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">freq2wavelength</span><span class="p">(</span><span class="n">frequency</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Converts a frequency to a wavelength in meters.</span>
 
@@ -137,7 +137,7 @@
 
 <div class="viewcode-block" id="power2field">
 <a class="viewcode-back" href="../../api.html#models.utility.power2field">[docs]</a>
-<span class="k">def</span> <span class="nf">power2field</span><span class="p">(</span><span class="n">laserPower</span><span class="p">,</span> <span class="n">laserWaist</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">power2field</span><span class="p">(</span><span class="n">laserPower</span><span class="p">,</span> <span class="n">laserWaist</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Converts a laser power and waist to an electric field in V/m.</span>
 
@@ -168,12 +168,12 @@
 
 <div class="viewcode-block" id="HiddenPrints">
 <a class="viewcode-back" href="../../api.html#models.utility.HiddenPrints">[docs]</a>
-<span class="k">class</span> <span class="nc">HiddenPrints</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">HiddenPrints</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span></div>
 
