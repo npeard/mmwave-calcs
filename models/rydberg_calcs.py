@@ -438,7 +438,7 @@ class RydbergTransition:
         
         return detuning
 
-    def print_laser_frequencies(self, Pp, Pc, AOM456=-220e6, AOM1064=-110e6):
+    def print_laser_frequencies(self, Pp, Pc, AOM456=-220e6, AOM1064=-220e6):
         """
         Print out the relevant laser frequencies and power broadenings for
         a given Rydberg transition. Mainly used for tuning parameters in the
@@ -452,10 +452,10 @@ class RydbergTransition:
             The power of the coupling laser, in W.
         AOM456 : float, optional
             The frequency shift of the probe laser due to the AOM, in Hz.
-            Defaults to -220e6.
+            Defaults to -220e6 since there are two -1 order 110 MHz AOMs.
         AOM1064 : float, optional
             The frequency shift of the coupling laser due to the AOM, in Hz.
-            Defaults to -110e6.
+            Defaults to -220e6 since there are two -1 order 110 MHz AOMs.
 
         Notes
         -----
