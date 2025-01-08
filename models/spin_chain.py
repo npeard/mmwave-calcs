@@ -98,7 +98,7 @@ class LatticeGraph:
             If the interaction operator is not a string, or if the range is not
             a valid string or number.
         """
-        
+
         # Create a fresh interaction dictionary
         new_interaction_dict = {}
 
@@ -121,7 +121,7 @@ class LatticeGraph:
                 if len(operator) != 2:
                     raise ValueError(f"Two-site operation requires two-site "
                                      f"operator: {operator}")
-                
+
                 # Nearest Neighbor (NN) interactions
                 if alpha == 'nn':
                     if callable(strength):
@@ -220,20 +220,20 @@ class ComputationStrategy(ABC):
         """
         Compute the fidelity metric between two Hamiltonians using the
         (normalized) Frobenius norm.
-    
+
         Parameters
         ----------
         matrix1 : list[list[Any]]
             The first Hamiltonian matrix.
         matrix2 : list[list[Any]]
             The second Hamiltonian matrix.
-    
+
         Returns
         -------
         float
             The fidelity metric between the two Hamiltonians. If the two input
             matrices are identical, the output will be 1.
-    
+
         Notes
         -----
         This method uses the (normalized) Frobenius norm to compute a fidelity
@@ -248,19 +248,19 @@ class ComputationStrategy(ABC):
         norm = np.sqrt(self.frobenius_norm(matrix1, matrix1) *
                        self.frobenius_norm(matrix2, matrix2))
         return 1 - overlap / norm
-    
+
     def frobenius_norm(self, matrix1: list[list[Any]],
                        matrix2: list[list[Any]]):
         """
         Compute the Frobenius norm of the overlap between two matrices.
-    
+
         Parameters
         ----------
         matrix1 : list[list[Any]]
             The first matrix.
         matrix2 : list[list[Any]]
             The second matrix.
-    
+
         Returns
         -------
         float
@@ -277,14 +277,14 @@ class ComputationStrategy(ABC):
         Use the norm difference between the product of two unitaries and the
         identity to establish a loss metric for the two unitaries. Identical
         unitaries return values close to zero.
-    
+
         Parameters
         ----------
         matrix1 : list[list[Any]]
             The first matrix, representing a Hamiltonian times evolution time.
         matrix2 : list[list[Any]]
             The second matrix, representing a Hamiltonian times evolution time.
-    
+
         Returns
         -------
         float
@@ -371,7 +371,7 @@ class DiagonEngine(ComputationStrategy):
         results = Floquet(evo_dict, HF=True, UF=False, force_ONB=True, n_jobs=1)
 
         return results.HF
-    
+
     def frobenius_loss(self, matrix1, matrix2):
         """
         Compute the Frobenius loss between two matrices.
@@ -394,7 +394,7 @@ class DiagonEngine(ComputationStrategy):
             matrix2 = matrix2.todense()
 
         return super().frobenius_loss(matrix1, matrix2)
-    
+
     def frobenius_norm(self, matrix1, matrix2):
         """
         Compute the Frobenius norm between two matrices.
@@ -421,18 +421,18 @@ class DiagonEngine(ComputationStrategy):
     def norm_identity_loss(self, matrix1, matrix2):
         """
         Compute the norm identity loss between two matrices.
-    
+
         This method calculates a fidelity metric between two matrices using a
         norm identity approach. It converts the matrices to dense format if they
         are instances of `quspin.operators.hamiltonian` before computing the loss.
-    
+
         Parameters
         ----------
         matrix1 : quspin.operators.hamiltonian or np.ndarray
             The first matrix.
         matrix2 : quspin.operators.hamiltonian or np.ndarray
             The second matrix.
-    
+
         Returns
         -------
         float
@@ -450,7 +450,7 @@ class DMRGEngine(ComputationStrategy):
     def __init__(self, graph: LatticeGraph, spin='1', unit_cell_length: int = 1):
         """
         Initialize the DMRG Engine for solving spin chain problems.
-        
+
         Parameters
         ----------
         graph : LatticeGraph
@@ -464,11 +464,11 @@ class DMRGEngine(ComputationStrategy):
         self.energies = []  # List to store computed energies
         self.states = []    # List to store computed states
         self.driver = self._initialize_driver()
-        
+
     def _initialize_driver(self):
         """
         Initialize the DMRG driver with appropriate symmetry and system parameters.
-        
+
         Returns
         -------
         DMRGDriver
@@ -476,22 +476,22 @@ class DMRGEngine(ComputationStrategy):
         """
         # Initialize DMRG driver
         driver = DMRGDriver(scratch="./dmrg_tmp", symm_type=SymmetryTypes.SGB)
-        
+
         # Initialize system based on spin type
         heis_twos = int(2*float(eval(self.spin)))
         driver.initialize_system(n_sites=self.graph.num_sites, heis_twos=heis_twos, heis_twosz=0)
-        
+
         return driver
-        
+
     def _build_mpo(self, t: float = 0.0):
         """
         Build the MPO (Matrix Product Operator) for the Hamiltonian.
-        
+
         Parameters
         ----------
         t : float, optional
             Time at which to evaluate the Hamiltonian. Default is 0.0.
-            
+
         Returns
         -------
         MPO
@@ -499,18 +499,18 @@ class DMRGEngine(ComputationStrategy):
         """
         # Get interaction terms from the graph at time t
         interactions = self.graph(t)
-        
+
         # Build Hamiltonian expression
         b = self.driver.expr_builder()
-        
+
         # Process all interactions from the graph
         for op_type, terms in interactions.items():
             for term in terms:
                 if len(term) < 2:  # Skip invalid terms
                     continue
-                    
+
                 J = term[0]  # Interaction strength
-                
+
                 if len(term) == 2:  # Single-site term
                     site = term[1]
                     if op_type.lower() == 'z':
@@ -519,7 +519,7 @@ class DMRGEngine(ComputationStrategy):
                         b.add_term("X", [site], J)
                     elif op_type.lower() == 'y':
                         b.add_term("Y", [site], J)
-                        
+
                 elif len(term) == 3:  # Two-site term
                     site1, site2 = term[1], term[2]
                     # TODO: add appropriate check here to change xx+yy to pm+mp
@@ -533,14 +533,14 @@ class DMRGEngine(ComputationStrategy):
                         b.add_term("MP", [site1, site2], -0.5 * J)
                     elif op_type.lower() == 'zz':
                         b.add_term("ZZ", [site1, site2], J)
-        
+
         # Define and return the MPO
         return self.driver.get_mpo(b.finalize(adjust_order=True), algo_type=MPOAlgorithmTypes.FastBipartite)
-        
+
     def compute_energies_mps(self, bond_dims=[50, 100, 200], n_roots=1, t: float = 0.0):
         """
         Compute energies and MPS states using DMRG.
-        
+
         Parameters
         ----------
         bond_dims : list, optional
@@ -551,7 +551,7 @@ class DMRGEngine(ComputationStrategy):
             Number of states to compute. Default is 1.
         t : float, optional
             Time at which to evaluate the Hamiltonian. Default is 0.0.
-            
+
         Returns
         -------
         tuple
@@ -560,17 +560,17 @@ class DMRGEngine(ComputationStrategy):
         """
         # Build the MPO
         heis_mpo = self._build_mpo(t)
-        
+
         energies = []
         states = []
-        
+
         # Get initial random MPS
         ket = self.driver.get_random_mps(tag="KET", bond_dim=min(10, bond_dims[0]), nroots=n_roots)
-        
+
         # Set up DMRG parameters
         noises = [1e-3] * 5 + [1e-5] * 5 + [0]
         thrds = [1e-8] * 10
-        
+
         # Run DMRG
         energy = self.driver.dmrg(
             heis_mpo,
@@ -582,31 +582,31 @@ class DMRGEngine(ComputationStrategy):
             cutoff=1E-20,
             tol=1e-6
         )
-        
+
         # Save results
         energies.append(energy)
         mps = self.driver.load_mps(tag="KET", nroots=n_roots)
-        
-        mps = [self.driver.split_mps(mps, iroot=i, tag=f"KET_state_{i}") 
+
+        mps = [self.driver.split_mps(mps, iroot=i, tag=f"KET_state_{i}")
                     for i in range(n_roots)]
-        
+
         states.append(mps)
-            
+
         self.energies = energies
         self.states = states
         return energies, states
-    
+
     def compute_correlation(self, state_idx=0, operator='z'):
         """
         Compute correlation functions for a given state.
-        
+
         Parameters
         ----------
         state_idx : int, optional
             Index of the state to compute correlations for. Default is 0.
         operator : str, optional
             Operator to compute correlations for ('x', 'y', or 'z'). Default is 'z'.
-            
+
         Returns
         -------
         numpy.ndarray
@@ -614,37 +614,37 @@ class DMRGEngine(ComputationStrategy):
         """
         if not self.states:
             raise ValueError("No states available. Run calculation first.")
-            
+
         # Initialize driver
         driver = DMRGDriver(scratch="./dmrg_tmp", symm_type=SymmetryTypes.SGB)
         heis_twos = 2 if self.spin == '1' else 1
         driver.initialize_system(n_sites=self.graph.num_sites, heis_twos=heis_twos, heis_twosz=0)
-        
+
         # Get the state
         mps = self.states[state_idx]
-            
+
         # Build correlation operator
         b = driver.expr_builder()
         N = self.graph.num_sites
         correlations = np.zeros((N, N))
-        
+
         # Compute all correlations
         op_map = {'z': 'Z', 'x': 'X', 'y': 'Y'}
         op = op_map.get(operator.lower(), 'Z')
-        
+
         for i in range(N):
             for j in range(i, N):
                 if i == j:
                     b.add_term(op, [i], 1.0)
                 else:
                     b.add_term(op + op, [i, j], 1.0)
-                    
+
                 mpo = driver.get_mpo(b.finalize())
                 correlations[i,j] = driver.expectation(mpo, mps, mps)
                 correlations[j,i] = correlations[i,j]  # Symmetrize
-                
+
                 b = driver.expr_builder()  # Reset builder for next term
-                
+
         return correlations
 
 
@@ -680,4 +680,4 @@ if __name__ == "__main__":
 
     print(graph("-DM"))
 
-    computation = DMRGEngine(graph)
+    computation = DiagonEngine(graph)

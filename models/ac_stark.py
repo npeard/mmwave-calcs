@@ -12,7 +12,7 @@ class ACStarkShift:
         """
         Initialize the ACStarkShift object for computing AC Stark shifts given a
         state.
-    
+
         Parameters
         ----------
         laserWaist : float, optional
@@ -98,7 +98,7 @@ class ACStarkShift:
         eFields = power2field(powers, self.laserWaist)
 
         calc_full = ShirleyMethod(self.atom)
-        
+
         # define a basis set that includes the local (microwave) and coupled
         # (optical) basis set
         calc_full.defineBasis(
@@ -114,7 +114,7 @@ class ACStarkShift:
             edN=0,
             progressOutput=False)
         ryd_basis_coupled = calc_full.basisStates
-        
+
         full_basis = basis_local
         if self.target_state[0] > 10:
             full_basis = basis_local + ryd_basis_coupled
@@ -127,7 +127,7 @@ class ACStarkShift:
         calc_full.defineBasis(*self.target_state, self.mj, self.q,
                               basisStates=full_basis,
                               progressOutput=False)
-        
+
         # Define the Hamiltonian
         calc_full.defineShirleyHamiltonian(fn=1)
 
