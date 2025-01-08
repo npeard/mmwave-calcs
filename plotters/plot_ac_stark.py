@@ -50,7 +50,7 @@ def plot_Cs_ground_state_tweezer_shift():
 
     ax2.legend()
     ax2.grid()
-    
+
     plt.suptitle(
         "Cs GS AC Stark Shifts, waist = " + str(shifter.laserWaist * 1e6) + " "
                                                                            "um")
@@ -126,8 +126,8 @@ def plot_Cs_7p_tweezer_shift():
     plt.suptitle("7P AC Stark Shifts, waist = " + str(shifter.laserWaist * 1e6) + " um")
     plt.tight_layout()
     plt.show()
-    
-    
+
+
 def plot_Cs_Rydberg_local_address_shift(n=40):
     addr_wavelength = np.asarray([1064]) * 1e-9
     addr_power = np.asarray([2e-3])
@@ -157,18 +157,18 @@ def plot_Cs_Rydberg_local_address_shift(n=40):
                  label=f"state = {shifter.target_state}")
         ax2.plot(powers * 1e3, shirley_shift_power * 1e-6, '--',
                  label=f"state = {shifter.target_state}")
-        
+
     # Ground state
     shifter = ac_stark.ACStarkShift()
     powers = addr_power
     shirley_shift_wavelength_6S = shifter.ac_stark_shift_shirley(wavelengths,
                                                                  powers).squeeze()
-    
+
     powers = np.linspace(0, 20e-3, 1000)
     shirley_shift_power_6S = shifter.ac_stark_shift_shirley(addr_wavelength,
                                                             powers).squeeze()
 
-    
+
     ax1.plot(wavelengths * 1e9, shirley_shift_wavelength_6S * 1e-6, '--',
             label=f"state = {shifter.target_state}")
     ax1.set_xlabel("wavelength (nm)")
