@@ -13,7 +13,7 @@ class LatticeGraphTestCase(unittest.TestCase):
             return -phase
         else:
             return 0
-        
+
     @staticmethod
     def XY_z_period4(t, i):
         phase = np.pi - 3. * np.pi / 2 * (i % 4)
@@ -30,7 +30,7 @@ class LatticeGraphTestCase(unittest.TestCase):
             return 0
         else:
             return 0.5
-        
+
     def test_from_interactions(self):
         minus_DM_dict = {'xx': [[0, 0, 1], [0, 1, 2], [0, 2, 3]],
                          'yy': [[0, 0, 1], [0, 1, 2], [0, 2, 3]],
@@ -44,7 +44,7 @@ class LatticeGraphTestCase(unittest.TestCase):
                                    [-4.71238898038469, 3], [0, 0], [0, 1],
                                    [0, 2], [0, 3]]}
 
-        
+
         terms = [['XX', self.native, 'nn'], ['yy', self.native, 'nn'],
                  ['z', self.DM_z_period4, np.inf], ['z', self.XY_z_period4,
                                                     np.inf]]

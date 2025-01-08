@@ -98,7 +98,7 @@ class LatticeGraph:
             If the interaction operator is not a string, or if the range is not
             a valid string or number.
         """
-        
+
         # Create a fresh interaction dictionary
         new_interaction_dict = {}
 
@@ -121,7 +121,7 @@ class LatticeGraph:
                 if len(operator) != 2:
                     raise ValueError(f"Two-site operation requires two-site "
                                      f"operator: {operator}")
-                
+
                 # Nearest Neighbor (NN) interactions
                 if alpha == 'nn':
                     if callable(strength):
@@ -224,20 +224,20 @@ class ComputationStrategy(ABC):
         """
         Compute the fidelity metric between two Hamiltonians using the
         (normalized) Frobenius norm.
-    
+
         Parameters
         ----------
         matrix1 : list[list[Any]]
             The first Hamiltonian matrix.
         matrix2 : list[list[Any]]
             The second Hamiltonian matrix.
-    
+
         Returns
         -------
         float
             The fidelity metric between the two Hamiltonians. If the two input
             matrices are identical, the output will be 1.
-    
+
         Notes
         -----
         This method uses the (normalized) Frobenius norm to compute a fidelity
@@ -252,19 +252,19 @@ class ComputationStrategy(ABC):
         norm = np.sqrt(self.frobenius_norm(matrix1, matrix1) *
                        self.frobenius_norm(matrix2, matrix2))
         return 1 - overlap / norm
-    
+
     def frobenius_norm(self, matrix1: list[list[Any]],
                        matrix2: list[list[Any]]):
         """
         Compute the Frobenius norm of the overlap between two matrices.
-    
+
         Parameters
         ----------
         matrix1 : list[list[Any]]
             The first matrix.
         matrix2 : list[list[Any]]
             The second matrix.
-    
+
         Returns
         -------
         float
@@ -281,14 +281,14 @@ class ComputationStrategy(ABC):
         Use the norm difference between the product of two unitaries and the
         identity to establish a loss metric for the two unitaries. Identical
         unitaries return values close to zero.
-    
+
         Parameters
         ----------
         matrix1 : list[list[Any]]
             The first matrix, representing a Hamiltonian times evolution time.
         matrix2 : list[list[Any]]
             The second matrix, representing a Hamiltonian times evolution time.
-    
+
         Returns
         -------
         float
@@ -378,7 +378,7 @@ class DiagonEngine(ComputationStrategy):
         results = Floquet(evo_dict, HF=True, UF=False, force_ONB=True, n_jobs=1)
 
         return results.HF
-    
+
     def frobenius_loss(self, matrix1, matrix2):
         """
         Compute the Frobenius loss between two matrices.
@@ -401,7 +401,7 @@ class DiagonEngine(ComputationStrategy):
             matrix2 = matrix2.todense()
 
         return super().frobenius_loss(matrix1, matrix2)
-    
+
     def frobenius_norm(self, matrix1, matrix2):
         """
         Compute the Frobenius norm between two matrices.
@@ -428,18 +428,18 @@ class DiagonEngine(ComputationStrategy):
     def norm_identity_loss(self, matrix1, matrix2):
         """
         Compute the norm identity loss between two matrices.
-    
+
         This method calculates a fidelity metric between two matrices using a
         norm identity approach. It converts the matrices to dense format if they
         are instances of `quspin.operators.hamiltonian` before computing the loss.
-    
+
         Parameters
         ----------
         matrix1 : quspin.operators.hamiltonian or np.ndarray
             The first matrix.
         matrix2 : quspin.operators.hamiltonian or np.ndarray
             The second matrix.
-    
+
         Returns
         -------
         float
@@ -491,4 +491,3 @@ if __name__ == "__main__":
     print(graph("-DM"))
 
     computation = DiagonEngine(graph)
-
