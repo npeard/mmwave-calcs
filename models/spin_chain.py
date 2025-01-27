@@ -519,15 +519,18 @@ class DMRGEngine(ComputationStrategy):
 
                 elif len(term) == 3:  # Two-site term
                     site1, site2 = term[1], term[2]
-                    # TODO: add appropriate check here to change xx+yy to pm+mp
                     if op_type.lower() == 'xx':
-                        # XX terms are implemented as (P+M- + M+P-)/2
-                        b.add_term("PM", [site1, site2], 0.5 * J)
+                        # XX terms are implemented as 0.5*(P+M)**2
+                        b.add_term("PP", [site1, site2], 0.5 * J)
+                        b.add_term("MM", [site1, site2], 0.5 * J)
                         b.add_term("MP", [site1, site2], 0.5 * J)
+                        b.add_term("PM", [site1, site2], 0.5 * J)
                     elif op_type.lower() == 'yy':
-                        # YY terms are implemented as -(P+M- + M+P-)/2
-                        b.add_term("PM", [site1, site2], -0.5 * J)
-                        b.add_term("MP", [site1, site2], -0.5 * J)
+                        # YY terms are implemented as -0.5*(P-M)**2
+                        b.add_term("PP", [site1, site2], -0.5 * J)
+                        b.add_term("MM", [site1, site2], -0.5 * J)
+                        b.add_term("MP", [site1, site2], 0.5 * J)
+                        b.add_term("PM", [site1, site2], 0.5 * J)
                     elif op_type.lower() == 'zz':
                         b.add_term("ZZ", [site1, site2], J)
 
@@ -659,19 +662,29 @@ class DMRGEngine(ComputationStrategy):
                 strength = term[0] if callable(term[0]) else float(term[0])
 
                 if len(term) == 2:  # Single-site operator
-                    print(op, term[1], strength)
                     b.add_term(op, [term[1]], strength)
                     mpo = driver.get_mpo(b.finalize())
                     correlations[term[1], term[1]] = driver.expectation(mps, mpo, mps)
-                    print(correlations[term[1], term[1]])
                 elif len(term) == 3:  # Two-site operator
-                    print(op, term[1], term[2], strength)
-                    b.add_term(op, [term[1], term[2]], strength)
+                    site1, site2 = term[1], term[2]
+                    if op.lower() == 'xx':
+                        # XX terms are implemented as 0.5*(P+M)**2
+                        b.add_term("PP", [site1, site2], 0.5 * strength)
+                        b.add_term("MM", [site1, site2], 0.5 * strength)
+                        b.add_term("MP", [site1, site2], 0.5 * strength)
+                        b.add_term("PM", [site1, site2], 0.5 * strength)
+                    elif op.lower() == 'yy':
+                        # YY terms are implemented as -0.5*(P-M)**2
+                        b.add_term("PP", [site1, site2], -0.5 * strength)
+                        b.add_term("MM", [site1, site2], -0.5 * strength)
+                        b.add_term("MP", [site1, site2], 0.5 * strength)
+                        b.add_term("PM", [site1, site2], 0.5 * strength)
+                    else:
+                        b.add_term(op, [site1, site2], strength)
                     mpo = driver.get_mpo(b.finalize())
                     val = driver.expectation(mps, mpo, mps)
-                    print(val)
-                    correlations[term[1], term[2]] = val
-                    correlations[term[2], term[1]] = val  # Symmetrize
+                    correlations[site1, site2] = val
+                    correlations[site2, site1] = val  # Symmetrize
 
         return correlations
 

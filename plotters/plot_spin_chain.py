@@ -137,7 +137,7 @@ if __name__ == '__main__':
     energy, _ = dmrg.compute_energies_mps(bond_dims=[bond_dims[-1]], n_roots=n_roots)
 
     # Example 1: Two-site ZZ correlations
-    zz_terms = [['zz', 1.0, 0]]
+    zz_terms = [['zz', 1.0, 3]]
     zz_graph = LatticeGraph.from_interactions(L, zz_terms, pbc=False)
     zz_correlations = dmrg.compute_correlation(zz_graph)
     plot_correlations(zz_correlations, zz_graph, 'Power Law XXZ - ')
