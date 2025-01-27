@@ -458,8 +458,8 @@ class DMRGEngine(ComputationStrategy):
             Length of the unit cell. Default is 1.
         """
         super().__init__(graph, spin, unit_cell_length)
-        self.energies = []  # List to store computed energies
-        self.states = []    # List to store computed states
+        self.energies = None  # List to store computed energies
+        self.states = None    # List to store computed states
         self.driver = self._initialize_driver()
 
     def _initialize_driver(self):
@@ -593,54 +593,85 @@ class DMRGEngine(ComputationStrategy):
         self.states = states
         return energies, states
 
-    def compute_correlation(self, state_idx=0, operator='z'):
+    def compute_correlation(self, correlation_graph: LatticeGraph, state_idx=0):
         """
-        Compute correlation functions for a given state.
+        Compute correlation functions for a given state using a LatticeGraph object
+        that defines the correlation function to compute.
 
         Parameters
         ----------
+        correlation_graph : LatticeGraph
+            Graph object defining the correlation function. The interaction_dict should
+            contain operator terms (e.g., 'x', 'y', 'z', 'xx', 'yy', 'zz') with their
+            corresponding site indices and strengths. For example:
+            {'z': [[1.0, i, j]] for correlator <Z_i Z_j>
+            {'xx': [[1.0, i, j]], 'yy': [[1.0, i, j]]} for correlator <X_i X_j + Y_i Y_j>
         state_idx : int, optional
             Index of the state to compute correlations for. Default is 0.
-        operator : str, optional
-            Operator to compute correlations for ('x', 'y', or 'z'). Default is 'z'.
 
         Returns
         -------
         numpy.ndarray
             Correlation values.
+
+        Raises
+        ------
+        ValueError
+            If no states are available or if correlation_graph has invalid operators.
         """
         if not self.states:
             raise ValueError("No states available. Run calculation first.")
 
+        if correlation_graph.num_sites != self.graph.num_sites:
+            raise ValueError("Correlation graph must have same number of sites as the system")
+
         # Initialize driver
         driver = DMRGDriver(scratch="./dmrg_tmp", symm_type=SymmetryTypes.SGB)
-        heis_twos = 2 if self.spin == '1' else 1
+        heis_twos = int(2*float(eval(self.spin)))
         driver.initialize_system(n_sites=self.graph.num_sites, heis_twos=heis_twos, heis_twosz=0)
 
         # Get the state
-        mps = self.states[state_idx]
+        mps = self.states[0][state_idx]
 
-        # Build correlation operator
-        b = driver.expr_builder()
+        # Initialize correlation array
         N = self.graph.num_sites
-        correlations = np.zeros((N, N))
+        correlations = np.empty((N, N))
 
-        # Compute all correlations
-        op_map = {'z': 'Z', 'x': 'X', 'y': 'Y'}
-        op = op_map.get(operator.lower(), 'Z')
+        # Operator mapping from lowercase to DMRG convention
+        op_map = {'x': 'X', 'y': 'Y', 'z': 'Z'}
 
-        for i in range(N):
-            for j in range(i, N):
-                if i == j:
-                    b.add_term(op, [i], 1.0)
-                else:
-                    b.add_term(op + op, [i, j], 1.0)
+        # Process each operator type and its terms
+        for op_type, terms in correlation_graph.interaction_dict.items():
+            op_type = op_type.lower()
+            if len(op_type) == 1:
+                op = op_map.get(op_type)
+            elif len(op_type) == 2:
+                op = op_map.get(op_type[0]) + op_map.get(op_type[1])
+            else:
+                raise ValueError(f"Invalid operator type: {op_type}")
 
-                mpo = driver.get_mpo(b.finalize())
-                correlations[i,j] = driver.expectation(mpo, mps, mps)
-                correlations[j,i] = correlations[i,j]  # Symmetrize
+            if op is None:
+                raise ValueError(f"Invalid operator type: {op_type}")
 
-                b = driver.expr_builder()  # Reset builder for next term
+            # Compute expectation value for each term
+            for term in terms:
+                b = driver.expr_builder()
+                strength = term[0] if callable(term[0]) else float(term[0])
+
+                if len(term) == 2:  # Single-site operator
+                    print(op, term[1], strength)
+                    b.add_term(op, [term[1]], strength)
+                    mpo = driver.get_mpo(b.finalize())
+                    correlations[term[1], term[1]] = driver.expectation(mps, mpo, mps)
+                    print(correlations[term[1], term[1]])
+                elif len(term) == 3:  # Two-site operator
+                    print(op, term[1], term[2], strength)
+                    b.add_term(op, [term[1], term[2]], strength)
+                    mpo = driver.get_mpo(b.finalize())
+                    val = driver.expectation(mps, mpo, mps)
+                    print(val)
+                    correlations[term[1], term[2]] = val
+                    correlations[term[2], term[1]] = val  # Symmetrize
 
         return correlations
 
