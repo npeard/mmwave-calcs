@@ -480,42 +480,46 @@ class DMRGEngine(ComputationStrategy):
 
         return driver
 
-    def _build_mpo(self, t: float = 0.0):
+    def _build_mpo(self, t: float = 0.0, operator_graph: LatticeGraph = None):
         """
-        Build the MPO (Matrix Product Operator) for the Hamiltonian.
+        Build the MPO (Matrix Product Operator) for the Hamiltonian or a custom operator.
 
         Parameters
         ----------
         t : float, optional
             Time at which to evaluate the Hamiltonian. Default is 0.0.
+        operator_graph : LatticeGraph, optional
+            If provided, build MPO for this operator instead of the Hamiltonian.
+            Must have same number of sites as the system graph.
 
         Returns
         -------
         MPO
-            The constructed Matrix Product Operator representing the Hamiltonian.
+            The constructed Matrix Product Operator.
         """
-        # Get interaction terms from the graph at time t
-        interactions = self.graph(t)
+        if operator_graph is not None and operator_graph.num_sites != self.graph.num_sites:
+            raise ValueError("Operator graph must have same number of sites as the system")
 
-        # Build Hamiltonian expression
+        # Use the operator graph if provided, otherwise use the system graph
+        graph = operator_graph if operator_graph is not None else self.graph
+        interaction_dict = graph(t)
+
+        # Initialize driver expression builder
         b = self.driver.expr_builder()
 
-        # Process all interactions from the graph
-        for op_type, terms in interactions.items():
+        # Add terms to the MPO
+        for op_type, terms in interaction_dict.items():
             for term in terms:
-                if len(term) < 2:  # Skip invalid terms
-                    continue
-
-                J = term[0]  # Interaction strength
+                J = term[0] if callable(term[0]) else float(term[0])
 
                 if len(term) == 2:  # Single-site term
                     site = term[1]
-                    if op_type.lower() == 'z':
-                        b.add_term("Z", [site], J)
-                    elif op_type.lower() == 'x':
+                    if op_type.lower() == 'x':
                         b.add_term("X", [site], J)
                     elif op_type.lower() == 'y':
                         b.add_term("Y", [site], J)
+                    elif op_type.lower() == 'z':
+                        b.add_term("Z", [site], J)
 
                 elif len(term) == 3:  # Two-site term
                     site1, site2 = term[1], term[2]
@@ -534,8 +538,44 @@ class DMRGEngine(ComputationStrategy):
                     elif op_type.lower() == 'zz':
                         b.add_term("ZZ", [site1, site2], J)
 
-        # Define and return the MPO
-        return self.driver.get_mpo(b.finalize(adjust_order=True), algo_type=MPOAlgorithmTypes.FastBipartite)
+        return self.driver.get_mpo(b.finalize())
+
+    def compute_expectation(self, operator_graph: LatticeGraph, state_idx=0, t: float = 0.0):
+        """
+        Compute expectation value of an arbitrary operator defined by a LatticeGraph.
+
+        Parameters
+        ----------
+        operator_graph : LatticeGraph
+            Graph object defining the operator to compute expectation value of.
+            Must have same number of sites as the system.
+        state_idx : int, optional
+            Index of the state to compute expectation for. Default is 0.
+        t : float, optional
+            Time at which to evaluate the operator. Default is 0.0.
+
+        Returns
+        -------
+        float
+            Expectation value <ψ|O|ψ> where O is the operator defined by operator_graph
+            and ψ is the state.
+
+        Raises
+        ------
+        ValueError
+            If no states are available or if operator_graph has invalid structure.
+        """
+        if not self.states:
+            raise ValueError("No states available. Run calculation first.")
+
+        # Get the state
+        mps = self.states[0][state_idx]
+
+        # Build the MPO for the operator
+        mpo = self._build_mpo(t, operator_graph)
+
+        # Compute expectation value
+        return self.driver.expectation(mps, mpo, mps)
 
     def compute_energies_mps(self, bond_dims=[50, 100, 200], n_roots=1, t: float = 0.0):
         """
@@ -628,11 +668,6 @@ class DMRGEngine(ComputationStrategy):
         if correlation_graph.num_sites != self.graph.num_sites:
             raise ValueError("Correlation graph must have same number of sites as the system")
 
-        # Initialize driver
-        driver = DMRGDriver(scratch="./dmrg_tmp", symm_type=SymmetryTypes.SGB)
-        heis_twos = int(2*float(eval(self.spin)))
-        driver.initialize_system(n_sites=self.graph.num_sites, heis_twos=heis_twos, heis_twosz=0)
-
         # Get the state
         mps = self.states[0][state_idx]
 
@@ -658,13 +693,13 @@ class DMRGEngine(ComputationStrategy):
 
             # Compute expectation value for each term
             for term in terms:
-                b = driver.expr_builder()
+                b = self.driver.expr_builder()
                 strength = term[0] if callable(term[0]) else float(term[0])
 
                 if len(term) == 2:  # Single-site operator
                     b.add_term(op, [term[1]], strength)
-                    mpo = driver.get_mpo(b.finalize())
-                    correlations[term[1], term[1]] = driver.expectation(mps, mpo, mps)
+                    mpo = self.driver.get_mpo(b.finalize())
+                    correlations[term[1], term[1]] = self.driver.expectation(mps, mpo, mps)
                 elif len(term) == 3:  # Two-site operator
                     site1, site2 = term[1], term[2]
                     if op.lower() == 'xx':
@@ -681,8 +716,8 @@ class DMRGEngine(ComputationStrategy):
                         b.add_term("PM", [site1, site2], 0.5 * strength)
                     else:
                         b.add_term(op, [site1, site2], strength)
-                    mpo = driver.get_mpo(b.finalize())
-                    val = driver.expectation(mps, mpo, mps)
+                    mpo = self.driver.get_mpo(b.finalize())
+                    val = self.driver.expectation(mps, mpo, mps)
                     correlations[site1, site2] = val
                     correlations[site2, site1] = val  # Symmetrize
 
