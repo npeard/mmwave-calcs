@@ -644,6 +644,32 @@ class DMRGEngine(ComputationStrategy):
 
         return correlations
 
+    def run_convergence_test(self, bond_dims, n_roots=2):
+        """
+        Run convergence test over different bond dimensions.
+
+        Parameters
+        ----------
+        bond_dims : array-like
+            List of bond dimensions to test
+        n_roots : int
+            Number of excited states to compute
+
+        Returns
+        -------
+        ndarray
+            Array of shape (len(bond_dims), n_roots) containing energies for each bond dimension
+            and excited state
+        """
+        energies = []
+
+        for chi in bond_dims:
+            print(f"Testing chi = {chi}")
+            energy, _ = self.compute_energies_mps(bond_dims=[chi], n_roots=n_roots)
+            energies.append(energy)
+
+        return np.asarray(energies)
+
 
 if __name__ == "__main__":
     # Example usage
