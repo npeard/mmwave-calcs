@@ -151,19 +151,27 @@ class LatticeGraph:
                 new_interaction_dict[operator].extend(graph)
 
             elif alpha == np.inf:
-                if len(operator) != 1:
-                    raise ValueError(f"One-site operation requires one-site "
+                if len(operator) > 1:
+                    print(f"Warning: You are using a one-site quadratic or greater "
                                      f"operator: {operator}")
 
                 # On-site interaction
                 if callable(strength):
                     # Time-dependent or site-specific on-site term
-                    graph = [[lambda t, s=strength, i=i: s(t, i), i]
-                             for i in range(num_sites)]
+                    if len(operator) == 1:
+                        graph = [[lambda t, s=strength, i=i: s(t, i), i]
+                                for i in range(num_sites)]
+                    else:
+                        graph = [[lambda t, s=strength, i=i: s(t, i), i, i]
+                                 for i in range(num_sites)]
                 else:
                     # Constant on-site term
-                    graph = [[strength, i]
-                             for i in range(num_sites)]
+                    if len(operator) == 1:
+                        graph = [[strength, i]
+                                 for i in range(num_sites)]
+                    else:
+                        graph = [[strength, i, i]
+                                 for i in range(num_sites)]
 
                 # Add to the dictionary for this operator
                 new_interaction_dict[operator].extend(graph)
@@ -472,7 +480,7 @@ class DMRGEngine(ComputationStrategy):
             Initialized DMRG driver instance.
         """
         # Initialize DMRG driver
-        driver = DMRGDriver(scratch="./dmrg_tmp", symm_type=SymmetryTypes.SGB)
+        driver = DMRGDriver(scratch="./dmrg_tmp", symm_type=SymmetryTypes.SGB|SymmetryTypes.CPX, n_threads=4)
 
         # Initialize system based on spin type
         heis_twos = int(2*float(eval(self.spin)))

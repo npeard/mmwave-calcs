@@ -111,6 +111,74 @@ def plot_correlations(correlations, corr_graph, title_prefix=''):
     plt.tight_layout()
     plt.show()
 
+def plot_Sperp_vs_params(n_points=6, Jxy_range=(-3, 3), q_range=(-3, 3)):
+    """
+    Plot the expectation value of S_perp^2 as a function of Jxy and q parameters.
+
+    Parameters
+    ----------
+    n_points : int, optional
+        Number of points to evaluate for each parameter. Default is 6.
+    Jxy_range : tuple(float, float), optional
+        Range of Jxy values to scan over (min, max). Default is (-3, 3).
+    q_range : tuple(float, float), optional
+        Range of q values to scan over (min, max). Default is (-3, 3).
+    """
+    L = 10  # chain length
+    bond_dims = np.asarray([2, 4, 64])
+
+    # Create parameter grids
+    Jxy_vals = np.linspace(Jxy_range[0], Jxy_range[1], n_points)
+    q_vals = np.linspace(q_range[0], q_range[1], n_points)
+
+    # Define S_perp^2 operator
+    S_perp_sq_terms = [['xx', 1.0, 0], ['yy', 1.0, 0]]
+    S_perp_sq_graph = LatticeGraph.from_interactions(L, S_perp_sq_terms, pbc=False)
+
+    # Initialize results array
+    S_perp_sq_nn_q_array = np.zeros((n_points, n_points))
+
+    # Scan over parameters
+    for i, Jxy in enumerate(Jxy_vals):
+        for j, q in enumerate(q_vals):
+            # Create XXZ2 model terms with nearest-neighbor interactions
+            terms = [
+                ['xx', Jxy, 'nn'],
+                ['yy', Jxy, 'nn'],
+                ['zz', q, np.inf]
+            ]
+
+            # Create lattice graph and DMRG engine
+            graph = LatticeGraph.from_interactions(L, terms, pbc=False)
+            dmrg = DMRGEngine(graph, spin='1')
+
+            # Compute ground state
+            dmrg.compute_energies_mps(bond_dims=[bond_dims[-1]], n_roots=2)
+
+            # Compute normalized S_perp^2 expectation value
+            Sperp_expectation = dmrg.compute_expectation(S_perp_sq_graph)
+            Sperp_expectation /= (L*(L+1))
+            S_perp_sq_nn_q_array[i, j] = np.abs(Sperp_expectation)
+
+    # Create figure and plot
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    # Plot with proper extent to align grid with parameter values
+    im = ax.imshow(S_perp_sq_nn_q_array,
+                  extent=[q_range[0], q_range[1], Jxy_range[0], Jxy_range[1]],
+                  origin='lower', aspect='auto')
+
+    # Add labels and colorbar
+    ax.set_title(r'$XXZ^2$ DMRG NN $\langle S_{\perp}^2 \rangle$')
+    ax.set_ylabel(r'$J_{xy}$')
+    ax.set_xlabel(r'$q$')
+
+    cbar = fig.colorbar(im, ax=ax)
+    cbar.set_label(r'$\langle S_{\perp}^2 \rangle/(N_{spin}(N_{spin}+1))$')
+
+    plt.tight_layout()
+    plt.show()
+
 if __name__ == '__main__':
     # Example usage
     L = 20  # chain length
@@ -134,16 +202,18 @@ if __name__ == '__main__':
     # # Plot convergence results
     # plot_convergence_results(energies, bond_dims, 'Power Law XXZ (alpha=3)', L)
 
-    energy, _ = dmrg.compute_energies_mps(bond_dims=[bond_dims[-1]], n_roots=n_roots)
+    # energy, _ = dmrg.compute_energies_mps(bond_dims=[bond_dims[-1]], n_roots=n_roots)
 
-    # Example 1: Two-site ZZ correlations
-    zz_terms = [['zz', 1.0, 3]]
-    zz_graph = LatticeGraph.from_interactions(L, zz_terms, pbc=False)
-    zz_correlations = dmrg.compute_correlation(zz_graph)
-    plot_correlations(zz_correlations, zz_graph, 'Power Law XXZ - ')
+    # # Example 1: Two-site ZZ correlations
+    # zz_terms = [['zz', 1.0, 3]]
+    # zz_graph = LatticeGraph.from_interactions(L, zz_terms, pbc=False)
+    # zz_correlations = dmrg.compute_correlation(zz_graph)
+    # plot_correlations(zz_correlations, zz_graph, 'Power Law XXZ - ')
 
-    # Example 2: Single-site Z correlations
-    z_terms = [['z', 1.0, np.inf]]
-    z_graph = LatticeGraph.from_interactions(L, z_terms, pbc=False)
-    z_correlations = dmrg.compute_correlation(z_graph)
-    plot_correlations(z_correlations, z_graph, 'Power Law XXZ - ')
+    # # Example 2: Single-site Z correlations
+    # z_terms = [['z', 1.0, np.inf]]
+    # z_graph = LatticeGraph.from_interactions(L, z_terms, pbc=False)
+    # z_correlations = dmrg.compute_correlation(z_graph)
+    # plot_correlations(z_correlations, z_graph, 'Power Law XXZ - ')
+
+    plot_Sperp_vs_params()
