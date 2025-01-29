@@ -518,8 +518,16 @@ class DMRGEngine(ComputationStrategy):
         # Add terms to the MPO
         for op_type, terms in interaction_dict.items():
             for term in terms:
-                J = term[0] if callable(term[0]) else float(term[0])
+                # TODO: is this block necessary?
+                if term[0] is callable:
+                    J = term[0]
+                elif isinstance(term[0], float) or isinstance(term[0], int):
+                    J = float(term[0])
+                elif isinstance(term[0], complex):
+                    J = complex(term[0])
+                    # print("Warning: Using a complex-valued coupling constant")
 
+                # TODO: add here proper substitution of PM operators for XY
                 if len(term) == 2:  # Single-site term
                     site = term[1]
                     if op_type.lower() == 'x':
@@ -545,6 +553,8 @@ class DMRGEngine(ComputationStrategy):
                         b.add_term("PM", [site1, site2], 0.5 * J)
                     elif op_type.lower() == 'zz':
                         b.add_term("ZZ", [site1, site2], J)
+                    else:
+                        b.add_term(op_type.upper(), [site1, site2], J)
 
         return self.driver.get_mpo(b.finalize())
 
@@ -577,13 +587,14 @@ class DMRGEngine(ComputationStrategy):
             raise ValueError("No states available. Run calculation first.")
 
         # Get the state
-        mps = self.states[0][state_idx]
+        mps = self.states[state_idx]
 
         # Build the MPO for the operator
         mpo = self._build_mpo(t, operator_graph)
 
         # Compute expectation value
-        return self.driver.expectation(mps, mpo, mps)
+        expect = self.driver.expectation(mps, mpo, mps)
+        return expect
 
     def compute_energies_mps(self, bond_dims=[50, 100, 200], n_roots=1, t: float = 0.0):
         """
@@ -609,11 +620,16 @@ class DMRGEngine(ComputationStrategy):
         # Build the MPO
         heis_mpo = self._build_mpo(t)
 
-        energies = []
-        states = []
+        # Get unique state ID
+        # TODO: come up with a better way to prevent name collisions/reloading of
+        # previously computed states. Random int for state ID might run into issues
+        # with very large computations.
+        state_id = np.random.randint(0, 1000000)
 
         # Get initial random MPS
-        ket = self.driver.get_random_mps(tag="KET", bond_dim=min(10, bond_dims[0]), nroots=n_roots)
+        ket = self.driver.get_random_mps(tag="KET"+str(state_id),
+                                        bond_dim=min(8, bond_dims[0]),
+                                        nroots=n_roots)
 
         # Set up DMRG parameters
         noises = [1e-3] * 5 + [1e-5] * 5 + [0]
@@ -632,13 +648,15 @@ class DMRGEngine(ComputationStrategy):
         )
 
         # Save results
-        energies.append(energy)
-        mps = self.driver.load_mps(tag="KET", nroots=n_roots)
+        energies = [energy]
+        mps = self.driver.load_mps(tag="KET"+str(state_id), nroots=n_roots)
+        states = [mps]
 
-        mps = [self.driver.split_mps(mps, iroot=i, tag=f"KET_state_{i}")
-                    for i in range(n_roots)]
-
-        states.append(mps)
+        if n_roots > 1:
+            states = [self.driver.split_mps(mps, iroot=i,
+                                           tag=f"KET"+str(state_id)+"_state_{i}")
+                      for i in range(n_roots)]
+            energies = [energy]
 
         self.energies = energies
         self.states = states
@@ -677,11 +695,11 @@ class DMRGEngine(ComputationStrategy):
             raise ValueError("Correlation graph must have same number of sites as the system")
 
         # Get the state
-        mps = self.states[0][state_idx]
+        mps = self.states[state_idx]
 
         # Initialize correlation array
         N = self.graph.num_sites
-        correlations = np.empty((N, N))
+        correlations = np.empty((N, N), dtype=np.complex128)
 
         # Operator mapping from lowercase to DMRG convention
         op_map = {'x': 'X', 'y': 'Y', 'z': 'Z'}

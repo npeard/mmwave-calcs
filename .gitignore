@@ -1,5 +1,6 @@
 # DMRG temporary files
 dmrg_tmp/*
+notebooks/soc/dmrg_tmp/*
 tmp/*
 
 # Byte-compiled / optimized / DLL files
