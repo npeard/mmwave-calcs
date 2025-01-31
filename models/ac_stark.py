@@ -74,16 +74,16 @@ class ACStarkShift:
 
         return U_AC
 
-    def ac_stark_shift_shirley(self, wavelengths, powers):
+    def ac_stark_shift_shirley(self, wavelengths: np.ndarray|float, powers: np.ndarray|float):
 
         """
         Computes the AC Stark shift using the Shirley method.
 
         Parameters
         ----------
-        wavelengths : list
+        wavelengths : np.ndarray
             A list of wavelengths to compute the AC Stark shift at.
-        powers : list
+        powers : np.ndarray
             A list of powers to compute the AC Stark shift at.
 
         Returns
@@ -96,6 +96,12 @@ class ACStarkShift:
         # the shifts
         freqs = wavelength2freq(wavelengths)
         eFields = power2field(powers, self.laserWaist)
+
+        # If given only a float, convert to a NumPy array
+        if isinstance(freqs, float):
+            freqs = np.array([freqs])
+        if isinstance(eFields, float):
+            eFields = np.array([eFields])
 
         calc_full = ShirleyMethod(self.atom)
 
