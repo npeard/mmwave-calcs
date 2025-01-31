@@ -29,8 +29,8 @@ def plot_Cs_ground_state_tweezer_shift():
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
     ax1.plot(wavelengths * 1e9, shirley_shift_wavelength_6S * 1e-6,
              '--',
-             label=f"state = {shifter.state}")
-    ax1.plot(wavelengths * 1e9, shirley_shift_wavelength_6P * 1e-6, '--', label=f"state = {shifter_6P.state}")
+             label=f"state = {shifter.target_state}")
+    ax1.plot(wavelengths * 1e9, shirley_shift_wavelength_6P * 1e-6, '--', label=f"state = {shifter_6P.target_state}")
     ax1.set_xlabel("wavelength (nm)")
     ax1.set_ylim([-2000, 2000])
     ax1.set_ylabel("AC Stark Shift (MHz)")
@@ -39,9 +39,9 @@ def plot_Cs_ground_state_tweezer_shift():
     ax1.grid()
 
     ax2.plot(powers * 1e3, shirley_shift_power_6S * 1e-6, '--',
-             label=f"state = {shifter.state}")
+             label=f"state = {shifter.target_state}")
     ax2.plot(powers * 1e3, shirley_shift_power_6P * 1e-6, '--',
-             label=f"state = {shifter_6P.state}")
+             label=f"state = {shifter_6P.target_state}")
     ax2.set_xlabel("tweezer power (mW)")
     # ax2.set_ylim([0, 100])
     ax2.set_ylabel("AC Stark Shift (MHz)")
@@ -94,13 +94,13 @@ def plot_Cs_7p_tweezer_shift():
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
     ax1.plot(wavelengths * 1e9, shirley_shift_wavelength_7P32 * 1e-6,
              '--',
-             label=f"state = {shifter_7P32.state}")
+             label=f"state = {shifter_7P32.target_state}")
     ax1.plot(wavelengths * 1e9, shirley_shift_wavelength_7P12 * 1e-6,
              '--',
-             label=f"state = {shifter_7P12.state}")
+             label=f"state = {shifter_7P12.target_state}")
     ax1.plot(wavelengths * 1e9, shirley_shift_wavelength_6S * 1e-6,
              '--',
-             label=f"state = {shifter.state}")
+             label=f"state = {shifter.target_state}")
     ax1.set_xlabel("wavelength (nm)")
     ax1.set_ylim([-200, 200])
     ax1.set_ylabel("AC Stark Shift (MHz)")
@@ -110,11 +110,11 @@ def plot_Cs_7p_tweezer_shift():
     ax1.grid()
 
     ax2.plot(powers * 1e3, shirley_shift_power_7P32 * 1e-6, '--',
-             label=f"state = {shifter_7P32.state}")
+             label=f"state = {shifter_7P32.target_state}")
     ax2.plot(powers * 1e3, shirley_shift_power_7P12 * 1e-6, '--',
-             label=f"state = {shifter_7P12.state}")
+             label=f"state = {shifter_7P12.target_state}")
     ax2.plot(powers * 1e3, shirley_shift_power_6S * 1e-6, '--',
-             label=f"state = {shifter.state}")
+             label=f"state = {shifter.target_state}")
     ax2.set_xlabel("tweezer power (mW)")
     # ax2.set_ylim([0, 100])
     ax2.set_ylabel("AC Stark Shift (MHz)")
