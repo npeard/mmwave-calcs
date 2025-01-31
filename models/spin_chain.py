@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import Any
@@ -111,7 +114,7 @@ class LatticeGraph:
                                  f"expected string: {operator}")
 
             # Normalize operator to lowercase for consistency
-            operator = operator.lower()
+            #operator = operator.lower()
 
             # Initialize list for this operator if not exists
             if operator not in new_interaction_dict:
@@ -341,6 +344,26 @@ class DiagonEngine(ComputationStrategy):
             H = quspin.operators.hamiltonian(static, [], basis=self.basis)
 
         return H
+
+    def get_energy(self, t: float, n_roots: int = 1):
+        """
+        Get the energy of the current spin chain configuration.
+
+        Parameters
+        ----------
+        t : float
+            Time at which to evaluate the Hamiltonian.
+        n_roots : int, optional
+            Number of states to compute. Default is 1.
+
+        Returns
+        -------
+        float
+            The energy of the current spin chain configuration.
+        """
+        H = self.get_quspin_hamiltonian(t)
+        energy = H.eigsh(k=n_roots, which='SM')
+        return energy
 
     def get_quspin_floquet_hamiltonian(self, params: list[float or str],
                                        dt_list: list[float]):
@@ -631,19 +654,12 @@ class DMRGEngine(ComputationStrategy):
                                         bond_dim=min(8, bond_dims[0]),
                                         nroots=n_roots)
 
-        # Set up DMRG parameters
-        noises = [1e-3] * 5 + [1e-5] * 5 + [0]
-        thrds = [1e-8] * 10
-
         # Run DMRG
         energy = self.driver.dmrg(
             heis_mpo,
             ket,
             n_sweeps=100,
             bond_dims=bond_dims,
-            noises=noises,
-            thrds=thrds,
-            cutoff=1E-20,
             tol=1e-6
         )
 
@@ -778,34 +794,42 @@ class DMRGEngine(ComputationStrategy):
 
 if __name__ == "__main__":
     # Example usage
-    def DM_z_period4(t, i):
-        phase = np.pi / 2 * (i % 4)
-        if t == "+DM":
-            return phase
-        elif t == "-DM":
-            return -phase
-        else:
-            return 0
+    # def DM_z_period4(t, i):
+    #     phase = np.pi / 2 * (i % 4)
+    #     if t == "+DM":
+    #         return phase
+    #     elif t == "-DM":
+    #         return -phase
+    #     else:
+    #         return 0
 
-    def XY_z_period4(t, i):
-        phase = np.pi - 3. * np.pi / 2 * (i % 4)
-        if t == "+XY":
-            return phase
-        elif t == "-XY":
-            return -phase
-        else:
-            return 0
+    # def XY_z_period4(t, i):
+    #     phase = np.pi - 3. * np.pi / 2 * (i % 4)
+    #     if t == "+XY":
+    #         return phase
+    #     elif t == "-XY":
+    #         return -phase
+    #     else:
+    #         return 0
 
-    def native(t, i, j):
-        if t in ["+DM", "-DM", "+XY", "-XY"]:
-            return 0
-        else:
-            return 0.5
+    # def native(t, i, j):
+    #     if t in ["+DM", "-DM", "+XY", "-XY"]:
+    #         return 0
+    #     else:
+    #         return 0.5
 
-    terms = [['XX', native, 'nn'], ['yy', native, 'nn'],
-             ['z', DM_z_period4, np.inf], ['z', XY_z_period4, np.inf]]
+    # terms = [['XX', native, 'nn'], ['yy', native, 'nn'],
+    #          ['z', DM_z_period4, np.inf], ['z', XY_z_period4, np.inf]]
+    # graph = LatticeGraph.from_interactions(4, terms, pbc=True)
+
+    # print(graph("-DM"))
+
+    # computation = DiagonEngine(graph)
+
+    def fourier_component(k, i, j):
+        return np.exp(1j * k * (i - j))
+
+    terms = [['XX', fourier_component, 0], ['yy', fourier_component, 0]]
     graph = LatticeGraph.from_interactions(4, terms, pbc=True)
 
-    print(graph("-DM"))
-
-    computation = DiagonEngine(graph)
+    print(graph(np.pi/2))
