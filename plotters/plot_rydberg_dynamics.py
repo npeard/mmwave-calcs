@@ -511,6 +511,64 @@ def plot_lindblad_duo_pulse(probe_delays=None, couple_delays=None,
     plt.show()
 
 
+def plot_lindblad_duo_pulse_spectrum(probe_duration=0, probe_delay=10e-9, probe_hold=20e-9,
+                                   probe_peak_power=10e-3, couple_duration=0, couple_delay=15e-9,
+                                   couple_hold=20e-9, couple_peak_power=4,
+                                   Delta=0.0):
+    """
+    Plot the final populations of all states as a function of delta detuning.
+    Similar to plot_lindblad_duo_pulse() but scans delta instead of pulse delays.
+    """
+    runner = rydnamics.LossyRydberg()
+
+    # Create array of delta values to scan
+    deltas = np.linspace(-100e6, 100e6, 100)
+
+    # Initialize arrays to store final populations
+    ground_final = []
+    inter_final = []
+    rydberg_final = []
+    loss_final = []
+
+    for delta in tqdm(deltas):
+        Ground, Inter, Rydberg, _, _, time, Loss = (
+            runner.duo_pulse_lindblad(probe_duration=probe_duration,
+                                    probe_delay=probe_delay,
+                                    probe_hold=probe_hold,
+                                    probe_peak_power=probe_peak_power,
+                                    couple_duration=couple_duration,
+                                    couple_delay=couple_delay,
+                                    couple_hold=couple_hold,
+                                    couple_peak_power=couple_peak_power,
+                                    Delta=Delta - 2*np.pi*delta,
+                                    delta=2*np.pi*delta))
+        # Store final populations
+        ground_final.append(Ground[-1])
+        inter_final.append(Inter[-1])
+        rydberg_final.append(Rydberg[-1])
+        loss_final.append(Loss[-1])
+
+    # Convert lists to numpy arrays
+    ground_final = np.array(ground_final)
+    inter_final = np.array(inter_final)
+    rydberg_final = np.array(rydberg_final)
+    loss_final = np.array(loss_final)
+
+    # Create the plot
+    plt.figure(figsize=(10, 6))
+    plt.plot(deltas/1e6, ground_final, label='Ground State')
+    plt.plot(deltas/1e6, inter_final, label='Intermediate State')
+    plt.plot(deltas/1e6, rydberg_final, label='Rydberg State')
+    plt.plot(deltas/1e6, loss_final, label='Loss')
+
+    plt.xlabel(r'$\delta$ (MHz)')
+    plt.ylabel('Population')
+    plt.title('State Populations vs Rydberg Detuning')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+
 if __name__ == '__main__':
     # plot_lindblad_dynamics()
 
@@ -519,10 +577,17 @@ if __name__ == '__main__':
     # plot_lindblad_fast_probe(coupling_powers=coupling_powers,
     #                                    probe_peak_power=probe_peak_power)
 
-    plot_duo_pulse(probe_duration=0, probe_delay=10e-9, probe_hold=10e-6,
-                   probe_peak_power=9e-3, couple_duration=0, couple_delay=10e-9,
-                   couple_hold=10e-6, couple_peak_power=2.8,
-                   Delta=2*np.pi*3.3*1e9)
+    # Test the new spectrum plotting function
+    plot_lindblad_duo_pulse_spectrum(probe_duration=0, probe_delay=10e-9,
+                                   probe_hold=200e-9, probe_peak_power=9e-3,
+                                   couple_duration=0, couple_delay=10e-9,
+                                   couple_hold=200e-9, couple_peak_power=2.8,
+                                   Delta=2*np.pi*3.3e9)
+
+    # plot_duo_pulse(probe_duration=0, probe_delay=10e-9, probe_hold=10e-6,
+    #                probe_peak_power=9e-3, couple_duration=0, couple_delay=10e-9,
+    #                couple_hold=10e-6, couple_peak_power=2.8,
+    #                Delta=2*np.pi*3.3*1e9)
 
     # probe_delays = np.linspace(0, 50e-9, 20)
     # couple_delays = np.linspace(0, 50e-9, 20)
