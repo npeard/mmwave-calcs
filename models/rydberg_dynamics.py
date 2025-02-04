@@ -11,12 +11,12 @@ class UnitaryRydberg:
         """
         Initialize the UnitaryRydberg class with default parameters. This
         class computes dynamics of the Rydberg transition without dissipation.
-        
+
         This constructor sets up the initial quantum state, time array, and
         power parameters for the Rydberg transition dynamics. It also
         initializes the RydbergTransition instance and prepares interpolated
         functions for fast Rabi frequency lookup based on given power.
-        
+
         Attributes
         ----------
         psi0 : np.ndarray
@@ -149,13 +149,13 @@ class UnitaryRydberg:
         """
         Compute the time derivative of the density matrix `rho` for a given
         Hamiltonian `H`.
-    
+
         This function computes the Liouvillian superoperator acting on the density
         matrix `rho`, which represents the quantum state of a three-level system.
         The time derivative is calculated using the commutator of the Hamiltonian
         `H` with the density matrix `rho`, which describes the unitary evolution
         of the quantum state according to the Schrödinger equation.
-    
+
         Parameters
         ----------
         rho : complex128[:]
@@ -163,7 +163,7 @@ class UnitaryRydberg:
             matrix when reshaped.
         H : float64[:,:]
             Hamiltonian matrix in the three-state basis.
-    
+
         Returns
         -------
         complex128[:]
@@ -181,7 +181,7 @@ class UnitaryRydberg:
         Compute the time derivative of the density matrix `rho` for a given
         Hamiltonian `H` corresponding to a probe pulse with the given
         parameters.
-    
+
         Parameters
         ----------
         t : float
@@ -199,13 +199,13 @@ class UnitaryRydberg:
             Maximum power of the probe pulse.
         Omega23 : float
             Rabi angular frequency of the coupling laser.
-    
+
         Returns
         -------
         complex128[:]
             Flattened array representing the time derivative of the density
             matrix `rho`.
-    
+
         Notes
         -----
         The time derivative is calculated using the commutator of the Hamiltonian
@@ -610,7 +610,7 @@ class LossyRydberg(UnitaryRydberg):
         Compute the time derivative of the density matrix `rho` for a given
         Hamiltonian `H` corresponding to a dual probe and coupling pulse with
         the given parameters.
-    
+
         Parameters
         ----------
         t : float
@@ -634,13 +634,13 @@ class LossyRydberg(UnitaryRydberg):
             Duration of the flat top of the coupling pulse.
         couple_peak_power : float
             Maximum power of the coupling pulse.
-    
+
         Returns
         -------
         complex128[:]
             Flattened array representing the time derivative of the density
             matrix `rho`.
-    
+
         Notes
         -----
         The time derivative is calculated using the commutator of the Hamiltonian

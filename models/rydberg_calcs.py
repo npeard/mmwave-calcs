@@ -8,7 +8,7 @@ class OpticalTransition:
         """
         Initialize a transition between two energy levels in Cesium. Default
         is the Cs F=4 GS to 7P3/2 transition.
-        
+
         Parameters
         ----------
         laserWaist : float, optional
@@ -35,7 +35,7 @@ class OpticalTransition:
             The hyperfine quantum number of the upper energy level. Defaults to 5.
         q : int, optional
             The polarization of the laser. Defaults to 0.
-        
+
         Attributes
         ----------
         RabiAngularFreq_from_Power : callable
@@ -57,12 +57,12 @@ class OpticalTransition:
         self.mj2 = mj2
         self.f2 = f2
         self.q = q
-        
+
         self.RabiAngularFreq_from_Power = None
         self.Power_from_RabiAngularFreq = None
-        
+
         self.init_fast_lookup()
-        
+
     def init_fast_lookup(self):
         """
         Initialize fast lookup functions for Rabi angular frequencies vs. power.
@@ -92,18 +92,18 @@ class OpticalTransition:
         for p in power:
             Power_from_RabiAngularFreq.append(self.get_rabi_angular_freq(laserPower=p))
         Power_from_RabiAngularFreq = np.array(Power_from_RabiAngularFreq)
-        
+
         # Add origin point
         power = np.insert(power, 0, 0)
         Power_from_RabiAngularFreq = np.insert(Power_from_RabiAngularFreq, 0, 0)
-        
+
         self.RabiAngularFreq_from_Power = interp1d(power,
                                                    Power_from_RabiAngularFreq,
                                                    kind='cubic')
         # inverse
         self.Power_from_RabiAngularFreq = interp1d(Power_from_RabiAngularFreq,
                                                    power, kind='cubic')
-    
+
     def get_linewidth(self):
         """
         This function computes the linewidth of the excited state, given by the
@@ -118,7 +118,7 @@ class OpticalTransition:
                                            temperature=300.0,
                                            includeLevelsUpTo=self.n2 + 5)
         return gamma
-    
+
     def get_transition_freq(self):
         """
         Compute the transition frequency for the excitation laser, taking into
@@ -134,7 +134,7 @@ class OpticalTransition:
         freq = cs().getTransitionFrequency(n1=self.n1, l1=self.l1,
                                            j1=self.j1, n2=self.n2,
                                            l2=self.l2, j2=self.j2)
-        
+
         # HFS energy shift, ARC database doesn't have values for Rydbergs n > ?
         HFS_g = 0
         HFS_e = 0
@@ -148,9 +148,9 @@ class OpticalTransition:
                                            A=cs().getHFSCoefficients(n=self.n2,
                                                                      l=self.l2,
                                                                      j=self.j2)[0])
-        
+
         return freq - HFS_g + HFS_e
-    
+
     def get_rabi_angular_freq(self, laserPower):
         """
         Compute the Rabi angular frequency for the transition.
@@ -178,7 +178,7 @@ class OpticalTransition:
             rabiFreq = self.RabiAngularFreq_from_Power(laserPower)
 
         return rabiFreq
-    
+
     def get_saturation_power(self):
         """
         Compute the saturation power for the transition.
@@ -196,7 +196,7 @@ class OpticalTransition:
                                                      ne=self.n2, le=self.l2,
                                                      je=self.j2, fe=self.f2)
         return sat * np.pi * self.laserWaist**2  # in Watts
-    
+
 
 class RydbergTransition:
     def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, f1=4,
@@ -243,7 +243,7 @@ class RydbergTransition:
             The magnetic quantum number of the third state. Defaults to 2.5.
         f3 : int, optional
             The hyperfine quantum number of the third state. Defaults to 5.
-            
+
         Attributes
         ----------
         transition1 : OpticalTransition
@@ -259,19 +259,19 @@ class RydbergTransition:
                                              n1=n2, l1=l2, j1=j2, mj1=mj2,
                                              f1=f2, n2=n3, l2=l3, j2=j3,
                                              mj2=mj3, f2=f3, q=q2)
-                        
+
     def get_balanced_laser_power(self, probe_power=None, couple_power=None):
         """
         Compute the balanced laser power for the probe and couple lasers. This is
         the laser power that results in the same Rabi frequency for both lasers.
-    
+
         Parameters
         ----------
         probe_power : float, optional
             The power of the probe laser, in W.
         couple_power : float, optional
             The power of the couple laser, in W.
-    
+
         Returns
         -------
         probe_power : float, optional
@@ -408,12 +408,12 @@ class RydbergTransition:
         """
         omega = self.get_total_rabi_angular_freq(Pp, Pc, resonance=resonance)
         return np.pi / omega
-    
+
     def get_pi_detuning(self, probe_power, couple_power, pi_time):
         """
         Calculate the detuning required to implement a pi pulse of specified
         duration.
-        
+
         Parameters
         ----------
         probe_power : float
@@ -422,7 +422,7 @@ class RydbergTransition:
             The power of the coupling laser, in W.
         pi_time : float
             The desired duration of the pi pulse, in seconds.
-        
+
         Returns
         -------
         float
@@ -433,10 +433,10 @@ class RydbergTransition:
         rabiFreq_2 = self.transition2.get_rabi_angular_freq(
             laserPower=couple_power)
         detuning = pi_time/np.pi/2 * rabiFreq_1 * rabiFreq_2
-        
+
         return detuning
 
-    def print_laser_frequencies(self, Pp, Pc, AOM456=-220e6, AOM1064=-110e6):
+    def print_laser_frequencies(self, Pp, Pc, AOM456=-220e6, AOM1064=-220e6):
         """
         Print out the relevant laser frequencies and power broadenings for
         a given Rydberg transition. Mainly used for tuning parameters in the
@@ -450,10 +450,10 @@ class RydbergTransition:
             The power of the coupling laser, in W.
         AOM456 : float, optional
             The frequency shift of the probe laser due to the AOM, in Hz.
-            Defaults to -220e6.
+            Defaults to -220e6 since there are two -1 order 110 MHz AOMs.
         AOM1064 : float, optional
             The frequency shift of the coupling laser due to the AOM, in Hz.
-            Defaults to -110e6.
+            Defaults to -220e6 since there are two -1 order 110 MHz AOMs.
 
         Notes
         -----
@@ -494,21 +494,21 @@ class RydbergTransition:
         print("\nExpected Rabi Frequency = 2*pi",
               self.get_total_rabi_angular_freq(Pp, Pc) * 1e-6 / (2 * np.pi), "MHz")
         print("Pi Pulse Duration", self.get_pi_pulse_duration(Pp, Pc) * 1e9, "ns")
-        
+
     def print_saturation_powers(self):
         """
         Print the saturation powers for the probe and coupling transitions.
 
         This function retrieves the saturation powers for the electronic and
         Rydberg transitions and prints them in milliwatts (mW).
-        
+
         Returns
         -------
         None
         """
         satPower_E = self.transition1.get_saturation_power()
         satPower_R = self.transition2.get_saturation_power()
-        
+
         print("Saturation Power E (mW)", satPower_E * 1e3)
         print("Saturation Power R (mW)", satPower_R * 1e3)
 
@@ -520,7 +520,7 @@ if __name__ == '__main__':
                                      q2=-1, n3=40, l3=0, j3=0.5)
 
     transition40.print_laser_frequencies(Pp=0.010, Pc=2)
-    
+
     powers = np.linspace(0, 10, 1000)
     rabiFreqs = [transition40.transition2.RabiAngularFreq_from_Power(p) for p
                  in powers]
@@ -533,4 +533,3 @@ if __name__ == '__main__':
     plt.xlabel('Power (W)')
     plt.ylabel('Rabi Frequency (Hz)')
     plt.show()
-    
