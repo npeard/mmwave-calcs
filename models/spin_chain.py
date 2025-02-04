@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import Any
@@ -7,7 +10,7 @@ from quspin.basis import spin_basis_1d
 from quspin.tools.Floquet import Floquet
 from quspin.tools.misc import matvec
 from models.utility import HiddenPrints
-
+from pyblock2.driver.core import DMRGDriver, SymmetryTypes, MPOAlgorithmTypes
 
 class LatticeGraph:
     def __init__(self, num_sites: int = None, interaction_dict: dict = None):
@@ -111,7 +114,7 @@ class LatticeGraph:
                                  f"expected string: {operator}")
 
             # Normalize operator to lowercase for consistency
-            operator = operator.lower()
+            #operator = operator.lower()
 
             # Initialize list for this operator if not exists
             if operator not in new_interaction_dict:
@@ -130,8 +133,7 @@ class LatticeGraph:
                                   (i + 1) % num_sites] for i
                                  in range(num_sites - 1 + int(pbc))]
                     else:
-                        graph = [[lambda t, s=strength: s, i,
-                                  (i + 1) % num_sites]
+                        graph = [[strength, i, (i + 1) % num_sites]
                                  for i in range(num_sites - 1 + int(pbc))]
 
                 # Next-Nearest Neighbor (NNN) interactions
@@ -140,11 +142,10 @@ class LatticeGraph:
                         graph = [[lambda t, s=strength, i=i:
                                   s(t, i, (i + 2) % num_sites), i,
                                   (i + 2) % num_sites]
-                                 for i in range(num_sites - 2 + int(pbc))]
+                                 for i in range(num_sites - 2 + 2*int(pbc))]
                     else:
-                        graph = [[lambda t, s=strength: s, i,
-                                  (i + 2) % num_sites]
-                                 for i in range(num_sites - 2 + int(pbc))]
+                        graph = [[strength, i, (i + 2) % num_sites]
+                                 for i in range(num_sites - 2 + 2*int(pbc))]
 
                 else:
                     raise ValueError(f"Invalid range cutoff string: {alpha}")
@@ -153,19 +154,27 @@ class LatticeGraph:
                 new_interaction_dict[operator].extend(graph)
 
             elif alpha == np.inf:
-                if len(operator) != 1:
-                    raise ValueError(f"One-site operation requires one-site "
+                if len(operator) > 1:
+                    print(f"Warning: You are using a one-site quadratic or greater "
                                      f"operator: {operator}")
 
                 # On-site interaction
                 if callable(strength):
                     # Time-dependent or site-specific on-site term
-                    graph = [[lambda t, s=strength, i=i: s(t, i), i]
-                             for i in range(num_sites)]
+                    if len(operator) == 1:
+                        graph = [[lambda t, s=strength, i=i: s(t, i), i]
+                                for i in range(num_sites)]
+                    else:
+                        graph = [[lambda t, s=strength, i=i: s(t, i), i, i]
+                                 for i in range(num_sites)]
                 else:
                     # Constant on-site term
-                    graph = [[lambda t, s=strength: s, i]
-                             for i in range(num_sites)]
+                    if len(operator) == 1:
+                        graph = [[strength, i]
+                                 for i in range(num_sites)]
+                    else:
+                        graph = [[strength, i, i]
+                                 for i in range(num_sites)]
 
                 # Add to the dictionary for this operator
                 new_interaction_dict[operator].extend(graph)
@@ -179,15 +188,14 @@ class LatticeGraph:
                 if callable(strength):
                     # Time and site-dependent strength, inverse range alpha
                     graph = [[lambda t, s=strength, i=i, j=j:
-                              s(t, i, j)/(np.abs(i - j)**alpha), i, j]
+                              s(t, i, j)*np.abs(j - i).astype(float)**(-1*alpha), i, j]
                              for i in range(num_sites) for j in
-                             range(num_sites)]
+                             range(num_sites) if j>i]
                 else:
                     # Constant interaction strength, inverse range alpha
-                    graph = [[lambda t, s=strength:
-                              s/(np.abs(i - j)**alpha), i, j]
+                    graph = [[strength*np.abs(j - i).astype(float)**(-1*alpha), i, j]
                              for i in range(num_sites) for j in
-                             range(num_sites)]
+                             range(num_sites) if j>i]
 
                 # Add to the dictionary for this operator
                 new_interaction_dict[operator].extend(graph)
@@ -214,10 +222,6 @@ class ComputationStrategy(ABC):
         self.graph = graph
         self.spin = spin
         self.unit_cell_length = unit_cell_length
-
-    @abstractmethod
-    def run_calculation(self, t: float = 0.0):
-        raise NotImplementedError
 
     def frobenius_loss(self, matrix1: list[list[Any]],
                        matrix2: list[list[Any]]):
@@ -341,8 +345,25 @@ class DiagonEngine(ComputationStrategy):
 
         return H
 
-    def run_calculation(self, t: float = 0.0):
-        raise NotImplementedError
+    def get_energy(self, t: float, n_roots: int = 1):
+        """
+        Get the energy of the current spin chain configuration.
+
+        Parameters
+        ----------
+        t : float
+            Time at which to evaluate the Hamiltonian.
+        n_roots : int, optional
+            Number of states to compute. Default is 1.
+
+        Returns
+        -------
+        float
+            The energy of the current spin chain configuration.
+        """
+        H = self.get_quspin_hamiltonian(t)
+        energy = H.eigsh(k=n_roots, which='SM')
+        return energy
 
     def get_quspin_floquet_hamiltonian(self, params: list[float or str],
                                        dt_list: list[float]):
@@ -454,40 +475,361 @@ class DiagonEngine(ComputationStrategy):
 
 
 class DMRGEngine(ComputationStrategy):
-    def run_calculation(self, t: float = 0.0):
-        raise NotImplementedError
+    def __init__(self, graph: LatticeGraph, spin='1', unit_cell_length: int = 1):
+        """
+        Initialize the DMRG Engine for solving spin chain problems.
+
+        Parameters
+        ----------
+        graph : LatticeGraph
+            The lattice graph defining the spin chain system.
+        spin : str, optional
+            The spin representation to use. Default is '1' for spin-1.
+        unit_cell_length : int, optional
+            Length of the unit cell. Default is 1.
+        """
+        super().__init__(graph, spin, unit_cell_length)
+        self.energies = None  # List to store computed energies
+        self.states = None    # List to store computed states
+        self.driver = self._initialize_driver()
+
+    def _initialize_driver(self):
+        """
+        Initialize the DMRG driver with appropriate symmetry and system parameters.
+
+        Returns
+        -------
+        DMRGDriver
+            Initialized DMRG driver instance.
+        """
+        # Initialize DMRG driver
+        driver = DMRGDriver(scratch="./dmrg_tmp", symm_type=SymmetryTypes.SGB|SymmetryTypes.CPX, n_threads=4)
+
+        # Initialize system based on spin type
+        heis_twos = int(2*float(eval(self.spin)))
+        driver.initialize_system(n_sites=self.graph.num_sites, heis_twos=heis_twos, heis_twosz=0)
+
+        return driver
+
+    def _build_mpo(self, t: float = 0.0, operator_graph: LatticeGraph = None):
+        """
+        Build the MPO (Matrix Product Operator) for the Hamiltonian or a custom operator.
+
+        Parameters
+        ----------
+        t : float, optional
+            Time at which to evaluate the Hamiltonian. Default is 0.0.
+        operator_graph : LatticeGraph, optional
+            If provided, build MPO for this operator instead of the Hamiltonian.
+            Must have same number of sites as the system graph.
+
+        Returns
+        -------
+        MPO
+            The constructed Matrix Product Operator.
+        """
+        if operator_graph is not None and operator_graph.num_sites != self.graph.num_sites:
+            raise ValueError("Operator graph must have same number of sites as the system")
+
+        # Use the operator graph if provided, otherwise use the system graph
+        graph = operator_graph if operator_graph is not None else self.graph
+        interaction_dict = graph(t)
+
+        # Initialize driver expression builder
+        b = self.driver.expr_builder()
+
+        # Add terms to the MPO
+        for op_type, terms in interaction_dict.items():
+            for term in terms:
+                # TODO: is this block necessary?
+                if term[0] is callable:
+                    J = term[0]
+                elif isinstance(term[0], float) or isinstance(term[0], int):
+                    J = float(term[0])
+                elif isinstance(term[0], complex):
+                    J = complex(term[0])
+                    # print("Warning: Using a complex-valued coupling constant")
+
+                # TODO: add here proper substitution of PM operators for XY
+                if len(term) == 2:  # Single-site term
+                    site = term[1]
+                    if op_type.lower() == 'x':
+                        b.add_term("X", [site], J)
+                    elif op_type.lower() == 'y':
+                        b.add_term("Y", [site], J)
+                    elif op_type.lower() == 'z':
+                        b.add_term("Z", [site], J)
+
+                elif len(term) == 3:  # Two-site term
+                    site1, site2 = term[1], term[2]
+                    if op_type.lower() == 'xx':
+                        # XX terms are implemented as 0.5*(P+M)**2
+                        b.add_term("PP", [site1, site2], 0.5 * J)
+                        b.add_term("MM", [site1, site2], 0.5 * J)
+                        b.add_term("MP", [site1, site2], 0.5 * J)
+                        b.add_term("PM", [site1, site2], 0.5 * J)
+                    elif op_type.lower() == 'yy':
+                        # YY terms are implemented as -0.5*(P-M)**2
+                        b.add_term("PP", [site1, site2], -0.5 * J)
+                        b.add_term("MM", [site1, site2], -0.5 * J)
+                        b.add_term("MP", [site1, site2], 0.5 * J)
+                        b.add_term("PM", [site1, site2], 0.5 * J)
+                    elif op_type.lower() == 'zz':
+                        b.add_term("ZZ", [site1, site2], J)
+                    else:
+                        b.add_term(op_type.upper(), [site1, site2], J)
+
+        return self.driver.get_mpo(b.finalize())
+
+    def compute_expectation(self, operator_graph: LatticeGraph, state_idx=0, t: float = 0.0):
+        """
+        Compute expectation value of an arbitrary operator defined by a LatticeGraph.
+
+        Parameters
+        ----------
+        operator_graph : LatticeGraph
+            Graph object defining the operator to compute expectation value of.
+            Must have same number of sites as the system.
+        state_idx : int, optional
+            Index of the state to compute expectation for. Default is 0.
+        t : float, optional
+            Time at which to evaluate the operator. Default is 0.0.
+
+        Returns
+        -------
+        float
+            Expectation value <ψ|O|ψ> where O is the operator defined by operator_graph
+            and ψ is the state.
+
+        Raises
+        ------
+        ValueError
+            If no states are available or if operator_graph has invalid structure.
+        """
+        if not self.states:
+            raise ValueError("No states available. Run calculation first.")
+
+        # Get the state
+        mps = self.states[state_idx]
+
+        # Build the MPO for the operator
+        mpo = self._build_mpo(t, operator_graph)
+
+        # Compute expectation value
+        expect = self.driver.expectation(mps, mpo, mps)
+        return expect
+
+    def compute_energies_mps(self, bond_dims=[50, 100, 200], n_roots=1, t: float = 0.0):
+        """
+        Compute energies and MPS states using DMRG.
+
+        Parameters
+        ----------
+        bond_dims : list, optional
+            List of bond dimensions to use in DMRG. For example, [50, 100, 200] will run
+            DMRG first with bond dimension 50, then 100, then 200, to converge the calculation
+            to higher degrees of accuracy in the state correlations.
+        n_roots : int, optional
+            Number of states to compute. Default is 1.
+        t : float, optional
+            Time at which to evaluate the Hamiltonian. Default is 0.0.
+
+        Returns
+        -------
+        tuple
+            (energies, states) where energies is a list of computed energies
+            and states is a list of computed MPS states.
+        """
+        # Build the MPO
+        heis_mpo = self._build_mpo(t)
+
+        # Get unique state ID
+        # TODO: come up with a better way to prevent name collisions/reloading of
+        # previously computed states. Random int for state ID might run into issues
+        # with very large computations.
+        state_id = np.random.randint(0, 1000000)
+
+        # Get initial random MPS
+        ket = self.driver.get_random_mps(tag="KET"+str(state_id),
+                                        bond_dim=min(8, bond_dims[0]),
+                                        nroots=n_roots)
+
+        # Run DMRG
+        energy = self.driver.dmrg(
+            heis_mpo,
+            ket,
+            n_sweeps=100,
+            bond_dims=bond_dims,
+            tol=1e-6
+        )
+
+        # Save results
+        energies = [energy]
+        mps = self.driver.load_mps(tag="KET"+str(state_id), nroots=n_roots)
+        states = [mps]
+
+        if n_roots > 1:
+            states = [self.driver.split_mps(mps, iroot=i,
+                                           tag=f"KET"+str(state_id)+"_state_{i}")
+                      for i in range(n_roots)]
+            energies = [energy]
+
+        self.energies = energies
+        self.states = states
+        return energies, states
+
+    def compute_correlation(self, correlation_graph: LatticeGraph, state_idx=0):
+        """
+        Compute correlation functions for a given state using a LatticeGraph object
+        that defines the correlation function to compute.
+
+        Parameters
+        ----------
+        correlation_graph : LatticeGraph
+            Graph object defining the correlation function. The interaction_dict should
+            contain operator terms (e.g., 'x', 'y', 'z', 'xx', 'yy', 'zz') with their
+            corresponding site indices and strengths. For example:
+            {'z': [[1.0, i, j]] for correlator <Z_i Z_j>
+            {'xx': [[1.0, i, j]], 'yy': [[1.0, i, j]]} for correlator <X_i X_j + Y_i Y_j>
+        state_idx : int, optional
+            Index of the state to compute correlations for. Default is 0.
+
+        Returns
+        -------
+        numpy.ndarray
+            Correlation values.
+
+        Raises
+        ------
+        ValueError
+            If no states are available or if correlation_graph has invalid operators.
+        """
+        if not self.states:
+            raise ValueError("No states available. Run calculation first.")
+
+        if correlation_graph.num_sites != self.graph.num_sites:
+            raise ValueError("Correlation graph must have same number of sites as the system")
+
+        # Get the state
+        mps = self.states[state_idx]
+
+        # Initialize correlation array
+        N = self.graph.num_sites
+        correlations = np.empty((N, N), dtype=np.complex128)
+
+        # Operator mapping from lowercase to DMRG convention
+        op_map = {'x': 'X', 'y': 'Y', 'z': 'Z'}
+
+        # Process each operator type and its terms
+        for op_type, terms in correlation_graph.interaction_dict.items():
+            op_type = op_type.lower()
+            if len(op_type) == 1:
+                op = op_map.get(op_type)
+            elif len(op_type) == 2:
+                op = op_map.get(op_type[0]) + op_map.get(op_type[1])
+            else:
+                raise ValueError(f"Invalid operator type: {op_type}")
+
+            if op is None:
+                raise ValueError(f"Invalid operator type: {op_type}")
+
+            # Compute expectation value for each term
+            for term in terms:
+                b = self.driver.expr_builder()
+                strength = term[0] if callable(term[0]) else float(term[0])
+
+                if len(term) == 2:  # Single-site operator
+                    b.add_term(op, [term[1]], strength)
+                    mpo = self.driver.get_mpo(b.finalize())
+                    correlations[term[1], term[1]] = self.driver.expectation(mps, mpo, mps)
+                elif len(term) == 3:  # Two-site operator
+                    site1, site2 = term[1], term[2]
+                    if op.lower() == 'xx':
+                        # XX terms are implemented as 0.5*(P+M)**2
+                        b.add_term("PP", [site1, site2], 0.5 * strength)
+                        b.add_term("MM", [site1, site2], 0.5 * strength)
+                        b.add_term("MP", [site1, site2], 0.5 * strength)
+                        b.add_term("PM", [site1, site2], 0.5 * strength)
+                    elif op.lower() == 'yy':
+                        # YY terms are implemented as -0.5*(P-M)**2
+                        b.add_term("PP", [site1, site2], -0.5 * strength)
+                        b.add_term("MM", [site1, site2], -0.5 * strength)
+                        b.add_term("MP", [site1, site2], 0.5 * strength)
+                        b.add_term("PM", [site1, site2], 0.5 * strength)
+                    else:
+                        b.add_term(op, [site1, site2], strength)
+                    mpo = self.driver.get_mpo(b.finalize())
+                    val = self.driver.expectation(mps, mpo, mps)
+                    correlations[site1, site2] = val
+                    correlations[site2, site1] = val  # Symmetrize
+
+        return correlations
+
+    def run_convergence_test(self, bond_dims, n_roots=2):
+        """
+        Run convergence test over different bond dimensions.
+
+        Parameters
+        ----------
+        bond_dims : array-like
+            List of bond dimensions to test
+        n_roots : int
+            Number of excited states to compute
+
+        Returns
+        -------
+        ndarray
+            Array of shape (len(bond_dims), n_roots) containing energies for each bond dimension
+            and excited state
+        """
+        energies = []
+
+        for chi in bond_dims:
+            print(f"Testing chi = {chi}")
+            energy, _ = self.compute_energies_mps(bond_dims=[chi], n_roots=n_roots)
+            energies.append(energy)
+
+        return np.asarray(energies)
 
 
 if __name__ == "__main__":
     # Example usage
-    def DM_z_period4(t, i):
-        phase = np.pi / 2 * (i % 4)
-        if t == "+DM":
-            return phase
-        elif t == "-DM":
-            return -phase
-        else:
-            return 0
+    # def DM_z_period4(t, i):
+    #     phase = np.pi / 2 * (i % 4)
+    #     if t == "+DM":
+    #         return phase
+    #     elif t == "-DM":
+    #         return -phase
+    #     else:
+    #         return 0
 
-    def XY_z_period4(t, i):
-        phase = np.pi - 3. * np.pi / 2 * (i % 4)
-        if t == "+XY":
-            return phase
-        elif t == "-XY":
-            return -phase
-        else:
-            return 0
+    # def XY_z_period4(t, i):
+    #     phase = np.pi - 3. * np.pi / 2 * (i % 4)
+    #     if t == "+XY":
+    #         return phase
+    #     elif t == "-XY":
+    #         return -phase
+    #     else:
+    #         return 0
 
-    def native(t, i, j):
-        if t in ["+DM", "-DM", "+XY", "-XY"]:
-            return 0
-        else:
-            return 0.5
+    # def native(t, i, j):
+    #     if t in ["+DM", "-DM", "+XY", "-XY"]:
+    #         return 0
+    #     else:
+    #         return 0.5
 
-    terms = [['XX', native, 'nn'], ['yy', native, 'nn'],
-             ['z', DM_z_period4, np.inf], ['z', XY_z_period4, np.inf]]
+    # terms = [['XX', native, 'nn'], ['yy', native, 'nn'],
+    #          ['z', DM_z_period4, np.inf], ['z', XY_z_period4, np.inf]]
+    # graph = LatticeGraph.from_interactions(4, terms, pbc=True)
+
+    # print(graph("-DM"))
+
+    # computation = DiagonEngine(graph)
+
+    def fourier_component(k, i, j):
+        return np.exp(1j * k * (i - j))
+
+    terms = [['XX', fourier_component, 0], ['yy', fourier_component, 0]]
     graph = LatticeGraph.from_interactions(4, terms, pbc=True)
 
-    print(graph("-DM"))
-
-    computation = DiagonEngine(graph)
+    print(graph(np.pi/2))

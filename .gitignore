@@ -1,3 +1,8 @@
+# DMRG temporary files
+dmrg_tmp/*
+notebooks/soc/dmrg_tmp/*
+tmp/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -134,3 +139,6 @@ dmypy.json
 # training data
 data/*
 checkpoints/*
+
+# OSX stuff
+.DS_Store
