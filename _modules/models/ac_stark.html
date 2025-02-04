@@ -85,7 +85,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the ACStarkShift object for computing AC Stark shifts given a</span>
 <span class="sd">        state.</span>
-<span class="sd">    </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        laserWaist : float, optional</span>
@@ -176,7 +176,7 @@
         <span class="n">eFields</span> <span class="o">=</span> <span class="n">power2field</span><span class="p">(</span><span class="n">powers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">laserWaist</span><span class="p">)</span>
 
         <span class="n">calc_full</span> <span class="o">=</span> <span class="n">ShirleyMethod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atom</span><span class="p">)</span>
-        
+
         <span class="c1"># define a basis set that includes the local (microwave) and coupled</span>
         <span class="c1"># (optical) basis set</span>
         <span class="n">calc_full</span><span class="o">.</span><span class="n">defineBasis</span><span class="p">(</span>
@@ -192,7 +192,7 @@
             <span class="n">edN</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
             <span class="n">progressOutput</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">ryd_basis_coupled</span> <span class="o">=</span> <span class="n">calc_full</span><span class="o">.</span><span class="n">basisStates</span>
-        
+
         <span class="n">full_basis</span> <span class="o">=</span> <span class="n">basis_local</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_state</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
             <span class="n">full_basis</span> <span class="o">=</span> <span class="n">basis_local</span> <span class="o">+</span> <span class="n">ryd_basis_coupled</span>
@@ -205,7 +205,7 @@
         <span class="n">calc_full</span><span class="o">.</span><span class="n">defineBasis</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">target_state</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
                               <span class="n">basisStates</span><span class="o">=</span><span class="n">full_basis</span><span class="p">,</span>
                               <span class="n">progressOutput</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        
+
         <span class="c1"># Define the Hamiltonian</span>
         <span class="n">calc_full</span><span class="o">.</span><span class="n">defineShirleyHamiltonian</span><span class="p">(</span><span class="n">fn</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
