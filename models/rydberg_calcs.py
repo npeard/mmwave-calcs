@@ -198,8 +198,6 @@ class OpticalTransition:
         return sat * np.pi * self.laserWaist**2  # in Watts
 
 
-# TODO: refactor this class to use two 2-level transitions for maximum code
-#  reuse
 class RydbergTransition:
     def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, f1=4,
                  q1=1, n2=7, l2=1, j2=1.5, mj2=1.5, f2=5, q2=1, n3=47, l3=2,
