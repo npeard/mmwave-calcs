@@ -51,13 +51,13 @@ class UnitaryRydberg:
         self.couple_power = None  # watts
         self.Delta = None
         self.delta = None
-        self.transition = ryd.RydbergTransition()
+        self.transition = ryd.RydbergTransition(q2=-1, n3=41, l3=0, j3=0.5, mj3=0.5, f3=4)
 
         # interpolated Rabi angular frequencies for fast lookup
         self.func_Omega12_from_Power = (
-            self.transition.RabiAngularFreq_1_from_Power)
+            self.transition.transition1.RabiAngularFreq_from_Power)
         self.func_Omega23_from_Power = (
-            self.transition.RabiAngularFreq_2_from_Power)
+            self.transition.transition2.RabiAngularFreq_from_Power)
 
     @staticmethod
     @njit('float64[:,:,:](float64[:], float64, float64, float64)')
@@ -441,12 +441,12 @@ class LossyRydberg(UnitaryRydberg):
             The linewidth of the Rydberg state, in Hz, obtained from the
             transition properties.
         """
-        UnitaryRydberg.__init__(self)
+        super().__init__()
         self.rho0 = np.asarray([[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.complex128)
 
         # decay rates
-        self.gamma2 = self.transition.get_e_linewidth()
-        self.gamma3 = self.transition.get_r_linewidth()
+        self.gamma2 = self.transition.transition1.get_linewidth()
+        self.gamma3 = self.transition.transition2.get_linewidth()
 
     @staticmethod
     @njit('float64[:,:](float64, float64, float64, float64)')
@@ -548,9 +548,9 @@ class LossyRydberg(UnitaryRydberg):
 
         vonNeumann = -1j * (Ht @ rho - rho @ Ht)
 
-        loss_e = gamma2 * (spLoss1 @ (rho @ spLoss1.T)
+        loss_e = 2*np.pi*gamma2 * (spLoss1 @ (rho @ spLoss1.T)
                            - 0.5 * (spLoss1.T @ (spLoss1 @ rho) + rho @ (spLoss1.T @ spLoss1)))
-        loss_r = gamma3 * (spLoss2 @ (rho @ spLoss2.T)
+        loss_r = 2*np.pi*gamma3 * (spLoss2 @ (rho @ spLoss2.T)
                            - 0.5 * (spLoss2.T @ (spLoss2 @ rho) + rho @ (spLoss2.T @ spLoss2)))
 
         dot_rho = vonNeumann + loss_e + loss_r
@@ -720,8 +720,7 @@ class LossyRydberg(UnitaryRydberg):
         Omega23 = self.func_Omega23_from_Power(self.couple_power).item()
 
         # compensate AC stark shift
-        self.delta = self.transition.get_diff_ryd_ac_stark(probe_peak_power,
-                                                           couple_power)
+        self.delta = 0
 
         # solve initial value problem
         sol = solve_ivp(self.get_dot_rho, y0=np.ravel(self.rho0),

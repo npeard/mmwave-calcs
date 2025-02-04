@@ -2,6 +2,9 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import models.rydberg_dynamics as rydnamics
 import models.pulse_calcs as pulses
 from tqdm import tqdm
@@ -218,9 +221,9 @@ def plot_lindblad_dynamics():
     runner = rydnamics.LossyRydberg()
 
     Ground, Inter, Rydberg, Sweep, time, Loss = runner.probe_pulse_lindblad(
-        duration=0e-9, delay=5e-9, hold=22e-9, probe_peak_power=1e-3,
-        couple_power=0.1,
-        Delta=0, evolve_time=50e-9)
+        duration=0e-9, delay=5e-9, hold=200e-9, probe_peak_power=9e-3,
+        couple_power=2.8,
+        Delta=2*np.pi*3.3*1e9, evolve_time=500e-9)
     fig, ax1 = plt.subplots(figsize=(8, 8))
     ax2 = ax1.twinx()
     ax1.plot(time, Ground, label="Ground Population")
@@ -415,7 +418,7 @@ def plot_duo_pulse(probe_duration=0, probe_delay=10e-9, probe_hold=20e-9,
     ax2.plot(time, Probe, label="456nm Pulse", color='cyan')
     ax2.plot(time, Couple, label="1064nm Pulse", color='red')
     ax1.legend()
-    ax2.legend()
+    ax2.legend(loc='lower left')
     ax2.set_ylabel("Power (W)")
     plt.show()
 
@@ -516,7 +519,10 @@ if __name__ == '__main__':
     # plot_lindblad_fast_probe(coupling_powers=coupling_powers,
     #                                    probe_peak_power=probe_peak_power)
 
-    plot_duo_pulse()
+    plot_duo_pulse(probe_duration=0, probe_delay=10e-9, probe_hold=10e-6,
+                   probe_peak_power=9e-3, couple_duration=0, couple_delay=10e-9,
+                   couple_hold=10e-6, couple_peak_power=2.8,
+                   Delta=2*np.pi*3.3*1e9)
 
     # probe_delays = np.linspace(0, 50e-9, 20)
     # couple_delays = np.linspace(0, 50e-9, 20)
