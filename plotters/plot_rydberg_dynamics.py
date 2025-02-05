@@ -514,15 +514,12 @@ def plot_lindblad_duo_pulse(probe_delays=None, couple_delays=None,
 def plot_lindblad_duo_pulse_spectrum(probe_duration=0, probe_delay=10e-9, probe_hold=20e-9,
                                    probe_peak_power=10e-3, couple_duration=0, couple_delay=15e-9,
                                    couple_hold=20e-9, couple_peak_power=4,
-                                   Delta=0.0):
+                                   Delta=0.0, deltas: list = 2*np.pi*np.linspace(-100e6, 100e6, 100)):
     """
     Plot the final populations of all states as a function of delta detuning.
     Similar to plot_lindblad_duo_pulse() but scans delta instead of pulse delays.
     """
     runner = rydnamics.LossyRydberg()
-
-    # Create array of delta values to scan
-    deltas = np.linspace(-100e6, 100e6, 100)
 
     # Initialize arrays to store final populations
     ground_final = []
@@ -540,8 +537,8 @@ def plot_lindblad_duo_pulse_spectrum(probe_duration=0, probe_delay=10e-9, probe_
                                     couple_delay=couple_delay,
                                     couple_hold=couple_hold,
                                     couple_peak_power=couple_peak_power,
-                                    Delta=Delta - 2*np.pi*delta,
-                                    delta=2*np.pi*delta))
+                                    Delta=Delta - delta,
+                                    delta=delta))
         # Store final populations
         ground_final.append(Ground[-1])
         inter_final.append(Inter[-1])
@@ -556,12 +553,12 @@ def plot_lindblad_duo_pulse_spectrum(probe_duration=0, probe_delay=10e-9, probe_
 
     # Create the plot
     plt.figure(figsize=(10, 6))
-    plt.plot(deltas/1e6, ground_final, label='Ground State')
-    plt.plot(deltas/1e6, inter_final, label='Intermediate State')
-    plt.plot(deltas/1e6, rydberg_final, label='Rydberg State')
-    plt.plot(deltas/1e6, loss_final, label='Loss')
+    plt.plot(deltas/(2*np.pi*1e6), ground_final, label='Ground State')
+    plt.plot(deltas/(2*np.pi*1e6), inter_final, label='Intermediate State')
+    plt.plot(deltas/(2*np.pi*1e6), rydberg_final, label='Rydberg State')
+    plt.plot(deltas/(2*np.pi*1e6), loss_final, label='Loss')
 
-    plt.xlabel(r'$\delta$ (MHz)')
+    plt.xlabel(r'$\delta/2\pi$ (MHz)')
     plt.ylabel('Population')
     plt.title('State Populations vs Rydberg Detuning')
     plt.legend()
