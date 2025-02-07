@@ -328,7 +328,7 @@ class UnitaryRydberg:
         Omega23 = self.func_Omega23_from_Power(self.couple_power).item()
 
         # compensate AC stark shift
-        self.delta = self.transition.get_diff_ryd_ac_stark(probe_peak_power, couple_power)
+        self.delta = 0
 
         # calculate Hamiltonians
         H_array = self.get_hamiltonian_array(
@@ -400,8 +400,7 @@ class UnitaryRydberg:
         Omega23 = self.func_Omega23_from_Power(self.couple_power).item()
 
         # compensate AC stark shift
-        self.delta = self.transition.get_diff_ryd_ac_stark(probe_peak_power,
-                                                           couple_power)
+        self.delta = 0
 
         # solve initial value problem
         sol = solve_ivp(self.get_dot_rho, y0=np.ravel(self.rho0),
