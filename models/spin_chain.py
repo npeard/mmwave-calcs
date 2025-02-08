@@ -794,42 +794,44 @@ class DMRGEngine(ComputationStrategy):
 
 if __name__ == "__main__":
     # Example usage
-    # def DM_z_period4(t, i):
-    #     phase = np.pi / 2 * (i % 4)
-    #     if t == "+DM":
-    #         return phase
-    #     elif t == "-DM":
-    #         return -phase
-    #     else:
-    #         return 0
+    def DM_z_period4(t, i):
+        phase = np.pi / 2 * (i % 4)
+        if t == "+DM":
+            return phase
+        elif t == "-DM":
+            return -phase
+        else:
+            return 0
 
-    # def XY_z_period4(t, i):
-    #     phase = np.pi - 3. * np.pi / 2 * (i % 4)
-    #     if t == "+XY":
-    #         return phase
-    #     elif t == "-XY":
-    #         return -phase
-    #     else:
-    #         return 0
+    def XY_z_period4(t, i):
+        phase = np.pi - 3. * np.pi / 2 * (i % 4)
+        if t == "+XY":
+            return phase
+        elif t == "-XY":
+            return -phase
+        else:
+            return 0
 
-    # def native(t, i, j):
-    #     if t in ["+DM", "-DM", "+XY", "-XY"]:
-    #         return 0
-    #     else:
-    #         return 0.5
+    def native(t, i, j):
+        if t in ["+DM", "-DM", "+XY", "-XY"]:
+            # This is only valid because I am considering phase rotations
+            # that occur in zero time here.
+            return 0
+        else:
+            return 0.5
 
-    # terms = [['XX', native, 'nn'], ['yy', native, 'nn'],
-    #          ['z', DM_z_period4, np.inf], ['z', XY_z_period4, np.inf]]
-    # graph = LatticeGraph.from_interactions(4, terms, pbc=True)
-
-    # print(graph("-DM"))
-
-    # computation = DiagonEngine(graph)
-
-    def fourier_component(k, i, j):
-        return np.exp(1j * k * (i - j))
-
-    terms = [['XX', fourier_component, 0], ['yy', fourier_component, 0]]
+    terms = [['XX', native, 'nn'], ['yy', native, 'nn'],
+             ['z', DM_z_period4, np.inf], ['z', XY_z_period4, np.inf]]
     graph = LatticeGraph.from_interactions(4, terms, pbc=True)
 
-    print(graph(np.pi/2))
+    print(graph("-DM"))
+
+    computation = DiagonEngine(graph)
+
+    # def fourier_component(k, i, j):
+    #     return np.exp(1j * k * (i - j))
+
+    # terms = [['XX', fourier_component, 0], ['yy', fourier_component, 0]]
+    # graph = LatticeGraph.from_interactions(4, terms, pbc=True)
+
+    # print(graph(np.pi/2))
