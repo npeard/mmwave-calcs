@@ -555,6 +555,12 @@ class FloquetOptimizer:
 
         return losses
 
+def set_param_optimization(param_list, optimize=True):
+    """Helper function to enable/disable optimization for parameters."""
+    for param in param_list:
+        for p in param.parameters():
+            p.requires_grad = optimize
+
 if __name__ == "__main__":
     # Example usage of time-dependent functions
     def DM_z_period4_torch(t, i, phase_factor=torch.tensor(np.pi/2, dtype=torch.float64)):
@@ -581,14 +587,15 @@ if __name__ == "__main__":
     def native_torch(t, i, j, coupling=torch.tensor(0.5, dtype=torch.float64)):
         """Native interaction strength."""
         if t in ["+DM", "-DM", "+XY", "-XY"]:
-            return torch.tensor(0.0, dtype=torch.float64)
+            return torch.tensor(0.0, dtype=torch.float64, requires_grad=False)
         else:
             return coupling
 
     # Function for time parameters that just returns the value
     def time_param(t, value=torch.tensor(0.1, dtype=torch.float64)):
-        """Simple function to return an optimizable time parameter."""
-        return value
+        """Simple function to return an optimizable time parameter.
+        Uses softplus to ensure positive values while maintaining smooth gradients."""
+        return torch.nn.functional.softplus(value)
 
     # Create TorchParameter instances for interactions
     dm_params = {'phase_factor': np.pi/2}
@@ -604,15 +611,22 @@ if __name__ == "__main__":
     native_interaction = TorchParameter(native_params, native_torch)
 
     # Create TorchParameter instances for time parameters
-    tJ = TorchParameter({'value': 0.1}, time_param)
-    tD = TorchParameter({'value': 0.2}, time_param)
-    tmJ = TorchParameter({'value': 0.15}, time_param)
+    # Initialize with log-space values since they'll be passed through softplus
+    tJ = TorchParameter({'value': torch.log(torch.tensor(0.1) + 1.0)}, time_param)
+    tD = TorchParameter({'value': torch.log(torch.tensor(0.2) + 1.0)}, time_param)
+    tmJ = TorchParameter({'value': torch.log(torch.tensor(0.15) + 1.0)}, time_param)
+
+    # Example of disabling optimization for specific parameters
+    # Disable optimization for interaction parameters
+    set_param_optimization([dm_interaction, xy_interaction, native_interaction], optimize=False)
+    # Keep time parameters optimizable
+    set_param_optimization([tJ, tD, tmJ], optimize=True)
 
     # Collect time parameters
     time_parameters = [tJ, tD, tmJ]
 
     # set number of sites
-    num_sites = 4
+    num_sites = 8
 
     # Example terms using the TorchParameter instances
     terms = [
@@ -629,26 +643,42 @@ if __name__ == "__main__":
 
     # Create optimizer with time parameters
     optimizer = FloquetOptimizer(graph, target_graph=DM_graph, external_parameters=time_parameters)
-    print("\nCollected torch parameters:", optimizer.torch_parameters)
-    print("Parameters to optimize:", [p for param in optimizer.torch_parameters for p in param.parameters()])
-
     optimizer.setup_optimizer(optimizer_class=torch.optim.Adam, lr=0.01)
 
     # Define sequence and optimize
     param_list = ["nat", "+DM", "nat", "+XY", "nat", "-XY", "nat", "-DM", "nat"]
     dt_params = [tJ, 0, tD, 0, lambda: 2 * tmJ(0), 0, tD, 0, tJ]  # Now passing parameters instead of evaluated values
 
+    def print_parameters(title):
+        """Helper function to print all parameters in a structured way."""
+        print(f"\n{title}")
+        print("-" * len(title))
+
+        # Print interaction parameters
+        print("\nInteraction Parameters:")
+        for name, param in [("DM", dm_interaction), ("XY", xy_interaction), ("Native", native_interaction)]:
+            print(f"\n{name} Interaction:")
+            # Convert generator to list of (name, tensor) tuples
+            param_items = list(param.named_parameters())
+            for param_name, param_tensor in param_items:
+                print(f"  {param_name}: {param_tensor.item():.6f}")
+
+        # Print time parameters
+        print("\nTime Parameters:")
+        for name, param in [("tJ", tJ), ("tD", tD), ("tmJ", tmJ)]:
+            # Get raw parameter value
+            _, raw_value = next(param.named_parameters())
+            # Get actual time value after softplus
+            actual_value = param(0)  # Call the parameter with t=0 to get the time value
+            print(f"  {name}:")
+            print(f"    parameter value: {raw_value.item():.6f}")
+            print(f"    actual time: {actual_value.item():.6f}")
+
+    print_parameters("Initial Parameters")
+
+    # Run optimization
     print("\nStarting optimization...")
-    print("Initial parameters:")
-    print(f"tJ: {tJ(0).item():.6f}")
-    print(f"tD: {tD(0).item():.6f}")
-    print(f"tmJ: {tmJ(0).item():.6f}")
+    losses = optimizer.optimize_floquet_sequence(dt_params, param_list, num_epochs=100)
 
-    losses = optimizer.optimize_floquet_sequence(dt_params, param_list, num_epochs=10)
-
-    print("\nFinal parameters:")
-    print(f"tJ: {tJ(0).item():.6f}")
-    print(f"tD: {tD(0).item():.6f}")
-    print(f"tmJ: {tmJ(0).item():.6f}")
-
-    print("\nFinal loss:", losses[-1])
+    print_parameters("Final Parameters")
+    print(f"\nFinal loss: {losses[-1]:.6f}")
