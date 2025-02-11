@@ -129,7 +129,7 @@ class FloquetProgram(ABC):
                     op = op * strength
                 else:
                     op = op * float(strength)
-                H = H + op
+                H = H + op.to(self.device)
 
         return H
 
@@ -239,10 +239,10 @@ class XYAntiSymmetricProgram(FloquetProgram):
     """
     Example implementation of a Floquet program for a specific quantum system.
     """
-    def __init__(self, num_sites: int = 8, spin='1/2'):
+    def __init__(self, num_sites: int = 8, spin='1/2', device: Optional[str] = None):
         self.num_sites = num_sites
         self.spin = spin
-        super().__init__(num_sites, spin)
+        super().__init__(num_sites, spin, device)
 
     def _build_native_graph(self) -> TorchLatticeGraph:
         """Build the native Hamiltonian including the control terms."""

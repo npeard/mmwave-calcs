@@ -160,6 +160,12 @@ class FloquetOptimizer:
 
 if __name__ == "__main__":
     # Example usage
-    floq_opt = FloquetOptimizer(XYAntiSymmetricProgram(num_sites=4))
+    import time
+    start_time = time.time()
+    
+    floq_opt = FloquetOptimizer(XYAntiSymmetricProgram(num_sites=10, device='cuda:1'), device='cuda:1')
     floq_opt.setup_optimizer(lr=0.01)
-    floq_opt.optimize_floquet_sequence()
+    floq_opt.optimize_floquet_sequence(num_epochs=10)
+    
+    end_time = time.time()
+    print(f"\nTotal execution time: {end_time - start_time:.2f} seconds")
