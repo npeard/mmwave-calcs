@@ -27,7 +27,11 @@ class TorchParameter(nn.Module):
 
         # Register each parameter with PyTorch
         for name, value in params.items():
-            setattr(self, name, nn.Parameter(torch.tensor(value, dtype=torch.float64)))
+            if isinstance(value, torch.Tensor):
+                param_value = value.clone().detach()
+            else:
+                param_value = torch.tensor(value, dtype=torch.float64)
+            setattr(self, name, nn.Parameter(param_value))
 
         self.func = func
 
@@ -187,6 +191,7 @@ class TorchSpinOperator:
         if op is None:
             raise ValueError(f"Unknown operator: {op_string}")
 
+        # TODO: move identity definition to _get_spin_operators, only needs init once
         # Create identity matrix for single site
         id_indices = torch.tensor([[0, 1], [0, 1]], dtype=torch.long)
         id_values = torch.ones(2, dtype=torch.complex128)

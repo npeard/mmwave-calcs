@@ -302,7 +302,7 @@ class XYAntiSymmetricProgram(FloquetProgram):
         # Do not optimize the native coupling value
         self._set_param_optimization([native_off], optimize=False)
 
-        return TorchLatticeGraph.from_torch_interactions(self.num_sites, xy_terms)
+        return TorchLatticeGraph.from_torch_interactions(self.num_sites, xy_terms, pbc=False)
 
     def _build_target_graph(self) -> TorchLatticeGraph:
         """Build the target graph."""
