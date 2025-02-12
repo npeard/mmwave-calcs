@@ -113,8 +113,8 @@ class LatticeGraph:
                 raise ValueError(f"Invalid interaction operator, "
                                  f"expected string: {operator}")
 
-            # Normalize operator to lowercase for consistency
-            #operator = operator.lower()
+            # Convert operator to uppercase for consistency
+            operator = operator.upper()
 
             # Initialize list for this operator if not exists
             if operator not in new_interaction_dict:
@@ -311,6 +311,30 @@ class ComputationStrategy(ABC):
 
 
 class DiagonEngine(ComputationStrategy):
+    def __init__(self, graph: LatticeGraph, spin='1/2', unit_cell_length: int = 1):
+        """
+        Initialize the DMRG Engine for solving spin chain problems.
+
+        Parameters
+        ----------
+        graph : LatticeGraph
+            The lattice graph defining the spin chain system.
+        spin : str, optional
+            The spin representation to use. Default is '1' for spin-1.
+        unit_cell_length : int, optional
+            Length of the unit cell. Default is 1.
+        """
+        super().__init__(graph, spin, unit_cell_length)
+        # Declare a basis of states for the spin chain
+        # Note that pauli=1 sets all spin-1/2 operators as the Pauli
+        # matrices, S = sigma/2. But this behaviour may not be allowed
+        # for S>1/2. If this change is required, remember to change
+        # operator implementaiton in torch_chain.py as well.
+        self.basis = spin_basis_1d(L=self.graph.num_sites,
+                                   a=self.unit_cell_length,
+                                   S=self.spin,
+                                   pauli=1)
+
     def get_quspin_hamiltonian(self, t: float):
         """
         Construct the Hamiltonian for the spin chain using QuSpin.
@@ -332,14 +356,10 @@ class DiagonEngine(ComputationStrategy):
             The Hamiltonian object in QuSpin format for the current
             spin chain configuration.
         """
-        # Declare a basis of states for the spin chain
-        self.basis = spin_basis_1d(L=self.graph.num_sites,
-                                   a=self.unit_cell_length,
-                                   S=self.spin)
-        # Put our Hamiltonian into QuSpin format
-        static = [[key, self.graph(t)[key]] for key in self.graph(t).keys()]
+        # Put our Hamiltonian into QuSpin format. Note that QuSpin wants lowercase
+        # operator strings.
+        static = [[key.lower(), self.graph(t)[key]] for key in self.graph(t).keys()]
         # Create QuSpin Hamiltonian, suppressing annoying print statements
-        # TODO: is this multiplying my operators by 2?
         with HiddenPrints():
             H = quspin.operators.hamiltonian(static, [], basis=self.basis)
 
@@ -457,9 +477,9 @@ class DiagonEngine(ComputationStrategy):
         Parameters
         ----------
         matrix1 : quspin.operators.hamiltonian or np.ndarray
-            The first matrix.
+            The first matrix, representing a Hamiltonian times evolution time.
         matrix2 : quspin.operators.hamiltonian or np.ndarray
-            The second matrix.
+            The second matrix, representing a Hamiltonian times evolution time.
 
         Returns
         -------
@@ -553,31 +573,31 @@ class DMRGEngine(ComputationStrategy):
                 # TODO: add here proper substitution of PM operators for XY
                 if len(term) == 2:  # Single-site term
                     site = term[1]
-                    if op_type.lower() == 'x':
+                    if op_type == 'X':
                         b.add_term("X", [site], J)
-                    elif op_type.lower() == 'y':
+                    elif op_type == 'Y':
                         b.add_term("Y", [site], J)
-                    elif op_type.lower() == 'z':
+                    elif op_type == 'Z':
                         b.add_term("Z", [site], J)
 
                 elif len(term) == 3:  # Two-site term
                     site1, site2 = term[1], term[2]
-                    if op_type.lower() == 'xx':
+                    if op_type == 'XX':
                         # XX terms are implemented as 0.5*(P+M)**2
                         b.add_term("PP", [site1, site2], 0.5 * J)
                         b.add_term("MM", [site1, site2], 0.5 * J)
                         b.add_term("MP", [site1, site2], 0.5 * J)
                         b.add_term("PM", [site1, site2], 0.5 * J)
-                    elif op_type.lower() == 'yy':
+                    elif op_type == 'YY':
                         # YY terms are implemented as -0.5*(P-M)**2
                         b.add_term("PP", [site1, site2], -0.5 * J)
                         b.add_term("MM", [site1, site2], -0.5 * J)
                         b.add_term("MP", [site1, site2], 0.5 * J)
                         b.add_term("PM", [site1, site2], 0.5 * J)
-                    elif op_type.lower() == 'zz':
+                    elif op_type == 'ZZ':
                         b.add_term("ZZ", [site1, site2], J)
                     else:
-                        b.add_term(op_type.upper(), [site1, site2], J)
+                        b.add_term(op_type, [site1, site2], J)
 
         return self.driver.get_mpo(b.finalize())
 
@@ -794,42 +814,38 @@ class DMRGEngine(ComputationStrategy):
 
 if __name__ == "__main__":
     # Example usage
-    # def DM_z_period4(t, i):
-    #     phase = np.pi / 2 * (i % 4)
-    #     if t == "+DM":
-    #         return phase
-    #     elif t == "-DM":
-    #         return -phase
-    #     else:
-    #         return 0
+    def DM_z_period4(t, i):
+        phase = np.pi / 2 * (i % 4)
+        if t == "+DM":
+            return phase
+        elif t == "-DM":
+            return -phase
+        else:
+            return 0
 
-    # def XY_z_period4(t, i):
-    #     phase = np.pi - 3. * np.pi / 2 * (i % 4)
-    #     if t == "+XY":
-    #         return phase
-    #     elif t == "-XY":
-    #         return -phase
-    #     else:
-    #         return 0
+    def XY_z_period4(t, i):
+        phase = np.pi - 3. * np.pi / 2 * (i % 4)
+        if t == "+XY":
+            return phase
+        elif t == "-XY":
+            return -phase
+        else:
+            return 0
 
-    # def native(t, i, j):
-    #     if t in ["+DM", "-DM", "+XY", "-XY"]:
-    #         return 0
-    #     else:
-    #         return 0.5
+    def native(t, i, j):
+        if t in ["+DM", "-DM", "+XY", "-XY"]:
+            # This is only valid because I am considering phase rotations
+            # that occur in zero time here.
+            return 0
+        else:
+            return 0.5
 
-    # terms = [['XX', native, 'nn'], ['yy', native, 'nn'],
-    #          ['z', DM_z_period4, np.inf], ['z', XY_z_period4, np.inf]]
-    # graph = LatticeGraph.from_interactions(4, terms, pbc=True)
+    terms = [['XX', native, 'nn'], ['yy', native, 'nn'],
+             ['z', DM_z_period4, np.inf], ['z', XY_z_period4, np.inf]]
+    graph = LatticeGraph.from_interactions(3, terms, pbc=False)
 
-    # print(graph("-DM"))
+    #print(graph("-DM"))
 
-    # computation = DiagonEngine(graph)
-
-    def fourier_component(k, i, j):
-        return np.exp(1j * k * (i - j))
-
-    terms = [['XX', fourier_component, 0], ['yy', fourier_component, 0]]
-    graph = LatticeGraph.from_interactions(4, terms, pbc=True)
-
-    print(graph(np.pi/2))
+    computation = DiagonEngine(graph)
+    H = computation.get_quspin_hamiltonian("nat")
+    print(H.todense())
