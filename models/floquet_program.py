@@ -77,12 +77,25 @@ class FloquetProgram(ABC):
         self.num_sites = num_sites
         self.spin = spin
         self.device = device if device is not None else ('cuda' if torch.cuda.is_available() else 'cpu')
+
+        # Initialize operator cache
+        self._operator_cache = {}
+        self._spin_operator = TorchSpinOperator(self.num_sites, self.spin)
+
+        # Build graphs and cache operators
         self._native_graph = self._build_native_graph()
         self._target_graph = self._build_target_graph()
+        self._cache_operators(self._native_graph)
+        self._cache_operators(self._target_graph)
 
         # Pulse program parameters, lists of pulse parameters (can be times or strings)
         # and associated evolution time for that pulse
         self._build_sequence_timings()
+        # Currently, I am only interested in optimizing Floquet sequences with a known structure,
+        # so _build_sequence_timings() should initialize self._hamiltonian_sequence so that we only
+        # call _build_hamiltonian once. If the sequence of applied Hamiltonians needs to be mutable,
+        # then it will be necessary to make _build_hamiltonian more efficient.
+        self._hamiltonian_sequence = None
         self.torch_params = self._collect_unique_torch_parameters()
 
     @abstractmethod
@@ -107,65 +120,95 @@ class FloquetProgram(ABC):
         Build the sequence timings.
         Must be implemented by subclasses.
         """
+        # Currently, I am only interested in optimizing Floquet sequences with a known structure,
+        # so _build_sequence_timings() should initialize self._hamiltonian_sequence so that we only
+        # call _build_hamiltonian once. If the sequence of applied Hamiltonians needs to be mutable,
+        # then it will be necessary to make _build_hamiltonian more efficient.
         raise NotImplementedError()
 
+    def _cache_operators(self, graph: TorchLatticeGraph):
+        """
+        Cache all operators for a given graph.
+
+        Parameters
+        ----------
+        graph : TorchLatticeGraph
+            Graph to cache operators for
+        """
+        for op_string, interactions in graph.interaction_dict.items():
+            for interaction in interactions:
+                sites = interaction[1:]
+                cache_key = (op_string, tuple(sites))
+                if cache_key not in self._operator_cache:
+                    self._operator_cache[cache_key] = self._spin_operator.get_operator_sparse(op_string, sites)
+
     def _build_hamiltonian(self, graph: TorchLatticeGraph, t: float) -> torch.Tensor:
-        """Build Hamiltonian at time t."""
+        """
+        Build Hamiltonian at time t using cached operators.
+        Uses dense matrices throughout for autograd compatibility.
+
+        Parameters
+        ----------
+        graph : TorchLatticeGraph
+            Graph to build Hamiltonian from
+        t : float
+            Time at which to evaluate
+
+        Returns
+        -------
+        torch.Tensor
+            Dense Hamiltonian matrix
+        """
         # Get dimension from number of sites
-        spin_op = TorchSpinOperator(self.num_sites, self.spin)
-        dim = spin_op.dim ** self.num_sites  # dimension of full Hilbert space
+        dim = self._spin_operator.dim ** self.num_sites
 
-        # Initialize Hamiltonian
+        # Initialize dense Hamiltonian
         H = torch.zeros((dim, dim), dtype=torch.complex128, device=self.device)
+        # Ideally, this would be a sparse matrix. But PyTorch autograd doesn't play
+        # nice with sparse, complex-valued matrices. TODO: Find another solution?
 
-        # Add all interaction terms
+        # Add all interaction terms using cached operators
         for op_string, interactions in graph.interaction_dict.items():
             for interaction in interactions:
                 strength = graph.evaluate_interaction(interaction, t)
                 sites = interaction[1:]
-                # Get sparse operator and convert to dense
-                op = spin_op.get_operator_sparse(op_string, sites).to_dense()
+
+                # Get cached operator and convert to dense
+                cache_key = (op_string, tuple(sites))
+                op = self._operator_cache[cache_key].to_dense().to(self.device)
+
+                # Scale operator by strength and add to H
                 if isinstance(strength, torch.Tensor):
-                    op = op * strength
+                    H = H + op * strength
                 else:
-                    op = op * float(strength)
-                H = H + op.to(self.device)
+                    H = H + op * float(strength)
 
         return H
 
     def _build_native_hamiltonian(self, t):
-        """
-        Build the native Hamiltonian graph. This should include the time-dependent
-        control terms.
-        """
+        """Build the native Hamiltonian including time-dependent control terms."""
         return self._build_hamiltonian(self._native_graph, t=t)
 
     def _build_target_hamiltonian(self):
-        """
-        Build the target Hamiltonian graph. This Hamiltonian should have no
-        time-dependence.
-        """
+        """Build the target Hamiltonian (time-independent)."""
         return self._build_hamiltonian(self._target_graph, t=0)
 
     def get_floquet_sequence(self):
         """
         Return the sequence of Hamiltonians and times for the Floquet system.
-        This is the main function to be called by an optimizer, which performs the evolution
-        computation.
+        Hamiltonians are kept sparse until needed.
         """
         hamiltonians = [self._build_native_hamiltonian(p) for p in self._pulse_parameters]
         delta_t = [dt if dt != 0 else 1 for dt in self._evolve_times]
-
         return delta_t, hamiltonians
 
     def get_target_unitary(self, floquet_period):
         """
         Compute the target unitary for the given Floquet period.
-        Use this to compute loss metrics.
         """
-        U = torch.matrix_exp(-1j * self._build_target_hamiltonian() * floquet_period).detach()
+        H_target = self._build_target_hamiltonian()
+        U = torch.matrix_exp(-1j * H_target * floquet_period).detach()
         return U
-        #return torch.matrix_exp(-1j * self._build_target_hamiltonian() * floquet_period).detach()
 
     def _time_param(self, t, value=torch.tensor(0.1, dtype=torch.float64)):
         """Simple function to return an optimizable time parameter.
@@ -278,6 +321,11 @@ class XYAntiSymmetricProgram(FloquetProgram):
 
     def _build_sequence_timings(self) -> tuple[List[str], List[TorchParameter]]:
         """Build the sequence timings."""
+        # Currently, I am only interested in optimizing Floquet sequences with a known structure,
+        # so _build_sequence_timings() should initialize self._hamiltonian_sequence so that we only
+        # call _build_hamiltonian once. If the sequence of applied Hamiltonians needs to be mutable,
+        # then it will be necessary to make _build_hamiltonian more efficient.
+
         # Get time parameters
         t_posJ, t_DM, t_negJ = self._build_time_parameters()
 

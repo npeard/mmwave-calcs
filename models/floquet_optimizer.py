@@ -37,14 +37,13 @@ class FloquetOptimizer:
     def compute_floquet_unitary(self, dt_list: List[float], hamiltonians: List[torch.Tensor]) -> torch.Tensor:
         """
         Compute Floquet unitary evolution operator for a sequence of Hamiltonians and time steps.
-        Uses batched matrix operations on GPU when possible.
 
         Parameters
         ----------
         dt_list : List[float]
             List of time steps
         hamiltonians : List[torch.Tensor]
-            List of Hamiltonian matrices
+            List of dense Hamiltonian matrices
 
         Returns
         -------
@@ -55,8 +54,9 @@ class FloquetOptimizer:
         dim = hamiltonians[0].shape[0]
         U = torch.eye(dim, dtype=torch.complex128, device=self.device)
 
+        # Process each time step sequentially
         for dt, H in zip(dt_list, hamiltonians):
-            H = H.to(self.device)
+            # H is already dense and on the correct device from FloquetProgram
             evolution = torch.matrix_exp(-1j * dt * H)
             U = evolution @ U
 
@@ -161,11 +161,13 @@ class FloquetOptimizer:
 if __name__ == "__main__":
     # Example usage
     import time
+    import cProfile
     start_time = time.time()
-    
-    floq_opt = FloquetOptimizer(XYAntiSymmetricProgram(num_sites=10, device='cuda:1'), device='cuda:1')
+
+    floq_opt = FloquetOptimizer(XYAntiSymmetricProgram(num_sites=8, device='cpu'), device='cpu')
     floq_opt.setup_optimizer(lr=0.01)
-    floq_opt.optimize_floquet_sequence(num_epochs=10)
-    
+    #floq_opt.optimize_floquet_sequence(num_epochs=100)
+    cProfile.run("floq_opt.optimize_floquet_sequence(num_epochs=100)")
+
     end_time = time.time()
     print(f"\nTotal execution time: {end_time - start_time:.2f} seconds")
