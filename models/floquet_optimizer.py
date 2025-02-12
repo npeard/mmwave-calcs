@@ -164,9 +164,9 @@ if __name__ == "__main__":
     import cProfile
     start_time = time.time()
 
-    floq_opt = FloquetOptimizer(XYAntiSymmetricProgram(num_sites=4, device='cpu'), device='cpu')
-    floq_opt.setup_optimizer(lr=0.01)
-    floq_opt.optimize_floquet_sequence(num_epochs=100)
+    floq_opt = FloquetOptimizer(XYAntiSymmetricProgram(num_sites=4, pbc=True, device='cpu'), device='cpu')
+    floq_opt.setup_optimizer(lr=0.001)
+    floq_opt.optimize_floquet_sequence(num_epochs=200)
     #cProfile.run("floq_opt.optimize_floquet_sequence(num_epochs=100)")
 
     end_time = time.time()

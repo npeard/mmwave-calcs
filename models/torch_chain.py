@@ -15,7 +15,8 @@ class TorchParameter(nn.Module):
     Parameters
     ----------
     params : dict
-        Dictionary of parameter names and initial values
+        Dictionary of parameter names and initial values. Special key 'name' can be
+        used to assign a descriptive name to the parameter for printing.
     func : callable
         Function that takes (t, *args, **params) where:
         - t is the time
@@ -24,6 +25,9 @@ class TorchParameter(nn.Module):
     """
     def __init__(self, params: dict, func: callable):
         super().__init__()
+
+        # Store descriptive name if provided, otherwise use a default
+        self.param_name = params.pop('name', 'unnamed_parameter')
 
         # Register each parameter with PyTorch
         for name, value in params.items():
@@ -34,6 +38,15 @@ class TorchParameter(nn.Module):
             setattr(self, name, nn.Parameter(param_value))
 
         self.func = func
+
+    def __str__(self):
+        """Return a string representation showing parameter name and values."""
+        param_strs = [f"{name}={param.item():.6f}"
+                     for name, param in self.named_parameters()]
+        return f"{self.param_name}({', '.join(param_strs)})"
+
+    def __repr__(self):
+        return self.__str__()
 
     def forward(self, t: float, *args) -> torch.Tensor:
         """

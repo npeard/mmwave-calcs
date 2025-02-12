@@ -178,7 +178,7 @@ class FloquetProgram(ABC):
                 op = self._operator_cache[cache_key].to_dense().to(self.device)
 
                 # Scale operator by strength and add to H
-                if isinstance(strength, torch.Tensor):
+                if isinstance(strength, torch.Tensor) or isinstance(strength, complex):
                     H = H + op * strength
                 else:
                     H = H + op * float(strength)
@@ -210,7 +210,7 @@ class FloquetProgram(ABC):
         U = torch.matrix_exp(-1j * H_target * floquet_period).detach()
         return U
 
-    def _time_param(self, t, value=torch.tensor(0.1, dtype=torch.float64)):
+    def _time_param(self, t, value=torch.tensor(0.1, dtype=torch.float64), name='t_*'):
         """Simple function to return an optimizable time parameter.
         Uses softplus to ensure positive values while maintaining smooth gradients."""
         return torch.nn.functional.softplus(value)
@@ -254,68 +254,80 @@ class FloquetProgram(ABC):
             Title for the parameter printout
         """
         print(f"\n{title}")
-        print("-" * len(title))
+        print("=" * len(title))
 
         # Group parameters by TorchParameter instance
-        for i, param_obj in enumerate(self.torch_params):
-            print(f"\nTorchParameter {i+1}:")
+        for param_obj in self.torch_params:
+            print(f"\n{param_obj.param_name}:")
+            print("-" * (len(param_obj.param_name) + 1))
 
             # Get all parameters for this TorchParameter
             param_items = list(param_obj.named_parameters())
 
             # Print raw parameter values
-            print("  Raw parameter values:")
             for name, param in param_items:
-                print(f"    {name}: {param.item():.6f}")
+                print(f"  {name}: {param.item():.6f}")
 
             # If this is a time parameter, also show actual time value
             try:
                 actual_value = param_obj(0)  # Try calling with t=0
                 if isinstance(actual_value, torch.Tensor):
-                    print("  Actual time value:")
-                    print(f"    {actual_value.item():.6f}")
+                    actual_value = actual_value.item()
+                    print(f"  → evaluated time (soft-plus): {actual_value:.6f}")
             except:
                 pass  # Not a time parameter or doesn't support direct calling
+
+            print()  # Add blank line between parameters
 
 
 class XYAntiSymmetricProgram(FloquetProgram):
     """
     Example implementation of a Floquet program for a specific quantum system.
     """
-    def __init__(self, num_sites: int = 8, spin='1/2', device: Optional[str] = None):
+    def __init__(self, num_sites: int = 8, spin='1/2', pbc=False,device: Optional[str] = None):
         self.num_sites = num_sites
         self.spin = spin
+        self.pbc = pbc
         super().__init__(num_sites, spin, device)
 
     def _build_native_graph(self) -> TorchLatticeGraph:
         """Build the native Hamiltonian including the control terms."""
         # Create parameters for the control pulses
-        DM_z = TorchParameter({'phase_factor': torch.pi/2}, self.DM_z_period4_torch)
-        XY_z = TorchParameter({'base_phase': torch.pi, 'phase_factor': 3*torch.pi/2},
+        DM_z = TorchParameter({'phase_factor': torch.pi/2, 'name': 'DM_phase'}, self.DM_z_period4_torch)
+        XY_z = TorchParameter({'base_phase': torch.pi, 'phase_factor': 3*torch.pi/2, 'name': 'XY_phase'},
                               self.XY_z_period4_torch)
-        native_off = TorchParameter({'coupling': 0.5}, self.native_off_torch)
+        native_off = TorchParameter({'coupling': 0.5, 'name': 'native_coupling'}, self.native_off_torch)
 
         # Define the interaction terms, native and control
         xy_terms = [['XX', native_off, 'nn'], ['YY', native_off, 'nn'],
                     ['z', DM_z, np.inf], ['z', XY_z, np.inf]]
 
         # Do not optimize the native coupling value
-        self._set_param_optimization([native_off], optimize=False)
+        self._set_param_optimization([native_off, DM_z, XY_z], optimize=False)
 
-        return TorchLatticeGraph.from_torch_interactions(self.num_sites, xy_terms, pbc=False)
+        return TorchLatticeGraph.from_torch_interactions(self.num_sites, xy_terms, pbc=self.pbc)
 
     def _build_target_graph(self) -> TorchLatticeGraph:
         """Build the target graph."""
         dm_terms = [['XY', 1/2, 'nn'], ['YX', -1/2, 'nn']]
 
-        return TorchLatticeGraph.from_torch_interactions(self.num_sites, dm_terms)
+        return TorchLatticeGraph.from_torch_interactions(self.num_sites, dm_terms, pbc=self.pbc)
 
     def _build_time_parameters(self) -> List[TorchParameter]:
         """Build the free evolution time parameters for the Floquet sequence."""
         # Create time parameters with positive constraint using softplus
-        t_posJ = TorchParameter({'value': torch.log(torch.tensor(0.1) + 1.0)}, self._time_param)
-        t_DM = TorchParameter({'value': torch.log(torch.tensor(0.2) + 1.0)}, self._time_param)
-        t_negJ = TorchParameter({'value': torch.log(torch.tensor(0.15) + 1.0)}, self._time_param)
+        t_posJ = TorchParameter(
+            {'value': -0.1, 'name': 'positive_J_time'},
+            self._time_param
+        )
+        t_DM = TorchParameter(
+            {'value': 1.1, 'name': 'DM_time'},
+            self._time_param
+        )
+        t_negJ = TorchParameter(
+            {'value': 0.9, 'name': 'negative_J_time'},
+            self._time_param
+        )
 
         return [t_posJ, t_DM, t_negJ]
 
@@ -331,7 +343,7 @@ class XYAntiSymmetricProgram(FloquetProgram):
 
         # Define pulse sequence and timings
         pulse_list = ["nat", "+DM", "nat", "+XY", "nat", "-XY", "nat", "-DM", "nat"]
-        dt_list = [t_posJ, 0, t_DM, 0, t_negJ, 0, t_DM, 0, t_posJ]  # Now passing parameters instead of evaluated values
+        dt_list = [t_posJ, 0, t_DM, 0, t_negJ, 0, t_DM, 0, t_posJ]
 
         self._evolve_times = dt_list
         self._pulse_parameters = pulse_list
