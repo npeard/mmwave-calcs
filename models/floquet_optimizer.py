@@ -166,8 +166,8 @@ if __name__ == "__main__":
 
     floq_opt = FloquetOptimizer(XYAntiSymmetricProgram(num_sites=8, device='cpu'), device='cpu')
     floq_opt.setup_optimizer(lr=0.01)
-    #floq_opt.optimize_floquet_sequence(num_epochs=100)
-    cProfile.run("floq_opt.optimize_floquet_sequence(num_epochs=100)")
+    floq_opt.optimize_floquet_sequence(num_epochs=100)
+    #cProfile.run("floq_opt.optimize_floquet_sequence(num_epochs=100)")
 
     end_time = time.time()
     print(f"\nTotal execution time: {end_time - start_time:.2f} seconds")

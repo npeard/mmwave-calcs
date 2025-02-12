@@ -113,8 +113,8 @@ class LatticeGraph:
                 raise ValueError(f"Invalid interaction operator, "
                                  f"expected string: {operator}")
 
-            # Normalize operator to lowercase for consistency
-            #operator = operator.lower()
+            # Convert operator to uppercase for consistency
+            operator = operator.upper()
 
             # Initialize list for this operator if not exists
             if operator not in new_interaction_dict:
@@ -457,9 +457,9 @@ class DiagonEngine(ComputationStrategy):
         Parameters
         ----------
         matrix1 : quspin.operators.hamiltonian or np.ndarray
-            The first matrix.
+            The first matrix, representing a Hamiltonian times evolution time.
         matrix2 : quspin.operators.hamiltonian or np.ndarray
-            The second matrix.
+            The second matrix, representing a Hamiltonian times evolution time.
 
         Returns
         -------
@@ -553,31 +553,31 @@ class DMRGEngine(ComputationStrategy):
                 # TODO: add here proper substitution of PM operators for XY
                 if len(term) == 2:  # Single-site term
                     site = term[1]
-                    if op_type.lower() == 'x':
+                    if op_type == 'X':
                         b.add_term("X", [site], J)
-                    elif op_type.lower() == 'y':
+                    elif op_type == 'Y':
                         b.add_term("Y", [site], J)
-                    elif op_type.lower() == 'z':
+                    elif op_type == 'Z':
                         b.add_term("Z", [site], J)
 
                 elif len(term) == 3:  # Two-site term
                     site1, site2 = term[1], term[2]
-                    if op_type.lower() == 'xx':
+                    if op_type == 'XX':
                         # XX terms are implemented as 0.5*(P+M)**2
                         b.add_term("PP", [site1, site2], 0.5 * J)
                         b.add_term("MM", [site1, site2], 0.5 * J)
                         b.add_term("MP", [site1, site2], 0.5 * J)
                         b.add_term("PM", [site1, site2], 0.5 * J)
-                    elif op_type.lower() == 'yy':
+                    elif op_type == 'YY':
                         # YY terms are implemented as -0.5*(P-M)**2
                         b.add_term("PP", [site1, site2], -0.5 * J)
                         b.add_term("MM", [site1, site2], -0.5 * J)
                         b.add_term("MP", [site1, site2], 0.5 * J)
                         b.add_term("PM", [site1, site2], 0.5 * J)
-                    elif op_type.lower() == 'zz':
+                    elif op_type == 'ZZ':
                         b.add_term("ZZ", [site1, site2], J)
                     else:
-                        b.add_term(op_type.upper(), [site1, site2], J)
+                        b.add_term(op_type, [site1, site2], J)
 
         return self.driver.get_mpo(b.finalize())
 
@@ -827,11 +827,3 @@ if __name__ == "__main__":
     print(graph("-DM"))
 
     computation = DiagonEngine(graph)
-
-    # def fourier_component(k, i, j):
-    #     return np.exp(1j * k * (i - j))
-
-    # terms = [['XX', fourier_component, 0], ['yy', fourier_component, 0]]
-    # graph = LatticeGraph.from_interactions(4, terms, pbc=True)
-
-    # print(graph(np.pi/2))
