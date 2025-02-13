@@ -152,16 +152,16 @@
 
 <div class="viewcode-block" id="ACStarkShift.ac_stark_shift_shirley">
 <a class="viewcode-back" href="../../api.html#models.ac_stark.ACStarkShift.ac_stark_shift_shirley">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">ac_stark_shift_shirley</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wavelengths</span><span class="p">,</span> <span class="n">powers</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ac_stark_shift_shirley</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wavelengths</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="o">|</span><span class="nb">float</span><span class="p">,</span> <span class="n">powers</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="o">|</span><span class="nb">float</span><span class="p">):</span>
 
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Computes the AC Stark shift using the Shirley method.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        wavelengths : list</span>
+<span class="sd">        wavelengths : np.ndarray</span>
 <span class="sd">            A list of wavelengths to compute the AC Stark shift at.</span>
-<span class="sd">        powers : list</span>
+<span class="sd">        powers : np.ndarray</span>
 <span class="sd">            A list of powers to compute the AC Stark shift at.</span>
 
 <span class="sd">        Returns</span>
@@ -174,6 +174,12 @@
         <span class="c1"># the shifts</span>
         <span class="n">freqs</span> <span class="o">=</span> <span class="n">wavelength2freq</span><span class="p">(</span><span class="n">wavelengths</span><span class="p">)</span>
         <span class="n">eFields</span> <span class="o">=</span> <span class="n">power2field</span><span class="p">(</span><span class="n">powers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">laserWaist</span><span class="p">)</span>
+
+        <span class="c1"># If given only a float, convert to a NumPy array</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">freqs</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">eFields</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="n">eFields</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">eFields</span><span class="p">])</span>
 
         <span class="n">calc_full</span> <span class="o">=</span> <span class="n">ShirleyMethod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atom</span><span class="p">)</span>
 
@@ -202,6 +208,7 @@
             <span class="c1"># transition, as well as those that are coupled by microwave</span>
             <span class="c1"># transitions.</span>
         <span class="c1"># Define the final basis</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">full_basis</span><span class="p">)</span>
         <span class="n">calc_full</span><span class="o">.</span><span class="n">defineBasis</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">target_state</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
                               <span class="n">basisStates</span><span class="o">=</span><span class="n">full_basis</span><span class="p">,</span>
                               <span class="n">progressOutput</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
