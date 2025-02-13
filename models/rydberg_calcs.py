@@ -201,7 +201,7 @@ class OpticalTransition:
 # TODO: refactor this class to use two 2-level transitions for maximum code
 #  reuse
 class RydbergTransition:
-    def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, f1=4,
+    def __init__(self, laserWaist=25e-6, laserWaist2=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, f1=4,
                  q1=1, n2=7, l2=1, j2=1.5, mj2=1.5, f2=5, q2=1, n3=47, l3=2,
                  j3=2.5, mj3=2.5, f3=5):
         """
@@ -210,7 +210,7 @@ class RydbergTransition:
         Parameters
         ----------
         laserWaist : float, optional
-            The waist of the laser in meters. Defaults to 25e-6.
+            The waist of the laser in meters. Defaults to 25e-6. Inputs two for two lasers
         n1 : int, optional
             The principal quantum number of the first state. Defaults to 6.
         l1 : int, optional
@@ -257,7 +257,7 @@ class RydbergTransition:
                                              n1=n1, l1=l1, j1=j1, mj1=mj1,
                                              f1=f1, n2=n2, l2=l2, j2=j2,
                                              mj2=mj2, f2=f2, q=q1)
-        self.transition2 = OpticalTransition(laserWaist=laserWaist,
+        self.transition2 = OpticalTransition(laserWaist=laserWaist2,
                                              n1=n2, l1=l2, j1=j2, mj1=mj2,
                                              f1=f2, n2=n3, l2=l3, j2=j3,
                                              mj2=mj3, f2=f3, q=q2)
@@ -343,7 +343,7 @@ class RydbergTransition:
         else:
             raise ValueError("Must specify either P1, P2 or rabiFreq1, rabiFreq2")
 
-    def get_total_rabi_angular_freq(self, Pp, Pc, resonance=False):
+    def get_total_rabi_angular_freq(self, Pp, Pc, resonance=False, Delta0 = None):
         """
         Compute the total Rabi angular frequency of the two-photon transition.
 
@@ -374,8 +374,9 @@ class RydbergTransition:
         rabiFreq_1 = self.transition1.get_rabi_angular_freq(laserPower=Pp)
         rabiFreq_2 = self.transition2.get_rabi_angular_freq(laserPower=Pc)
         if not resonance:
-            Delta0 = self.get_optimal_detuning(rabiFreq1=rabiFreq_1,
-                                               rabiFreq2=rabiFreq_2)
+            if Delta0 == None:
+                Delta0 = self.get_optimal_detuning(rabiFreq1=rabiFreq_1,
+                                                   rabiFreq2=rabiFreq_2)
             return rabiFreq_1 * rabiFreq_2 / 2 / Delta0
         else:
             return 0.5 * np.sqrt(rabiFreq_1**2 + rabiFreq_2**2)
@@ -438,7 +439,7 @@ class RydbergTransition:
 
         return detuning
 
-    def print_laser_frequencies(self, Pp, Pc, AOM456=-220e6, AOM1064=-220e6):
+    def print_laser_frequencies(self, Pp, Pc, AOM456=-220e6, AOM1064=-220e6, Delta = None):
         """
         Print out the relevant laser frequencies and power broadenings for
         a given Rydberg transition. Mainly used for tuning parameters in the
@@ -456,6 +457,9 @@ class RydbergTransition:
         AOM1064 : float, optional
             The frequency shift of the coupling laser due to the AOM, in Hz.
             Defaults to -220e6 since there are two -1 order 110 MHz AOMs.
+        Delta: float, optional
+            Angular frequency of the detuning of the laser, in Hz.
+            Defaults to None, and then uses get_optimal_detuning.
 
         Notes
         -----
@@ -469,8 +473,18 @@ class RydbergTransition:
         line2 = self.transition2.get_linewidth()
         rabiFreq_1 = self.transition1.get_rabi_angular_freq(laserPower=Pp)
         rabiFreq_2 = self.transition2.get_rabi_angular_freq(laserPower=Pc)
-        Delta0 = self.get_optimal_detuning(rabiFreq1=rabiFreq_1,
-                                           rabiFreq2=rabiFreq_2)
+        if Delta == None:
+            Delta0 = self.get_optimal_detuning(rabiFreq1=rabiFreq_1,
+                                               rabiFreq2=rabiFreq_2)
+        else: 
+            Delta0 = Delta
+
+        probe_freq = (trans1 + Delta0 / (2 * np.pi)) * 1e-9
+        couple_freq = (trans2 - Delta0 / (2 * np.pi)) * 1e-9
+        two_photon_rabi = (self.get_total_rabi_angular_freq(Pp, Pc) 
+                           * 1e-6 / (2 * np.pi))
+        det = Delta0
+        
 
         print("Probe laser frequency (no AOM)", trans1 * 1e-9, "GHz")
         print("Probe laser frequency (with AOM)", (trans1 - AOM456) * 1e-9,
@@ -485,8 +499,11 @@ class RydbergTransition:
         print(r"Power Broadening $\sqrt(2)*\Omega = $", np.sqrt(2) *
               rabiFreq_2 / (2*np.pi) * 1e-6, "MHz")
         print("Natural Linewidth", line2 * 1e-6, "MHz")
-
-        print("\nOptimal detuning", Delta0 * 1e-9 / (2 * np.pi), "GHz ")
+        
+        if Delta == None:
+            print("\nOptimal detuning", Delta0 * 1e-9 / (2 * np.pi), "GHz ")
+        else:
+            print("\nDetuning", Delta0 * 1e-9 / (2 * np.pi), "GHz ")
 
         print("\nOptimal probe frequency (with AOM)",
               (trans1 + Delta0 / (2 * np.pi) - AOM456) * 1e-9, "GHz")
@@ -496,6 +513,8 @@ class RydbergTransition:
         print("\nExpected Rabi Frequency = 2*pi",
               self.get_total_rabi_angular_freq(Pp, Pc) * 1e-6 / (2 * np.pi), "MHz")
         print("Pi Pulse Duration", self.get_pi_pulse_duration(Pp, Pc) * 1e9, "ns")
+
+        return probe_freq, couple_freq, two_photon_rabi, det, rabiFreq_1, rabiFreq_2
 
     def print_saturation_powers(self):
         """
@@ -516,7 +535,7 @@ class RydbergTransition:
 
 
 if __name__ == '__main__':
-    transition40 = RydbergTransition(laserWaist=25e-6, n1=6, l1=0, j1=0.5,
+    transition40 = RydbergTransition(laserWaist1=25e-6, n1=6, l1=0, j1=0.5,
                                      mj1=0.5, f1=4, q1=1, n2=7, l2=1, j2=1.5,
                                      mj2=1.5, f2=5,
                                      q2=-1, n3=40, l3=0, j3=0.5)

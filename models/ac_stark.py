@@ -130,6 +130,7 @@ class ACStarkShift:
             # transition, as well as those that are coupled by microwave
             # transitions.
         # Define the final basis
+        print(full_basis)
         calc_full.defineBasis(*self.target_state, self.mj, self.q,
                               basisStates=full_basis,
                               progressOutput=False)
